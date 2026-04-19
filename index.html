@@ -381,8 +381,8 @@ async function init() {
     updateStats();
     render();
   } catch(e) {
-    setSync('off', '연결 실패 — 인터넷 확인');
-    document.getElementById('list').innerHTML = '<div class="nr"><span>⚠️</span>서버 연결에 실패했어요<br><small>인터넷 연결을 확인해주세요</small></div>';
+    setSync('off', '연결 실패: ' + e.message);
+    document.getElementById('list').innerHTML = `<div class="nr"><span>⚠️</span>서버 연결에 실패했어요<br><small style="color:var(--red)">${e.message}</small></div>`;
   }
 }
 
@@ -604,6 +604,7 @@ function render() {
     return sortBy==='count' ? v : v * sortDir;
   });
   document.getElementById('cnt').textContent = list.length+'곡 표시 중';
+  const container = document.getElementById('list');
   if (!list.length) { container.innerHTML='<div class="nr"><span>🎵</span>검색 결과가 없습니다</div>'; return; }
 
   container.innerHTML = list.map(s=>{
