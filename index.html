@@ -613,7 +613,7 @@ function render() {
     const bc = s.status==='used'?'b-used':s.status==='ready'?'b-ready':'b-plan';
     const barPct = s.count>0?Math.round((s.count/mx)*100):0;
     const seas = s.seasons||[];
-    let actionBtns = '';
+    let actionBtns = '<div class="ar">';
     if (s.status==='plan') {
       actionBtns += `<button class="ab green" onclick="changeStatus('${s.id}','ready')">악보 완료 ✓</button>`;
       actionBtns += `<button class="ab amber" onclick="changeStatus('${s.id}','used')">사용 이력 추가</button>`;
@@ -624,9 +624,12 @@ function render() {
       actionBtns += `<button class="ab amber" onclick="addUseCount('${s.id}')">사용 횟수 +1</button>`;
       actionBtns += `<button class="ab green" onclick="changeStatus('${s.id}','ready')">악보 완료로</button>`;
     }
-    actionBtns += `<button class="ab" onclick="openModal('${s.id}')">수정</button>`;
-    actionBtns += `<button class="ab" style="background:var(--green-bg);color:var(--green);border-color:rgba(58,122,82,.3)" onclick="openViewer('${s.id}','${s.name.replace(/'/g,"\\'")}')">🎼 악보</button>`;
-    actionBtns += `<button class="ab red" onclick="deleteSong('${s.id}')">삭제</button>`;
+    actionBtns += '</div>';
+    actionBtns += `<div class="ar" style="margin-top:5px">`;
+    actionBtns += `<button class="ab" style="background:var(--green-bg);color:var(--green);border-color:rgba(58,122,82,.3)" onclick="openViewer('${s.id}','${s.name.replace(/'/g,"\\'")}')">🎼 악보 보기</button>`;
+    actionBtns += `<button class="ab" onclick="openModal('${s.id}')">✏️ 수정</button>`;
+    actionBtns += `<button class="ab red" onclick="deleteSong('${s.id}')">🗑 삭제</button>`;
+    actionBtns += '</div>';
 
     return `<div class="card ${isOpen?'open':''}">
 <div class="ch" onclick="toggle('${s.id}')">
@@ -643,7 +646,7 @@ function render() {
   </div>
   ${(s.key||s.bpm)?`<div style="display:flex;gap:6px;flex-wrap:wrap">${s.key?`<span class="stag" style="background:var(--blue-bg);color:var(--accent);border-color:rgba(45,90,142,.2)">🎵 키: ${s.key}</span>`:''}${s.bpm?`<span class="stag" style="background:var(--green-bg);color:var(--green);border-color:rgba(58,122,82,.2)">♩ ${s.bpm} BPM · ${s.bpm<65?'느리게':s.bpm<85?'보통':s.bpm<110?'빠르게':'매우 빠르게'}</span>`:''}</div>`:''}
   ${seas.length?`<div class="stags">${seas.map(t=>`<span class="stag">${t}</span>`).join('')}</div>`:''}
-  <div class="ar">${actionBtns}</div>
+  ${actionBtns}
 </div></div></div>`;
   }).join('');
 }
