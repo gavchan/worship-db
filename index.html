@@ -205,6 +205,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     <button class="fb on" onclick="sf('all',this)">전체</button>
     <button class="fb" onclick="sf('used',this)">사용 이력</button>
     <button class="fb" onclick="sf('ready',this)">악보 완료</button>
+    <button class="fb" onclick="sf('no_score',this)">악보 없음</button>
     <button class="fb" onclick="sf('top',this)">⭐ TOP 10</button>
   </div>
   <div style="font-size:.65rem;color:var(--text3);margin-top:.5rem;margin-bottom:.2rem;font-weight:500;letter-spacing:.05em">상황별</div>
@@ -1087,6 +1088,7 @@ function render() {
     if (filt==='all') return true;
     if (filt==='used') return s.status==='used';
     if (filt==='ready') return s.status==='ready';
+    if (filt==='no_score') return !s.has_score;
     if (filt==='top') return top10.includes(s.name);
     const seas = s.seasons||[];
     return seas.includes(filt);
@@ -1118,6 +1120,9 @@ function render() {
     const isOpen = exp===s.id;
     const bl = s.status==='used'?`사용 ${s.count}회`:s.status==='ready'?'악보 완료':'작업 예정';
     const bc = s.status==='used'?'b-used':s.status==='ready'?'b-ready':'b-plan';
+    const scoreBadge = s.has_score
+      ? `<span style="font-size:.6rem;padding:2px 7px;border-radius:20px;background:var(--green-bg);color:var(--green);border:1px solid rgba(58,122,82,.25);flex-shrink:0">악보 있음</span>`
+      : `<span style="font-size:.6rem;padding:2px 7px;border-radius:20px;background:var(--red-bg);color:var(--red);border:1px solid rgba(176,40,31,.2);flex-shrink:0">악보 없음</span>`;
     const barPct = s.count>0?Math.round((s.count/mx)*100):0;
     const seas = s.seasons||[];
     let actionBtns = '<div class="ar">';
@@ -1137,6 +1142,9 @@ function render() {
       actionBtns += `<button class="ab amber" onclick="window.open('${s.music_url}','_blank')">♪ 음악 듣기</button>`;
     }
     actionBtns += `<button class="ab" style="background:var(--green-bg);color:var(--green);border-color:rgba(58,122,82,.3)" onclick="openViewer('${s.id}','${s.name.replace(/'/g,"\\'")}')">🎼 악보 보기</button>`;
+    if (!s.has_score) {
+      actionBtns += `<button class="ab" style="background:var(--red-bg);color:var(--red);border-color:rgba(176,40,31,.2)" onclick="openModal('${s.id}')">🎼 악보 올리기</button>`;
+    }
     actionBtns += `<button class="ab" onclick="openModal('${s.id}')">✏️ 수정</button>`;
     actionBtns += `<button class="ab red" onclick="deleteSong('${s.id}')">🗑 삭제</button>`;
     actionBtns += '</div>';
@@ -1144,8 +1152,8 @@ function render() {
     return `<div class="card ${isOpen?'open':''}">
 <div class="ch" onclick="toggle('${s.id}')">
   <span class="badge ${bc}">${bl}</span>
+  ${scoreBadge}
   <span class="sn2">${s.name}</span>
-  ${s.has_score ? `<span style="font-size:.6rem;padding:2px 6px;border-radius:20px;background:var(--green-bg);color:var(--green);border:1px solid rgba(58,122,82,.2);flex-shrink:0">🎼 악보</span>` : ''}
   ${s.music_url ? `<span style="font-size:.6rem;padding:2px 6px;border-radius:20px;background:var(--amber-bg);color:var(--accent2);border:1px solid rgba(196,145,58,.2);flex-shrink:0">♪ 음악</span>` : ''}
   ${isTop?`<span class="top-s">TOP ${top10.indexOf(s.name)+1}</span>`:''}
   <img id="thumb-${s.id}" src="" alt="악보" style="display:none;width:36px;height:36px;object-fit:cover;border-radius:4px;border:1px solid var(--border);flex-shrink:0" onerror="this.style.display='none'">
