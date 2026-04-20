@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="찬양DB">
-<title>찬양곡 데이터베이스</title>
+<meta name="apple-mobile-web-app-title" content="드림찬양단">
+<title>드림찬양단 찬양곡 데이터베이스</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#faf8f5;--surface:#fff;--surface2:#f4f1eb;--border:#e8e2d9;--border2:#d4cec4;--text1:#1a1714;--text2:#6b6560;--text3:#9e9891;--accent:#2d5a8e;--accent2:#c4913a;--green:#3a7a52;--green-bg:#edf5f0;--blue-bg:#eaf0f8;--amber-bg:#fdf4e7;--red:#b0281f;--red-bg:#fdeaea}
@@ -132,13 +132,49 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 
 .footer{padding:1rem;text-align:center;border-top:1px solid var(--border);background:var(--surface);margin-top:.5rem}
 .fn{font-size:.66rem;color:var(--text3);line-height:1.7}
+
+/* 탭 */
+.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border)}
+.tab{flex:1;padding:.7rem;text-align:center;font-size:.8rem;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;font-family:'Noto Sans KR',sans-serif;background:none;border-top:none;border-left:none;border-right:none}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:500}
+
+/* 주일기록 */
+.history-wrap{padding:.75rem;padding-bottom:5rem}
+.history-filter{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
+.history-filter select{padding:.45rem .7rem;border:1px solid var(--border2);border-radius:6px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.8rem;color:var(--text1);outline:none}
+.history-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden}
+.history-head{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer}
+.history-date{font-size:.72rem;color:var(--text3);white-space:nowrap}
+.history-week{font-size:.78rem;font-weight:500;color:var(--accent);white-space:nowrap}
+.history-songs{font-size:.82rem;color:var(--text1);flex:1}
+.history-body{display:none;padding:0 14px 12px;border-top:1px solid var(--border)}
+.history-card.open .history-body{display:block}
+.history-song-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)}
+.history-song-item:last-child{border-bottom:none}
+.history-song-name{font-size:.83rem;flex:1}
+.hadd-btn{width:100%;margin-bottom:.75rem;padding:.6rem;border:1px dashed var(--border2);border-radius:8px;background:transparent;font-family:'Noto Sans KR',sans-serif;font-size:.8rem;color:var(--text2);cursor:pointer;transition:all .15s}
+.hadd-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--blue-bg)}
+
+/* 주일기록 모달 */
+.hmodal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:1rem}
+.hmodal-bg.show{display:flex}
+.hmodal{background:var(--surface);border-radius:12px;width:100%;max-width:440px;padding:1.5rem;box-shadow:0 20px 60px rgba(0,0,0,.2);max-height:90vh;overflow-y:auto}
+.hmodal h2{font-family:'Noto Serif KR',serif;font-size:1.1rem;font-weight:700;margin-bottom:1.2rem}
+.song-search-results{max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;margin-top:4px}
+.ssr-item{padding:8px 10px;font-size:.8rem;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s}
+.ssr-item:last-child{border-bottom:none}
+.ssr-item:hover{background:var(--blue-bg)}
+.selected-songs{margin-top:8px;display:flex;flex-direction:column;gap:4px}
+.sel-song{display:flex;align-items:center;gap:6px;background:var(--blue-bg);border-radius:6px;padding:5px 8px}
+.sel-song span{flex:1;font-size:.78rem;color:var(--accent)}
+.sel-song button{font-size:.65rem;color:var(--red);background:none;border:none;cursor:pointer;padding:2px 4px}
 </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>찬양곡 데이터베이스</h1>
-  <p>기독교대한감리회 · 찬양인도자 전용</p>
+  <h1>드림찬양단 찬양곡 데이터베이스</h1>
+  <p>성사감리교회</p>
   <div class="sync-status">
     <span class="dot" id="dot"></span>
     <span id="sync-txt">연결 중...</span>
@@ -152,7 +188,12 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   <div class="si"><span class="sn" id="st-top">-</span><div class="sl">최다 사용</div></div>
 </div>
 
-<div class="controls">
+<div class="tabs">
+  <button class="tab on" onclick="switchTab('songs',this)">🎵 찬양곡</button>
+  <button class="tab" onclick="switchTab('history',this)">📅 주일기록</button>
+</div>
+
+<div id="tab-songs">
   <div class="sw">
     <span class="si-icon">🔍</span>
     <input type="text" id="q" placeholder="곡명으로 검색..." oninput="render()">
@@ -162,11 +203,30 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     <button class="fb" onclick="sf('used',this)">사용 이력</button>
     <button class="fb" onclick="sf('ready',this)">악보 완료</button>
     <button class="fb" onclick="sf('top',this)">⭐ TOP 10</button>
-    <button class="fb" onclick="sf('xmas',this)">성탄절</button>
-    <button class="fb" onclick="sf('위로',this)">위로</button>
+  </div>
+  <div style="font-size:.65rem;color:var(--text3);margin-top:.5rem;margin-bottom:.2rem;font-weight:500;letter-spacing:.05em">상황별</div>
+  <div class="fr">
+    <button class="fb" onclick="sf('경배·예배',this)">경배·예배</button>
     <button class="fb" onclick="sf('감사',this)">감사</button>
-    <button class="fb" onclick="sf('부활',this)">부활절</button>
-    <button class="fb" onclick="sf('사순',this)">사순절</button>
+    <button class="fb" onclick="sf('위로·치유',this)">위로·치유</button>
+    <button class="fb" onclick="sf('회복·소망',this)">회복·소망</button>
+    <button class="fb" onclick="sf('평안·신뢰',this)">평안·신뢰</button>
+    <button class="fb" onclick="sf('기쁨·찬양',this)">기쁨·찬양</button>
+    <button class="fb" onclick="sf('은혜·십자가',this)">은혜·십자가</button>
+    <button class="fb" onclick="sf('강함·승리',this)">강함·승리</button>
+    <button class="fb" onclick="sf('사랑·헌신',this)">사랑·헌신</button>
+    <button class="fb" onclick="sf('기도·간구',this)">기도·간구</button>
+  </div>
+  <div style="font-size:.65rem;color:var(--text3);margin-top:.5rem;margin-bottom:.2rem;font-weight:500;letter-spacing:.05em">절기별</div>
+  <div class="fr">
+    <button class="fb" onclick="sf('대림절',this)">대림절 <span style="opacity:.6;font-size:.6rem">기다림</span></button>
+    <button class="fb" onclick="sf('성탄절',this)">성탄절 <span style="opacity:.6;font-size:.6rem">기쁨</span></button>
+    <button class="fb" onclick="sf('주현절',this)">주현절 <span style="opacity:.6;font-size:.6rem">나타남</span></button>
+    <button class="fb" onclick="sf('사순절',this)">사순절 <span style="opacity:.6;font-size:.6rem">회개</span></button>
+    <button class="fb" onclick="sf('고난주간',this)">고난주간 <span style="opacity:.6;font-size:.6rem">수난</span></button>
+    <button class="fb" onclick="sf('부활절',this)">부활절 <span style="opacity:.6;font-size:.6rem">승리</span></button>
+    <button class="fb" onclick="sf('성령강림절',this)">성령강림절 <span style="opacity:.6;font-size:.6rem">성령</span></button>
+    <button class="fb" onclick="sf('추수감사절',this)">추수감사절 <span style="opacity:.6;font-size:.6rem">감사</span></button>
   </div>
   <div class="sort-row">
     <span class="sort-label">정렬:</span>
@@ -180,12 +240,64 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 </div>
 
 <div class="list" id="list"><div class="loading"><span class="loading-spin">⟳</span>데이터 불러오는 중...</div></div>
+</div>
+
+<!-- 주일기록 탭 -->
+<div id="tab-history" style="display:none">
+  <div class="history-wrap">
+    <div class="history-filter">
+      <select id="h-year" onchange="loadHistory()"></select>
+      <select id="h-month" onchange="loadHistory()">
+        <option value="">전체 월</option>
+        <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option>
+        <option value="4">4월</option><option value="5">5월</option><option value="6">6월</option>
+        <option value="7">7월</option><option value="8">8월</option><option value="9">9월</option>
+        <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+      </select>
+      <select id="h-week" onchange="loadHistory()">
+        <option value="">전체 주차</option>
+        <option value="1">첫째 주</option><option value="2">둘째 주</option>
+        <option value="3">셋째 주</option><option value="4">넷째 주</option><option value="5">다섯째 주</option>
+      </select>
+    </div>
+    <button class="hadd-btn" onclick="openHistoryModal()">+ 새 주일 기록 추가</button>
+    <div id="history-list"><div class="loading"><span class="loading-spin">⟳</span>불러오는 중...</div></div>
+  </div>
+</div>
 
 <div class="footer">
   <div class="fn">Supabase 클라우드 동기화 · 모든 기기에서 실시간 반영<br>2003–2026년 예배 사용 이력 기반</div>
 </div>
 
-<button class="add-fab" onclick="openModal()" title="곡 추가">＋</button>
+<button class="add-fab" id="fab" onclick="openModal()" title="곡 추가">＋</button>
+
+<!-- 주일기록 모달 -->
+<div class="hmodal-bg" id="hmodal">
+  <div class="hmodal">
+    <h2 id="hmodal-title">주일 기록 추가</h2>
+    <div class="form-group">
+      <label>날짜 *</label>
+      <input type="date" id="h-date">
+    </div>
+    <div class="form-group">
+      <label>곡 검색</label>
+      <input type="text" id="h-song-q" placeholder="곡명 입력..." oninput="searchHistorySongs()">
+      <div class="song-search-results" id="h-song-results" style="display:none"></div>
+    </div>
+    <div class="form-group">
+      <label>선택된 곡</label>
+      <div class="selected-songs" id="h-selected"></div>
+    </div>
+    <div class="form-group">
+      <label>메모</label>
+      <input type="text" id="h-note" placeholder="예: 특별집회, 성탄예배 등">
+    </div>
+    <div class="modal-row">
+      <button class="btn-cancel" onclick="closeHistoryModal()">취소</button>
+      <button class="btn-save" id="h-btn-save" onclick="saveHistory()">저장</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal-bg" id="modal">
   <div class="modal">
@@ -222,18 +334,40 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
       </div>
     </div>
     <div class="form-group">
+      <label>음악 링크 (유튜브, 멜론 등)</label>
+      <input type="url" id="f-url" placeholder="예: https://youtube.com/watch?v=...">
+    </div>
+    <div class="form-group">
       <label>절기 태그</label>
-      <div class="check-group">
-        <label><input type="checkbox" value="위로"> 위로</label>
+      <div style="font-size:.68rem;color:var(--text3);margin-bottom:4px;font-weight:500">상황별</div>
+      <div class="check-group" style="margin-bottom:8px">
+        <label><input type="checkbox" value="경배·예배"> 경배·예배</label>
         <label><input type="checkbox" value="감사"> 감사</label>
-        <label><input type="checkbox" value="부활절"> 부활절</label>
-        <label><input type="checkbox" value="사순절"> 사순절</label>
-        <label><input type="checkbox" value="성탄절"> 성탄절</label>
+        <label><input type="checkbox" value="위로·치유"> 위로·치유</label>
+        <label><input type="checkbox" value="회복·소망"> 회복·소망</label>
+        <label><input type="checkbox" value="평안·신뢰"> 평안·신뢰</label>
+        <label><input type="checkbox" value="기쁨·찬양"> 기쁨·찬양</label>
+        <label><input type="checkbox" value="은혜·십자가"> 은혜·십자가</label>
+        <label><input type="checkbox" value="강함·승리"> 강함·승리</label>
+        <label><input type="checkbox" value="사랑·헌신"> 사랑·헌신</label>
+        <label><input type="checkbox" value="기도·간구"> 기도·간구</label>
+      </div>
+      <div style="font-size:.68rem;color:var(--text3);margin-bottom:4px;font-weight:500">절기별</div>
+      <div class="check-group">
         <label><input type="checkbox" value="대림절"> 대림절</label>
+        <label><input type="checkbox" value="성탄절"> 성탄절</label>
+        <label><input type="checkbox" value="주현절"> 주현절</label>
+        <label><input type="checkbox" value="사순절"> 사순절</label>
+        <label><input type="checkbox" value="고난주간"> 고난주간</label>
+        <label><input type="checkbox" value="부활절"> 부활절</label>
+        <label><input type="checkbox" value="성령강림절"> 성령강림절</label>
+        <label><input type="checkbox" value="추수감사절"> 추수감사절</label>
       </div>
     </div>
     <div class="form-group" id="f-score-wrap" style="display:none">
-      <label>악보 이미지</label>
+      <label>현재 악보 이미지</label>
+      <div id="existing-scores" style="margin-bottom:8px"></div>
+      <label style="margin-top:6px;display:block">새 악보 추가</label>
       <div id="score-preview"></div>
       <div class="upload-zone" id="upload-zone">
         <input type="file" id="f-score" accept="image/*" multiple onchange="previewScores(this)">
@@ -273,6 +407,182 @@ const BASE_SEASONS = {"십자가 그 사랑":["사순절","위로"],"내 위해 
 
 // ── STATE ─────────────────────────────────────────────────
 let songs = [], filt = 'all', exp = null, editId = null, sortBy = 'name', sortDir = 1;
+let currentTab = 'songs', historyExp = null, selectedSongs = [];
+
+// ── TAB ───────────────────────────────────────────────────
+function switchTab(tab, btn) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('tab-songs').style.display = tab==='songs' ? '' : 'none';
+  document.getElementById('tab-history').style.display = tab==='history' ? '' : 'none';
+  document.getElementById('fab').style.display = tab==='songs' ? 'flex' : 'none';
+  if (tab==='history') { initYearSelect(); loadHistory(); }
+}
+
+// ── HISTORY ───────────────────────────────────────────────
+function initYearSelect() {
+  const sel = document.getElementById('h-year');
+  if (sel.children.length > 1) return;
+  const cur = new Date().getFullYear();
+  for (let y = cur; y >= 2023; y--) {
+    sel.innerHTML += `<option value="${y}">${y}년</option>`;
+  }
+}
+
+function getWeekOfMonth(date) {
+  const d = new Date(date);
+  const firstDay = new Date(d.getFullYear(), d.getMonth(), 1).getDay();
+  return Math.ceil((d.getDate() + firstDay) / 7);
+}
+
+function weekLabel(date) {
+  const labels = ['','첫째','둘째','셋째','넷째','다섯째'];
+  const d = new Date(date);
+  const w = getWeekOfMonth(date);
+  return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${labels[w]||w} 주`;
+}
+
+async function loadHistory() {
+  const year = document.getElementById('h-year').value;
+  const month = document.getElementById('h-month').value;
+  const week = document.getElementById('h-week').value;
+  const el = document.getElementById('history-list');
+  el.innerHTML = '<div class="loading"><span class="loading-spin">⟳</span>불러오는 중...</div>';
+  try {
+    let query = 'worship_history?order=worship_date.desc&limit=300';
+    if (year) query += `&worship_date=gte.${year}-01-01&worship_date=lte.${year}-12-31`;
+    let data = await api('GET', query);
+    if (month) data = data.filter(d=>new Date(d.worship_date).getMonth()+1===parseInt(month));
+    if (week) data = data.filter(d=>getWeekOfMonth(d.worship_date)===parseInt(week));
+    if (!data||data.length===0) {
+      el.innerHTML='<div class="nr"><span>📅</span>기록이 없어요<br><small>위 버튼으로 추가해보세요</small></div>';
+      return;
+    }
+    el.innerHTML = data.map(h=>{
+      const isOpen = historyExp===h.id;
+      const names = h.song_names||[];
+      return `<div class="history-card ${isOpen?'open':''}">
+        <div class="history-head" onclick="toggleHistory('${h.id}')">
+          <div style="flex-shrink:0">
+            <div class="history-week">${weekLabel(h.worship_date)}</div>
+            <div class="history-date">${h.worship_date}</div>
+          </div>
+          <div class="history-songs">${names.length?names.join(' · '):'곡 없음'}</div>
+          ${h.note?`<span style="font-size:.63rem;color:var(--text3);white-space:nowrap">${h.note}</span>`:''}
+          <span class="chev">${isOpen?'▲':'▼'}</span>
+        </div>
+        <div class="history-body">
+          <div style="padding-top:8px;display:flex;flex-direction:column;gap:2px">
+            ${names.map(n=>`<div class="history-song-item"><span class="history-song-name">🎵 ${n}</span></div>`).join('')}
+            ${h.note?`<div style="margin-top:6px;font-size:.72rem;color:var(--text3)">메모: ${h.note}</div>`:''}
+          </div>
+          <div style="display:flex;gap:5px;margin-top:10px">
+            <button class="ab" onclick="openHistoryModal('${h.id}')">✏️ 수정</button>
+            <button class="ab red" onclick="deleteHistory('${h.id}')">🗑 삭제</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML=`<div class="nr"><span>⚠️</span>불러오기 실패<br><small>${e.message}</small></div>`;
+  }
+}
+
+function toggleHistory(id) { historyExp=historyExp===id?null:id; loadHistory(); }
+
+// ── HISTORY MODAL ─────────────────────────────────────────
+let editHistoryId = null;
+
+async function openHistoryModal(id) {
+  editHistoryId = id||null;
+  selectedSongs = [];
+  document.getElementById('h-song-q').value='';
+  document.getElementById('h-song-results').style.display='none';
+  document.getElementById('h-note').value='';
+  if (editHistoryId) {
+    document.getElementById('hmodal-title').textContent='주일 기록 수정';
+    try {
+      const data = await api('GET',`worship_history?id=eq.${editHistoryId}`);
+      if (data&&data[0]) {
+        const h=data[0];
+        document.getElementById('h-date').value=h.worship_date;
+        document.getElementById('h-note').value=h.note||'';
+        selectedSongs=(h.song_names||[]).map((name,i)=>({id:(h.song_ids||[])[i]||null,name}));
+      }
+    } catch(e){}
+  } else {
+    document.getElementById('hmodal-title').textContent='주일 기록 추가';
+    document.getElementById('h-date').value=new Date().toISOString().split('T')[0];
+  }
+  renderSelectedSongs();
+  document.getElementById('hmodal').classList.add('show');
+}
+
+function closeHistoryModal() {
+  document.getElementById('hmodal').classList.remove('show');
+  document.getElementById('h-song-results').style.display='none';
+}
+document.getElementById('hmodal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeHistoryModal();});
+
+function searchHistorySongs() {
+  const q=document.getElementById('h-song-q').value.toLowerCase().trim();
+  const res=document.getElementById('h-song-results');
+  if(!q){res.style.display='none';return;}
+  const matches=songs.filter(s=>s.name.toLowerCase().includes(q)).slice(0,8);
+  if(!matches.length){res.style.display='none';return;}
+  res.style.display='block';
+  res.innerHTML=matches.map(s=>`<div class="ssr-item" onclick="addToSelected('${s.id}','${s.name.replace(/'/g,"\\'")}')">🎵 ${s.name}</div>`).join('');
+}
+
+function addToSelected(id,name) {
+  if(selectedSongs.find(s=>s.name===name)){showToast('이미 추가된 곡이에요');return;}
+  selectedSongs.push({id,name});
+  renderSelectedSongs();
+  document.getElementById('h-song-q').value='';
+  document.getElementById('h-song-results').style.display='none';
+}
+
+function removeFromSelected(idx) { selectedSongs.splice(idx,1); renderSelectedSongs(); }
+
+function renderSelectedSongs() {
+  document.getElementById('h-selected').innerHTML=selectedSongs.length
+    ?selectedSongs.map((s,i)=>`<div class="sel-song"><span>🎵 ${s.name}</span><button onclick="removeFromSelected(${i})">✕</button></div>`).join('')
+    :'<div style="font-size:.72rem;color:var(--text3)">곡을 검색해서 추가하세요</div>';
+}
+
+async function saveHistory() {
+  const date=document.getElementById('h-date').value;
+  if(!date){showToast('날짜를 선택해주세요');return;}
+  const note=document.getElementById('h-note').value.trim();
+  const song_ids=selectedSongs.map(s=>s.id).filter(Boolean);
+  const song_names=selectedSongs.map(s=>s.name);
+  const btn=document.getElementById('h-btn-save');
+  btn.disabled=true;btn.textContent='저장 중...';
+  setSync('sync','저장 중...');
+  try {
+    if(editHistoryId) {
+      await api('PATCH',`worship_history?id=eq.${editHistoryId}`,{worship_date:date,song_ids,song_names,note});
+      showToast('수정되었습니다 ✓');
+    } else {
+      await api('POST','worship_history',{worship_date:date,song_ids,song_names,note});
+      showToast('기록이 추가되었습니다 ✓');
+    }
+    setSync('on','클라우드 연결됨');
+    closeHistoryModal();
+    loadHistory();
+  } catch(e){showToast('저장 실패: '+e.message);setSync('off','저장 실패');}
+  btn.disabled=false;btn.textContent='저장';
+}
+
+async function deleteHistory(id) {
+  if(!confirm('이 주일 기록을 삭제할까요?'))return;
+  try {
+    await api('DELETE',`worship_history?id=eq.${id}`);
+    showToast('삭제되었습니다');
+    loadHistory();
+  } catch(e){showToast('삭제 실패: '+e.message);}
+}
 
 // ── STORAGE API ───────────────────────────────────────────
 const STORAGE_URL = SUPABASE_URL + '/storage/v1';
@@ -311,7 +621,62 @@ async function deleteScore(path) {
   });
 }
 
-// ── SCORE PREVIEW IN MODAL ────────────────────────────────
+// ── THUMBNAIL LOADER ──────────────────────────────────────
+const thumbCache = {};
+async function loadThumb(songId) {
+  const el = document.getElementById('thumb-'+songId);
+  if (!el) return;
+  if (thumbCache[songId] === null) { el.style.display='none'; return; }
+  if (thumbCache[songId]) { el.src = thumbCache[songId]; el.style.display='block'; return; }
+  try {
+    const files = await listScores(songId);
+    if (!files || files.length === 0) { thumbCache[songId] = null; el.style.display='none'; return; }
+    const url = scoreUrl(songId + '/' + files[0].name);
+    thumbCache[songId] = url;
+    el.src = url;
+    el.style.display = 'block';
+  } catch(e) { el.style.display='none'; }
+}
+async function loadExistingScores(songId) {
+  const wrap = document.getElementById('existing-scores');
+  try {
+    const files = await listScores(songId);
+    if (!files || files.length === 0) {
+      wrap.innerHTML = '<div style="font-size:.72rem;color:var(--text3)">업로드된 악보 없음</div>';
+      return;
+    }
+    wrap.innerHTML = files.map(f => {
+      const path = songId + '/' + f.name;
+      const url = scoreUrl(path);
+      return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;background:var(--surface2);border-radius:6px;padding:5px 8px">
+        <img src="${url}" style="width:48px;height:48px;object-fit:cover;border-radius:4px;border:1px solid var(--border);cursor:pointer" onclick="window.open('${url}')">
+        <span style="flex:1;font-size:.72rem;color:var(--text2);word-break:break-all">${f.name}</span>
+        <button class="score-del" onclick="deleteScoreFromModal('${path}', this)">삭제</button>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    wrap.innerHTML = '<div style="font-size:.72rem;color:var(--red)">불러오기 실패</div>';
+  }
+}
+
+async function deleteScoreFromModal(path, btn) {
+  if (!confirm('이 악보를 삭제할까요?')) return;
+  btn.textContent = '삭제 중...';
+  btn.disabled = true;
+  try {
+    await deleteScore(path);
+    btn.closest('div[style]').remove();
+    showToast('삭제되었습니다 ✓');
+    const wrap = document.getElementById('existing-scores');
+    if (!wrap.children.length) {
+      wrap.innerHTML = '<div style="font-size:.72rem;color:var(--text3)">업로드된 악보 없음</div>';
+    }
+  } catch(e) {
+    showToast('삭제 실패: ' + e.message);
+    btn.textContent = '삭제';
+    btn.disabled = false;
+  }
+}
 let pendingFiles = [];
 function previewScores(input) {
   pendingFiles = [...input.files];
@@ -433,7 +798,11 @@ function ss(by, btn) {
   btn.textContent = btn.textContent + (sortDir===1?' ▲':' ▼');
   render();
 }
-function toggle(id) { exp = exp===id ? null : id; render(); }
+function toggle(id) {
+  exp = exp===id ? null : id;
+  render();
+  if (exp === id) loadThumb(id);
+}
 
 // ── MODAL ─────────────────────────────────────────────────
 function openModal(id) {
@@ -447,10 +816,13 @@ function openModal(id) {
     document.getElementById('f-cnt').value = s.count || 1;
     document.getElementById('f-key').value = s.key || '';
     document.getElementById('f-bpm').value = s.bpm || 0;
+    document.getElementById('f-url').value = s.music_url || '';
     document.getElementById('f-score-wrap').style.display = 'block';
     document.getElementById('score-preview').innerHTML = '';
     document.getElementById('upload-bar').style.width = '0%';
+    document.getElementById('existing-scores').innerHTML = '<div style="font-size:.72rem;color:var(--text3)">불러오는 중...</div>';
     pendingFiles = [];
+    loadExistingScores(editId);
     (s.seasons||[]).forEach(t=>{ const cb=document.querySelector(`.check-group input[value="${t}"]`); if(cb)cb.checked=true; });
   } else {
     document.getElementById('modal-title').textContent = '새 곡 추가';
@@ -459,6 +831,7 @@ function openModal(id) {
     document.getElementById('f-cnt').value = 1;
     document.getElementById('f-key').value = '';
     document.getElementById('f-bpm').value = 0;
+    document.getElementById('f-url').value = '';
     document.getElementById('f-score-wrap').style.display = 'none';
     document.getElementById('score-preview').innerHTML = '';
     pendingFiles = [];
@@ -481,19 +854,20 @@ async function saveSong() {
   const count = status==='used' ? (parseInt(document.getElementById('f-cnt').value)||1) : 0;
   const key = document.getElementById('f-key').value;
   const bpm = parseInt(document.getElementById('f-bpm').value) || 0;
+  const music_url = document.getElementById('f-url').value.trim();
   const seasons = [...document.querySelectorAll('.check-group input:checked')].map(cb=>cb.value);
   const btn = document.getElementById('btn-save');
   btn.disabled = true; btn.textContent = '저장 중...';
   setSync('sync', '저장 중...');
   try {
     if (editId) {
-      const updated = await api('PATCH', `songs?id=eq.${editId}`, { name, status, count, seasons, key, bpm, updated_at: new Date().toISOString() });
+      const updated = await api('PATCH', `songs?id=eq.${editId}`, { name, status, count, seasons, key, bpm, music_url, updated_at: new Date().toISOString() });
       const idx = songs.findIndex(s=>s.id===editId);
       if (idx>=0) songs[idx] = updated[0];
       showToast('수정되었습니다 ✓');
     } else {
       if (songs.find(s=>s.name===name)) { showToast('이미 있는 곡이에요'); btn.disabled=false; btn.textContent='저장'; return; }
-      const created = await api('POST', 'songs', { name, status, count, seasons, key, bpm });
+      const created = await api('POST', 'songs', { name, status, count, seasons, key, bpm, music_url });
       songs.unshift(created[0]);
       showToast('추가되었습니다 ✓');
     }
@@ -504,6 +878,10 @@ async function saveSong() {
       for (let i=0; i<pendingFiles.length; i++) {
         await uploadScore(editId, pendingFiles[i], i, pendingFiles.length);
       }
+      await api('PATCH', `songs?id=eq.${editId}`, { has_score: true, updated_at: new Date().toISOString() });
+      const idx = songs.findIndex(s=>s.id===editId);
+      if (idx>=0) songs[idx].has_score = true;
+      delete thumbCache[editId];
       pendingFiles = [];
       document.getElementById('upload-bar').style.width = '100%';
       showToast('악보 업로드 완료 ✓');
@@ -584,12 +962,7 @@ function render() {
     if (filt==='ready') return s.status==='ready';
     if (filt==='top') return top10.includes(s.name);
     const seas = s.seasons||[];
-    if (filt==='xmas') return seas.includes('성탄절');
-    if (filt==='위로') return seas.includes('위로');
-    if (filt==='감사') return seas.includes('감사');
-    if (filt==='부활') return seas.includes('부활절');
-    if (filt==='사순') return seas.includes('사순절');
-    return true;
+    return seas.includes(filt);
   });
 
   // 정렬
@@ -604,10 +977,10 @@ function render() {
     return sortBy==='count' ? v : v * sortDir;
   });
   document.getElementById('cnt').textContent = list.length+'곡 표시 중';
-  const container = document.getElementById('list');
-  if (!list.length) { container.innerHTML='<div class="nr"><span>🎵</span>검색 결과가 없습니다</div>'; return; }
+  const listEl = document.getElementById('list');
+  if (!list.length) { listEl.innerHTML='<div class="nr"><span>🎵</span>검색 결과가 없습니다</div>'; return; }
 
-  container.innerHTML = list.map(s=>{
+  listEl.innerHTML = list.map(s=>{
     const isTop = top10.includes(s.name);
     const isOpen = exp===s.id;
     const bl = s.status==='used'?`사용 ${s.count}회`:s.status==='ready'?'악보 완료':'작업 예정';
@@ -627,6 +1000,9 @@ function render() {
     }
     actionBtns += '</div>';
     actionBtns += `<div class="ar" style="margin-top:5px">`;
+    if (s.music_url) {
+      actionBtns += `<button class="ab amber" onclick="window.open('${s.music_url}','_blank')">♪ 음악 듣기</button>`;
+    }
     actionBtns += `<button class="ab" style="background:var(--green-bg);color:var(--green);border-color:rgba(58,122,82,.3)" onclick="openViewer('${s.id}','${s.name.replace(/'/g,"\\'")}')">🎼 악보 보기</button>`;
     actionBtns += `<button class="ab" onclick="openModal('${s.id}')">✏️ 수정</button>`;
     actionBtns += `<button class="ab red" onclick="deleteSong('${s.id}')">🗑 삭제</button>`;
@@ -636,7 +1012,10 @@ function render() {
 <div class="ch" onclick="toggle('${s.id}')">
   <span class="badge ${bc}">${bl}</span>
   <span class="sn2">${s.name}</span>
+  ${s.has_score ? `<span style="font-size:.6rem;padding:2px 6px;border-radius:20px;background:var(--green-bg);color:var(--green);border:1px solid rgba(58,122,82,.2);flex-shrink:0">🎼 악보</span>` : ''}
+  ${s.music_url ? `<span style="font-size:.6rem;padding:2px 6px;border-radius:20px;background:var(--amber-bg);color:var(--accent2);border:1px solid rgba(196,145,58,.2);flex-shrink:0">♪ 음악</span>` : ''}
   ${isTop?`<span class="top-s">TOP ${top10.indexOf(s.name)+1}</span>`:''}
+  <img id="thumb-${s.id}" src="" alt="악보" style="display:none;width:36px;height:36px;object-fit:cover;border-radius:4px;border:1px solid var(--border);flex-shrink:0" onerror="this.style.display='none'">
   <span class="chev">${isOpen?'▲':'▼'}</span>
 </div>
 <div class="cd"><div class="di">
