@@ -489,7 +489,22 @@ async function loadHistory() {
   }
 }
 
-function toggleHistory(id) { historyExp=historyExp===id?null:id; loadHistory(); }
+function toggleHistory(id) {
+  historyExp = historyExp===id ? null : id;
+  // 카드 직접 토글 (loadHistory 재호출 없이)
+  document.querySelectorAll('.history-card').forEach(card => {
+    const head = card.querySelector('.history-head');
+    const body = card.querySelector('.history-body');
+    const chev = card.querySelector('.chev');
+    if (!head) return;
+    const cardId = head.getAttribute('onclick').match(/'([^']+)'/)?.[1];
+    if (cardId === id) {
+      const isOpen = card.classList.toggle('open');
+      if (body) body.style.display = isOpen ? 'block' : 'none';
+      if (chev) chev.textContent = isOpen ? '▲' : '▼';
+    }
+  });
+}
 
 // ── HISTORY MODAL ─────────────────────────────────────────
 let editHistoryId = null;
