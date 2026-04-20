@@ -607,24 +607,75 @@ async function saveHistory() {
   btn.disabled=true;btn.textContent='저장 중...';
   setSync('sync','저장 중...');
   try {
+    let prevNames = [];
     if(editHistoryId) {
+      // 수정 시 이전 곡 목록 가져오기
+      const prev = await api('GET',`worship_history?id=eq.${editHistoryId}`);
+      if(prev&&prev[0]) prevNames = prev[0].song_names||[];
       await api('PATCH',`worship_history?id=eq.${editHistoryId}`,{worship_date:date,song_ids,song_names,note});
       showToast('수정되었습니다 ✓');
     } else {
       await api('POST','worship_history',{worship_date:date,song_ids,song_names,note});
       showToast('기록이 추가되었습니다 ✓');
     }
+
+    // 찬양곡 사용 횟수 자동 연동
+    await syncSongCounts(song_names, prevNames);
+
     setSync('on','클라우드 연결됨');
     closeHistoryModal();
+    // 찬양곡 데이터 새로 불러오기
+    songs = await api('GET','songs?order=name');
+    updateStats();
+    render();
     loadHistory();
   } catch(e){showToast('저장 실패: '+e.message);setSync('off','저장 실패');}
   btn.disabled=false;btn.textContent='저장';
 }
 
+// 주일기록 변경에 따라 찬양곡 사용 횟수 자동 업데이트
+async function syncSongCounts(newNames, prevNames) {
+  // 새로 추가된 곡 (+1)
+  const added = newNames.filter(n => !prevNames.includes(n));
+  // 제거된 곡 (-1)
+  const removed = prevNames.filter(n => !newNames.includes(n));
+
+  for (const name of added) {
+    const song = songs.find(s => s.name === name);
+    if (song) {
+      // 기존 곡 사용 횟수 +1
+      const newCount = (song.count||0) + 1;
+      await api('PATCH', `songs?id=eq.${song.id}`, { status:'used', count: newCount, updated_at: new Date().toISOString() });
+    } else {
+      // DB에 없는 곡이면 자동 추가
+      const created = await api('POST', 'songs', { name, status:'used', count:1, seasons:[], key:'', bpm:0, music_url:'' });
+      if (created&&created[0]) songs.unshift(created[0]);
+      showToast(`"${name}" 곡이 자동으로 추가됐어요 ✓`);
+    }
+  }
+
+  for (const name of removed) {
+    const song = songs.find(s => s.name === name);
+    if (song && song.count > 0) {
+      const newCount = Math.max(0, (song.count||0) - 1);
+      const newStatus = newCount === 0 ? 'ready' : 'used';
+      await api('PATCH', `songs?id=eq.${song.id}`, { status: newStatus, count: newCount, updated_at: new Date().toISOString() });
+    }
+  }
+}
+
 async function deleteHistory(id) {
   if(!confirm('이 주일 기록을 삭제할까요?'))return;
   try {
+    // 삭제 전 곡 목록 가져오기
+    const prev = await api('GET',`worship_history?id=eq.${id}`);
+    const prevNames = (prev&&prev[0]) ? (prev[0].song_names||[]) : [];
     await api('DELETE',`worship_history?id=eq.${id}`);
+    // 사용 횟수 -1
+    await syncSongCounts([], prevNames);
+    songs = await api('GET','songs?order=name');
+    updateStats();
+    render();
     showToast('삭제되었습니다');
     loadHistory();
   } catch(e){showToast('삭제 실패: '+e.message);}
