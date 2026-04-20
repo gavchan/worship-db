@@ -56,8 +56,10 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .form-group label{display:block;font-size:.72rem;font-weight:500;color:var(--text2);margin-bottom:.35rem}
 .form-group input,.form-group select{width:100%;padding:.55rem .75rem;border:1px solid var(--border2);border-radius:6px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.83rem;color:var(--text1);outline:none;transition:border-color .2s}
 .form-group input:focus,.form-group select:focus{border-color:var(--accent)}
-.check-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
-.check-group label{font-size:.75rem;display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--text2)}
+.check-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.check-group label{font-size:.75rem;display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text2);white-space:nowrap;padding:5px 10px;border:1px solid var(--border2);border-radius:20px;transition:all .15s;line-height:1}
+.check-group label:hover{border-color:var(--accent);color:var(--accent)}
+.check-group input[type=checkbox]{accent-color:var(--accent);flex-shrink:0;width:13px;height:13px}
 .modal-row{display:flex;gap:8px;margin-top:1.2rem}
 .btn-cancel{flex:1;padding:.6rem;border:1px solid var(--border2);border-radius:6px;background:transparent;font-family:'Noto Sans KR',sans-serif;font-size:.8rem;color:var(--text2);cursor:pointer}
 .btn-save{flex:2;padding:.6rem;border:none;border-radius:6px;background:var(--accent);font-family:'Noto Sans KR',sans-serif;font-size:.8rem;color:#fff;cursor:pointer;font-weight:500}
@@ -474,7 +476,7 @@ async function loadHistory() {
         </div>
         <div class="history-body">
           <div style="padding-top:8px;display:flex;flex-direction:column;gap:2px">
-            ${names.map(n=>`<div class="history-song-item"><span class="history-song-name">🎵 ${n}</span></div>`).join('')}
+            ${names.map(n=>`<div class="history-song-item"><span class="history-song-name" style="cursor:pointer;color:var(--accent);text-decoration:underline" onclick="goToSong('${n.replace(/'/g,"\\'")}')">🎵 ${n}</span></div>`).join('')}
             ${h.note?`<div style="margin-top:6px;font-size:.72rem;color:var(--text3)">메모: ${h.note}</div>`:''}
           </div>
           <div style="display:flex;gap:5px;margin-top:10px">
@@ -487,6 +489,35 @@ async function loadHistory() {
   } catch(e) {
     el.innerHTML=`<div class="nr"><span>⚠️</span>불러오기 실패<br><small>${e.message}</small></div>`;
   }
+}
+
+// ── GO TO SONG FROM HISTORY ───────────────────────────────
+function goToSong(name) {
+  const songTab = document.querySelector('.tab:first-child');
+  switchTab('songs', songTab);
+
+  const q = document.getElementById('q');
+  q.value = name;
+  render();
+
+  setTimeout(() => {
+    const song = songs.find(s => s.name === name);
+    if (song) {
+      exp = song.id;
+      render();
+      setTimeout(() => {
+        const cards = document.querySelectorAll('.card');
+        if (cards.length > 0) cards[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    } else {
+      // 곡이 없으면 추가 모달 띄우기
+      showToast(`"${name}" 곡이 없어요 — 추가 화면을 열게요 📝`);
+      setTimeout(() => {
+        openModal();
+        document.getElementById('f-name').value = name;
+      }, 800);
+    }
+  }, 100);
 }
 
 function toggleHistory(id) {
@@ -847,8 +878,10 @@ function openModal(id) {
     document.getElementById('f-key').value = '';
     document.getElementById('f-bpm').value = 0;
     document.getElementById('f-url').value = '';
-    document.getElementById('f-score-wrap').style.display = 'none';
+    document.getElementById('f-score-wrap').style.display = 'block';
+    document.getElementById('existing-scores').innerHTML = '<div style="font-size:.72rem;color:var(--text3)">저장 후 악보를 업로드할 수 있어요</div>';
     document.getElementById('score-preview').innerHTML = '';
+    document.getElementById('upload-bar').style.width = '0%';
     pendingFiles = [];
   }
   toggleCntField();
@@ -887,16 +920,17 @@ async function saveSong() {
       showToast('추가되었습니다 ✓');
     }
     setSync('on', '클라우드 연결됨');
-    // 악보 업로드
-    if (pendingFiles.length > 0 && editId) {
+    // 악보 업로드 — 수정 또는 새 곡 모두 처리
+    const uploadTargetId = editId || (songs[0]?.id);
+    if (pendingFiles.length > 0 && uploadTargetId) {
       setSync('sync', '악보 업로드 중...');
       for (let i=0; i<pendingFiles.length; i++) {
-        await uploadScore(editId, pendingFiles[i], i, pendingFiles.length);
+        await uploadScore(uploadTargetId, pendingFiles[i], i, pendingFiles.length);
       }
-      await api('PATCH', `songs?id=eq.${editId}`, { has_score: true, updated_at: new Date().toISOString() });
-      const idx = songs.findIndex(s=>s.id===editId);
+      await api('PATCH', `songs?id=eq.${uploadTargetId}`, { has_score: true, updated_at: new Date().toISOString() });
+      const idx = songs.findIndex(s=>s.id===uploadTargetId);
       if (idx>=0) songs[idx].has_score = true;
-      delete thumbCache[editId];
+      delete thumbCache[uploadTargetId];
       pendingFiles = [];
       document.getElementById('upload-bar').style.width = '100%';
       showToast('악보 업로드 완료 ✓');
@@ -993,7 +1027,13 @@ function render() {
   });
   document.getElementById('cnt').textContent = list.length+'곡 표시 중';
   const listEl = document.getElementById('list');
-  if (!list.length) { listEl.innerHTML='<div class="nr"><span>🎵</span>검색 결과가 없습니다</div>'; return; }
+  if (!list.length) {
+    const q = document.getElementById('q').value.trim();
+    listEl.innerHTML = `<div class="nr"><span>🎵</span>검색 결과가 없습니다
+      ${q ? `<div style="margin-top:12px"><button class="btn-save" style="padding:8px 20px;border-radius:8px;font-size:.82rem" onclick="openModal();document.getElementById('f-name').value='${q.replace(/'/g,"\\'")}'">"${q}" 곡 추가하기 +</button></div>` : ''}
+    </div>`;
+    return;
+  }
 
   listEl.innerHTML = list.map(s=>{
     const isTop = top10.includes(s.name);
