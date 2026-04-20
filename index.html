@@ -572,10 +572,10 @@ function closeHistoryModal() {
 document.getElementById('hmodal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeHistoryModal();});
 
 function searchHistorySongs() {
-  const q=document.getElementById('h-song-q').value.toLowerCase().trim();
+  const q=document.getElementById('h-song-q').value.replace(/\s+/g,' ').trim().toLowerCase();
   const res=document.getElementById('h-song-results');
   if(!q){res.style.display='none';return;}
-  const matches=songs.filter(s=>s.name.toLowerCase().includes(q)).slice(0,8);
+  const matches=songs.filter(s=>s.name.replace(/\s+/g,' ').trim().toLowerCase().includes(q)).slice(0,8);
   if(!matches.length){res.style.display='none';return;}
   res.style.display='block';
   res.innerHTML=matches.map(s=>`<div class="ssr-item" onclick="addToSelected('${s.id}','${s.name.replace(/'/g,"\\'")}')">🎵 ${s.name}</div>`).join('');
@@ -635,27 +635,26 @@ async function saveHistory() {
 
 // 주일기록 변경에 따라 찬양곡 사용 횟수 자동 업데이트
 async function syncSongCounts(newNames, prevNames) {
-  // 새로 추가된 곡 (+1)
-  const added = newNames.filter(n => !prevNames.includes(n));
-  // 제거된 곡 (-1)
-  const removed = prevNames.filter(n => !newNames.includes(n));
+  const norm = n => n.replace(/\s+/g,' ').trim();
+  const added = newNames.filter(n => !prevNames.map(norm).includes(norm(n)));
+  const removed = prevNames.filter(n => !newNames.map(norm).includes(norm(n)));
 
   for (const name of added) {
-    const song = songs.find(s => s.name === name);
+    const normName = norm(name);
+    const song = songs.find(s => norm(s.name) === normName);
     if (song) {
-      // 기존 곡 사용 횟수 +1
       const newCount = (song.count||0) + 1;
       await api('PATCH', `songs?id=eq.${song.id}`, { status:'used', count: newCount, updated_at: new Date().toISOString() });
     } else {
-      // DB에 없는 곡이면 자동 추가
-      const created = await api('POST', 'songs', { name, status:'used', count:1, seasons:[], key:'', bpm:0, music_url:'' });
+      const created = await api('POST', 'songs', { name: normName, status:'used', count:1, seasons:[], key:'', bpm:0, music_url:'' });
       if (created&&created[0]) songs.unshift(created[0]);
-      showToast(`"${name}" 곡이 자동으로 추가됐어요 ✓`);
+      showToast(`"${normName}" 곡이 자동으로 추가됐어요 ✓`);
     }
   }
 
   for (const name of removed) {
-    const song = songs.find(s => s.name === name);
+    const normName = norm(name);
+    const song = songs.find(s => norm(s.name) === normName);
     if (song && song.count > 0) {
       const newCount = Math.max(0, (song.count||0) - 1);
       const newStatus = newCount === 0 ? 'ready' : 'used';
@@ -947,14 +946,40 @@ function toggleCntField() {
 document.getElementById('modal').addEventListener('click', e=>{ if(e.target===e.currentTarget) closeModal(); });
 
 async function saveSong() {
-  const name = document.getElementById('f-name').value.trim();
-  if (!name) { showToast('곡명을 입력해주세요'); return; }
+  const rawName = document.getElementById('f-name').value.trim();
+  if (!rawName) { showToast('곡명을 입력해주세요'); return; }
+  // 공백 정규화 (앞뒤 + 중복 공백 제거)
+  const name = rawName.replace(/\s+/g, ' ').trim();
+  if (name !== rawName) {
+    document.getElementById('f-name').value = name;
+  }
   const status = document.getElementById('f-status').value;
   const count = status==='used' ? (parseInt(document.getElementById('f-cnt').value)||1) : 0;
   const key = document.getElementById('f-key').value;
   const bpm = parseInt(document.getElementById('f-bpm').value) || 0;
   const music_url = document.getElementById('f-url').value.trim();
   const seasons = [...document.querySelectorAll('.check-group input:checked')].map(cb=>cb.value);
+
+  // 새 곡 추가 시 유사 곡명 체크
+  if (!editId) {
+    const similar = songs.find(s => {
+      const a = s.name.replace(/\s+/g,' ').trim().toLowerCase();
+      const b = name.replace(/\s+/g,' ').trim().toLowerCase();
+      return a === b && s.name !== name;
+    });
+    if (similar) {
+      showToast(`⚠️ "${similar.name}" 과 같은 곡 같아요! 저장을 취소했어요`);
+      // 이름을 DB의 정규화된 이름으로 교체 제안
+      if (confirm(`"${similar.name}" 이(가) 이미 있어요.\n\n기존 곡을 수정할까요?`)) {
+        closeModal();
+        openModal(similar.id);
+      }
+      return;
+    }
+    const exact = songs.find(s => s.name === name);
+    if (exact) { showToast('이미 있는 곡이에요'); return; }
+  }
+
   const btn = document.getElementById('btn-save');
   btn.disabled = true; btn.textContent = '저장 중...';
   setSync('sync', '저장 중...');
@@ -1055,7 +1080,9 @@ function render() {
   const mx = Math.max(...songs.map(s=>s.count), 1);
 
   let list = songs.filter(s=>{
-    const mq = !q || s.name.toLowerCase().includes(q);
+    const normQ = q.replace(/\s+/g,' ').trim();
+    const normName = s.name.replace(/\s+/g,' ').trim().toLowerCase();
+    const mq = !q || normName.includes(normQ.toLowerCase());
     if (!mq) return false;
     if (filt==='all') return true;
     if (filt==='used') return s.status==='used';
