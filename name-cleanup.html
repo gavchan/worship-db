@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>곡명 공백 정리</title>
+<style>
+body{font-family:sans-serif;max-width:700px;margin:2rem auto;padding:1rem;background:#faf8f5}
+h1{font-size:1.3rem;margin-bottom:.5rem}
+p{font-size:.85rem;color:#6b6560;margin-bottom:1rem;line-height:1.6}
+.btn{padding:.7rem 1.5rem;background:#2d5a8e;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;width:100%;margin-bottom:.5rem}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-green{background:#3a7a52}
+#log{margin-top:1rem;padding:1rem;background:#f4f1eb;border-radius:8px;font-size:.78rem;line-height:1.8;white-space:pre-wrap;max-height:500px;overflow-y:auto}
+.ok{color:#3a7a52}.err{color:#b0281f}.info{color:#2d5a8e}.warn{color:#c4913a}
+#summary{background:#eaf0f8;border-radius:8px;padding:10px 14px;font-size:.82rem;margin-bottom:1rem;display:none;line-height:1.7}
+.step{background:#fff;border:1px solid #e8e2d9;border-radius:8px;padding:12px 16px;margin-bottom:10px}
+.step h3{font-size:.9rem;margin-bottom:.3rem}
+.step p{font-size:.78rem;margin:0;color:#6b6560}
+</style>
+</head>
+<body>
+<h1>🔧 곡명 공백 정리 도구</h1>
+<p>DB에 공백이 다르게 저장된 중복 곡들을 찾아서 정리합니다.<br>
+<b>Step 1</b>: 현황 분석 → <b>Step 2</b>: 공백 정규화 실행</p>
+
+<div class="step">
+  <h3>Step 1 — 현황 분석</h3>
+  <p>DB의 모든 곡을 불러와서 공백 차이로 중복된 곡을 찾아요</p>
+  <button class="btn" id="btn1" onclick="analyze()">🔍 분석 시작</button>
+</div>
+
+<div class="step">
+  <h3>Step 2 — 공백 정규화 실행</h3>
+  <p>모든 곡명의 앞뒤 공백 및 중복 공백을 제거합니다</p>
+  <button class="btn btn-green" id="btn2" onclick="fixAll()" disabled>✅ 정규화 실행</button>
+</div>
+
+<div id="summary"></div>
+<div id="log">Step 1 분석 먼저 실행해주세요</div>
+
+<script>
+const URL = 'https://rmtysrytveexshwzenxj.supabase.co';
+const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdHlzcnl0dmVleHNod3plbnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjQ3OTYsImV4cCI6MjA5MjEwMDc5Nn0.5FzzJ1rg-uRG4jAGZ75xVT3i3NH0m6J_tDeOS4GxyT8';
+const H = {'Content-Type':'application/json','apikey':KEY,'Authorization':'Bearer '+KEY,'Prefer':'return=representation'};
+const HM = {'Content-Type':'application/json','apikey':KEY,'Authorization':'Bearer '+KEY,'Prefer':'return=minimal'};
+
+let allSongs = [];
+let toFix = []; // 공백 정규화 필요한 곡들
+let duplicates = []; // 공백만 다른 중복 곡들
+
+function norm(s) { return s.replace(/\s+/g,' ').trim(); }
+
+function log(msg, cls='') {
+  const el = document.getElementById('log');
+  el.innerHTML += `<span class="${cls}">${msg}</span>\n`;
+  el.scrollTop = el.scrollHeight;
+}
+
+async function api(method, path, body, minimal=false) {
+  const res = await fetch(URL+'/rest/v1/'+path, {
+    method, headers: minimal?HM:H, body: body?JSON.stringify(body):undefined
+  });
+  if(!res.ok) throw new Error(await res.text());
+  const t = await res.text();
+  return t ? JSON.parse(t) : null;
+}
+
+async function analyze() {
+  const btn = document.getElementById('btn1');
+  btn.disabled = true;
+  document.getElementById('log').innerHTML = '';
+  toFix = []; duplicates = [];
+
+  log('🔍 DB 전체 곡 불러오는 중...', 'info');
+  try {
+    allSongs = await api('GET', 'songs?select=id,name,count,status,seasons&limit=2000');
+    log(`✓ 총 ${allSongs.length}곡 불러옴\n`, 'ok');
+
+    // 1. 공백 정규화 필요한 곡 찾기
+    log('── 공백 정규화 필요한 곡 ──', 'info');
+    let needFix = 0;
+    allSongs.forEach(s => {
+      if (s.name !== norm(s.name)) {
+        log(`⚠️  "${s.name}" → "${norm(s.name)}"`, 'warn');
+        toFix.push(s);
+        needFix++;
+      }
+    });
+    if (needFix === 0) log('없음 ✓', 'ok');
+
+    log('');
+
+    // 2. 정규화 후 중복되는 곡 찾기
+    log('── 정규화 후 중복 곡 ──', 'info');
+    const normMap = {};
+    allSongs.forEach(s => {
+      const n = norm(s.name);
+      if (!normMap[n]) normMap[n] = [];
+      normMap[n].push(s);
+    });
+    let dupCount = 0;
+    Object.entries(normMap).forEach(([n, group]) => {
+      if (group.length > 1) {
+        log(`🔴 중복: "${n}"`, 'err');
+        group.forEach(s => log(`   → ID: ${s.id.slice(0,8)}... | "${s.name}" | 사용 ${s.count}회`, 'err'));
+        duplicates.push(group);
+        dupCount++;
+      }
+    });
+    if (dupCount === 0) log('없음 ✓', 'ok');
+
+    log('');
+    log(`── 분석 결과 ──`, 'info');
+    log(`공백 정규화 필요: ${toFix.length}곡`, toFix.length > 0 ? 'warn' : 'ok');
+    log(`정규화 후 중복: ${duplicates.length}건`, duplicates.length > 0 ? 'err' : 'ok');
+
+    if (duplicates.length > 0) {
+      log('\n⚠️ 중복 곡이 있어요! Step 2 실행 전에 Supabase Table Editor에서 직접 확인 후 불필요한 곡을 삭제해주세요.', 'err');
+    }
+
+    const sum = document.getElementById('summary');
+    sum.style.display = 'block';
+    sum.innerHTML = `분석 완료 — 정규화 필요 <b>${toFix.length}곡</b> · 중복 <b>${duplicates.length}건</b>`;
+
+    if (toFix.length > 0) {
+      document.getElementById('btn2').disabled = false;
+    }
+
+  } catch(e) {
+    log(`✗ 오류: ${e.message}`, 'err');
+  }
+  btn.disabled = false;
+}
+
+async function fixAll() {
+  const btn = document.getElementById('btn2');
+  btn.disabled = true;
+  log('\n── Step 2: 공백 정규화 실행 ──', 'info');
+
+  let fixed = 0, failed = 0;
+
+  for (const song of toFix) {
+    const newName = norm(song.name);
+    try {
+      await api('PATCH', `songs?id=eq.${song.id}`, { name: newName, updated_at: new Date().toISOString() }, true);
+      log(`✓ "${song.name}" → "${newName}"`, 'ok');
+      fixed++;
+    } catch(e) {
+      if (e.message.includes('23505') || e.message.includes('duplicate')) {
+        log(`⚠️ "${song.name}" — 정규화 후 중복! 수동 확인 필요`, 'err');
+      } else {
+        log(`✗ "${song.name}" — ${e.message}`, 'err');
+      }
+      failed++;
+    }
+  }
+
+  // worship_history의 song_names도 정규화
+  log('\n── 주일기록 곡명 정규화 ──', 'info');
+  try {
+    const histories = await api('GET', 'worship_history?select=id,song_names&limit=500');
+    let hFixed = 0;
+    for (const h of histories) {
+      const names = h.song_names || [];
+      const normalized = names.map(n => norm(n));
+      const changed = names.some((n, i) => n !== normalized[i]);
+      if (changed) {
+        await api('PATCH', `worship_history?id=eq.${h.id}`, { song_names: normalized }, true);
+        log(`✓ 주일기록 ${h.id.slice(0,8)}... 곡명 정규화`, 'ok');
+        hFixed++;
+      }
+    }
+    if (hFixed === 0) log('정규화 필요한 주일기록 없음 ✓', 'ok');
+    else log(`✓ 주일기록 ${hFixed}건 정규화 완료`, 'ok');
+  } catch(e) {
+    log(`✗ 주일기록 오류: ${e.message}`, 'err');
+  }
+
+  log('');
+  log(`✅ 완료! 정규화: ${fixed}곡 / 실패: ${failed}곡`, 'ok');
+
+  const sum = document.getElementById('summary');
+  sum.innerHTML = `✅ 정규화 완료 — ${fixed}곡 처리 / 실패 ${failed}곡`;
+
+  btn.disabled = false;
+  btn.textContent = '다시 실행';
+}
+</script>
+</body>
+</html>

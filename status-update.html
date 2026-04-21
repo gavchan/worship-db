@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>찬양곡 상태 업데이트</title>
+<style>
+body{font-family:sans-serif;max-width:640px;margin:2rem auto;padding:1rem;background:#faf8f5}
+h1{font-size:1.3rem;margin-bottom:.5rem}
+p{font-size:.85rem;color:#6b6560;margin-bottom:1rem;line-height:1.6}
+.btn{padding:.7rem 1.5rem;background:#2d5a8e;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;width:100%;margin-bottom:.5rem}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+#log{margin-top:1rem;padding:1rem;background:#f4f1eb;border-radius:8px;font-size:.78rem;line-height:1.8;white-space:pre-wrap;max-height:450px;overflow-y:auto}
+.ok{color:#3a7a52}.err{color:#b0281f}.info{color:#2d5a8e}
+#summary{background:#eaf0f8;border-radius:8px;padding:10px 14px;font-size:.82rem;margin-bottom:1rem;display:none}
+</style>
+</head>
+<body>
+<h1>📊 찬양곡 상태 업데이트</h1>
+<p>엑셀 파일 기준으로 <b>264곡</b>의 사용 횟수와 상태를 업데이트합니다.</p>
+<div id="summary"></div>
+<button class="btn" id="btn1" onclick="startUpdate()">🔄 업데이트 시작</button>
+<div id="log">버튼을 눌러 시작하세요</div>
+<script>
+const SUPABASE_URL = 'https://rmtysrytveexshwzenxj.supabase.co';
+const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdHlzcnl0dmVleHNod3plbnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjQ3OTYsImV4cCI6MjA5MjEwMDc5Nn0.5FzzJ1rg-uRG4jAGZ75xVT3i3NH0m6J_tDeOS4GxyT8';
+const H = {'Content-Type':'application/json','apikey':KEY,'Authorization':'Bearer '+KEY,'Prefer':'return=representation'};
+const HM = {'Content-Type':'application/json','apikey':KEY,'Authorization':'Bearer '+KEY,'Prefer':'return=minimal'};
+const songData = [{"name": "아름다우신", "count": 10}, {"name": "주를 향한 나의 사랑을", "count": 8}, {"name": "그 사랑", "count": 7}, {"name": "내 모습 이대로", "count": 7}, {"name": "예배하는 이에게", "count": 7}, {"name": "하늘의 문을 여소서", "count": 7}, {"name": "기뻐하며 승리의 노래 부르리", "count": 6}, {"name": "은혜", "count": 6}, {"name": "당신은 영광의 왕", "count": 5}, {"name": "더 원합니다", "count": 5}, {"name": "두손 들고", "count": 5}, {"name": "마지막 날에", "count": 5}, {"name": "멈출 수 없네", "count": 5}, {"name": "오직 예수 뿐이네", "count": 5}, {"name": "원하고 바라고 기도합니다", "count": 5}, {"name": "주 사랑이 나를 숨쉬게해", "count": 5}, {"name": "주 품에", "count": 5}, {"name": "주님의 임재 앞에서", "count": 5}, {"name": "주만 바라 볼지라", "count": 5}, {"name": "주의 이름 높이며", "count": 5}, {"name": "하나님의 부르심", "count": 5}, {"name": "하늘위에 주님 밖에", "count": 5}, {"name": "나는 예배자입니다", "count": 4}, {"name": "나의 반석이신 하나님", "count": 4}, {"name": "나의 하나님", "count": 4}, {"name": "내 영이", "count": 4}, {"name": "내 영혼이 은총 입어", "count": 4}, {"name": "내 주 같은 분 없네", "count": 4}, {"name": "내가 주인 삼은", "count": 4}, {"name": "만왕의 왕 내 주께서", "count": 4}, {"name": "아 하나님의 은혜로", "count": 4}, {"name": "아무것도 두려워말라", "count": 4}, {"name": "예수 열방의 소망", "count": 4}, {"name": "주의 손에 나의 손을 포개고", "count": 4}, {"name": "지금 우리가", "count": 4}, {"name": "찬양하세", "count": 4}, {"name": "그 사랑 얼마나", "count": 3}, {"name": "그가 오신 이유", "count": 3}, {"name": "나를 지으신 주님", "count": 3}, {"name": "나의 가장 낮은 마음", "count": 3}, {"name": "나의 기도하는 것 보다", "count": 3}, {"name": "나의 안에 거하라", "count": 3}, {"name": "나의 영혼이", "count": 3}, {"name": "나의모습 나의소유", "count": 3}, {"name": "내 평생 사는 동안", "count": 3}, {"name": "말씀앞에서", "count": 3}, {"name": "사랑하는 나의 아버지", "count": 3}, {"name": "선포하라", "count": 3}, {"name": "선하신 목자", "count": 3}, {"name": "성령이여 임하소서", "count": 3}, {"name": "세상을 사는 지혜", "count": 3}, {"name": "시선", "count": 4}, {"name": "십자가 그 사랑", "count": 3}, {"name": "아침안개 눈앞가리듯", "count": 3}, {"name": "예수로 사는 인생", "count": 3}, {"name": "오라 우리가", "count": 3}, {"name": "온 땅의 주인", "count": 3}, {"name": "온세상 창조주", "count": 3}, {"name": "우리 모일 때 주 성령 임하리", "count": 3}, {"name": "일어나라 주의 백성", "count": 3}, {"name": "존귀 오 존귀하신 주", "count": 3}, {"name": "주 임재 하시는 곳에", "count": 3}, {"name": "주가 보이신 생명의 길", "count": 3}, {"name": "주님 손에 맡겨 드리리", "count": 3}, {"name": "주님 큰 영광 받으소서", "count": 3}, {"name": "주님의 영광 나타나셨네", "count": 3}, {"name": "찬양 중에 눈을 들어", "count": 3}, {"name": "찬양중에 눈을 들어", "count": 3}, {"name": "평강의 왕", "count": 3}, {"name": "하나님은 우리의 피난처가 되시며", "count": 3}, {"name": "하나님의 열심", "count": 3}, {"name": "호산나", "count": 3}, {"name": "감사와 찬양 드리며", "count": 2}, {"name": "그의 생각", "count": 2}, {"name": "나 무엇과도 주님을", "count": 2}, {"name": "나 주님의 기쁨되기 원하네", "count": 2}, {"name": "나는 믿네", "count": 2}, {"name": "나는 믿음으로", "count": 2}, {"name": "나의 가는 길", "count": 2}, {"name": "나의 마음을", "count": 2}, {"name": "나의 모습 나의 소유", "count": 2}, {"name": "내 구주 예수를", "count": 2}, {"name": "내 마음에 주를 향한 사랑이", "count": 2}, {"name": "내 한가지 소원", "count": 2}, {"name": "내가 어둠속에서", "count": 2}, {"name": "내마음에 주를 향한 사랑이", "count": 2}, {"name": "내안에 부어주소서", "count": 2}, {"name": "너 근심 걱정와도", "count": 2}, {"name": "다 듣고 계신 나의 주님께", "count": 2}, {"name": "다와서 찬양해", "count": 2}, {"name": "마라나타", "count": 2}, {"name": "믿음과 삶", "count": 2}, {"name": "부르신 곳에서", "count": 2}, {"name": "생명주께 있네", "count": 2}, {"name": "성령이여 내 영혼을", "count": 2}, {"name": "십자가의길 순교자의삶", "count": 2}, {"name": "아름다운 마음들이 모여서", "count": 2}, {"name": "아주 먼옛날", "count": 2}, {"name": "여정", "count": 2}, {"name": "영광의 주님 찬양하세", "count": 2}, {"name": "예배합니다", "count": 2}, {"name": "예수 믿으세요", "count": 2}, {"name": "예수 사랑하심은", "count": 2}, {"name": "오늘 이 하루도", "count": 2}, {"name": "온 세상 창조주", "count": 2}, {"name": "온땅의 주인", "count": 2}, {"name": "완전하신 나의 주", "count": 2}, {"name": "왕되신 주께 감사하세", "count": 2}, {"name": "왜 나만 겪는 고난이냐고", "count": 2}, {"name": "우리 함께 기뻐해", "count": 2}, {"name": "은혜 아니면", "count": 2}, {"name": "저 성벽을 향해", "count": 2}, {"name": "전능하신 나의 주 하나님", "count": 2}, {"name": "주 안에서 기뻐해", "count": 2}, {"name": "주 여호와는 광대하시도다", "count": 2}, {"name": "주가 일하시네", "count": 2}, {"name": "주는 완전합니다", "count": 2}, {"name": "주님 내가 여기 있사오니", "count": 2}, {"name": "주님 뜻대로 살기로 했네", "count": 2}, {"name": "주님과 함께하는 (온맘다해)", "count": 0}, {"name": "주의 인자는 끝이 없고", "count": 2}, {"name": "지금은 엘리야 때처럼", "count": 2}, {"name": "찬양을 드리며", "count": 2}, {"name": "참 반가운 신도여", "count": 2}, {"name": "충만", "count": 2}, {"name": "하나님의 사랑을", "count": 2}, {"name": "하나님의 은혜", "count": 2}, {"name": "희망의 노래", "count": 2}, {"name": "가서 제자 삼으라", "count": 1}, {"name": "감사", "count": 1}, {"name": "감사로 제사 드리는 자가", "count": 1}, {"name": "감사함으로", "count": 1}, {"name": "감사해", "count": 1}, {"name": "감사해요 깨닫지 못했었는데", "count": 1}, {"name": "거룩하신 성령이여", "count": 1}, {"name": "광야를 지나며", "count": 1}, {"name": "교회여 일어나라", "count": 1}, {"name": "그날이 도적같이", "count": 1}, {"name": "기대", "count": 1}, {"name": "기뻐하며 왕께 노래부르리", "count": 1}, {"name": "꽃들도", "count": 1}, {"name": "나 가나안 땅 귀한 성에", "count": 1}, {"name": "나 가진재물 없으나", "count": 1}, {"name": "나 기다립니다", "count": 1}, {"name": "나 기뻐하리", "count": 1}, {"name": "나는 아무것도 아닙니다", "count": 1}, {"name": "나로부터 시작되리", "count": 1}, {"name": "나를 지으신 이가 하나님", "count": 1}, {"name": "나의 슬픔을", "count": 1}, {"name": "나의 참친구", "count": 1}, {"name": "날마다 숨쉬는 순간마다", "count": 1}, {"name": "내 삶을 깨트립니다", "count": 1}, {"name": "내 안에 부어주소서", "count": 1}, {"name": "내안에 사는 이", "count": 1}, {"name": "내영이", "count": 1}, {"name": "내일일은 난 몰라요", "count": 1}, {"name": "너는 담장너머로 뻗은 나무", "count": 1}, {"name": "너희는 가만히 있어", "count": 1}, {"name": "누군가 널 위해 기도하네", "count": 1}, {"name": "눈을 들어 주를 보라", "count": 1}, {"name": "다시 일어나", "count": 1}, {"name": "다시한번 인생으로", "count": 1}, {"name": "마음이 상한 자를", "count": 1}, {"name": "만세 반석", "count": 1}, {"name": "많은 사람들", "count": 1}, {"name": "모든 능력과 모든 권세", "count": 1}, {"name": "모든 삶의 순간", "count": 1}, {"name": "모든상황 속에서", "count": 1}, {"name": "목마른 내 영혼", "count": 1}, {"name": "무너진 내 맘에", "count": 1}, {"name": "무덤에 머물러", "count": 1}, {"name": "믿음 따라", "count": 1}, {"name": "믿음이 없이는", "count": 1}, {"name": "불을 내려 주소서", "count": 1}, {"name": "비 준비하시니", "count": 1}, {"name": "사랑합니다 나의 예수님", "count": 1}, {"name": "사명", "count": 1}, {"name": "살아계신주", "count": 1}, {"name": "새 힘 얻으리", "count": 1}, {"name": "선하신 목자 + 선한 목자 되신 우리 주", "count": 1}, {"name": "성도여 다 함께", "count": 1}, {"name": "성도의 노래", "count": 1}, {"name": "세상 모든 민족이", "count": 1}, {"name": "세상을 평화 원하지만", "count": 1}, {"name": "손잡고 함께가세", "count": 1}, {"name": "아름다운 이야기가 있네", "count": 1}, {"name": "아침안개 눈앞가리듯", "count": 1}, {"name": "아침에 주의 인자하심을", "count": 1}, {"name": "어둔날 다 지나고", "count": 1}, {"name": "어머니의 넓은 사랑", "count": 1}, {"name": "에바다", "count": 1}, {"name": "에수 열방의 소망", "count": 1}, {"name": "예수 가장 귀한그이름", "count": 1}, {"name": "예수 귀하신 이름", "count": 1}, {"name": "예수 나를 위하여", "count": 1}, {"name": "예수 이름 높이세", "count": 1}, {"name": "예수님 때문에", "count": 1}, {"name": "예수로 나의 구주 삼고", "count": 1}, {"name": "예수이름으로", "count": 1}, {"name": "오 신실하신 주", "count": 1}, {"name": "오직 믿음으로", "count": 1}, {"name": "온 땅이여 주를찬양", "count": 1}, {"name": "왕이신 하나님 높임을 받으소서", "count": 1}, {"name": "우리 주의 성령이", "count": 1}, {"name": "우리가 꿈꾸는 나라", "count": 1}, {"name": "우리는 기대하고 기도하며 기다리네", "count": 1}, {"name": "우리는 주의 움직이는 교회", "count": 1}, {"name": "우리는 주의 움직이는 교회 + 교회여 일어나라", "count": 1}, {"name": "우리함께 기뻐해", "count": 1}, {"name": "우물가의 여인처럼", "count": 1}, {"name": "위대하고 강하신 주님", "count": 1}, {"name": "유월절 어린양의 피로 + 예수 아름다우신", "count": 1}, {"name": "이 땅 위에 오신", "count": 1}, {"name": "이 땅의 황무함을 보소서", "count": 1}, {"name": "이 세상을 살아가는 동안에", "count": 1}, {"name": "이제 역전되리라", "count": 1}, {"name": "저 높은 하늘 위로", "count": 1}, {"name": "전심으로", "count": 1}, {"name": "주 날 구원했으니", "count": 1}, {"name": "주 내 아버지", "count": 1}, {"name": "주 보좌로 부터", "count": 1}, {"name": "주 신실하심 놀라워", "count": 1}, {"name": "주 예수 기뻐 찬양해", "count": 1}, {"name": "주 예수의 이름 높이세", "count": 1}, {"name": "주 우리 아버지", "count": 1}, {"name": "주 찬양합니다", "count": 1}, {"name": "주께 가까이 날 이끄소서", "count": 1}, {"name": "주께서 전진해온다", "count": 1}, {"name": "주님 내 안에", "count": 1}, {"name": "주님 다시 오실 때까지", "count": 1}, {"name": "주님 말씀 하시면", "count": 1}, {"name": "주님 한분만으로", "count": 1}, {"name": "주님같은 반석은 없도다", "count": 1}, {"name": "주님과 담대히 나아가", "count": 1}, {"name": "주님과 함께하는(온맘다해)", "count": 1}, {"name": "주님손에 맡겨 드리리", "count": 1}, {"name": "주님은 아시네", "count": 1}, {"name": "주님을 바라봅니다", "count": 1}, {"name": "주님의 성령 지금 이곳에", "count": 1}, {"name": "주님의 은혜 넘치네", "count": 1}, {"name": "주님이 주신 땅으로", "count": 1}, {"name": "주발앞에 나 엎드려", "count": 1}, {"name": "주사랑이 나를 숨쉬게 해", "count": 1}, {"name": "주안에서 기뻐해", "count": 1}, {"name": "주의 거룩하심 생각할때", "count": 1}, {"name": "주의 옷자락 만지며", "count": 1}, {"name": "주의 음성을 내가 들으니", "count": 1}, {"name": "주의 이름 송축하리", "count": 1}, {"name": "주의 이름 안에서", "count": 1}, {"name": "주의 자비가 내려와", "count": 1}, {"name": "찬송하라", "count": 1}, {"name": "찬양이 언제나 넘치면", "count": 1}, {"name": "천사들의 노래가", "count": 1}, {"name": "풀은 마르고", "count": 2}, {"name": "하나님은 너를 지키시는 자", "count": 1}, {"name": "하나님의 그늘아래", "count": 1}, {"name": "하나님의 나팔소리", "count": 1}, {"name": "하나님의 약속", "count": 1}, {"name": "하늘의 해와 달들아", "count": 1}, {"name": "할수있다 하신이는", "count": 1}, {"name": "해 뜨는 데 부터", "count": 1}, {"name": "해같이 빛나리", "count": 1}, {"name": "혼자걷지 않을거에요", "count": 1}, {"name": "모든 상황 속에서", "count": 1}];
+
+function norm(s) { return s.trim().replace(/\s+/g,' '); }
+
+function log(msg, cls='') {
+  const el = document.getElementById('log');
+  el.innerHTML += `<span class="${cls}">${msg}</span>\n`;
+  el.scrollTop = el.scrollHeight;
+}
+
+async function api(method, path, body, minimal=false) {
+  const res = await fetch(SUPABASE_URL+'/rest/v1/'+path, {
+    method, headers: minimal?HM:H, body: body?JSON.stringify(body):undefined
+  });
+  if(!res.ok) throw new Error(await res.text());
+  const t = await res.text();
+  return t ? JSON.parse(t) : null;
+}
+
+async function startUpdate() {
+  const btn = document.getElementById('btn1');
+  btn.disabled = true;
+  document.getElementById('log').innerHTML = '';
+  log('🔍 기존 DB 곡 목록 불러오는 중...', 'info');
+
+  try {
+    const existing = await api('GET', 'songs?select=id,name,count,status&limit=1000');
+    // 정규화된 이름으로 맵 생성 (공백 trim + 중복공백 제거)
+    const existMap = {};
+    existing.forEach(s => { existMap[norm(s.name)] = s; });
+    log(`✓ 기존 DB: ${existing.length}곡`, 'ok');
+    log('');
+
+    let updated = 0, added = 0, failed = 0;
+
+    for (const song of songData) {
+      const rawName = song.name;
+      const name = norm(rawName);
+      const count = song.count;
+      const status = count > 0 ? 'used' : 'ready';
+      const match = existMap[name];
+
+      if (match) {
+        try {
+          await api('PATCH', `songs?id=eq.${match.id}`, { count, status, updated_at: new Date().toISOString() }, true);
+          log(`✓ 업데이트: ${name} (${count}회)`, 'ok');
+          updated++;
+        } catch(e) {
+          log(`✗ 실패: ${name} — ${e.message}`, 'err');
+          failed++;
+        }
+      } else {
+        try {
+          await api('POST', 'songs', { name, count, status, seasons:[], key:'', bpm:0, music_url:'' });
+          log(`➕ 새로 추가: ${name} (${count}회)`, 'info');
+          added++;
+        } catch(e) {
+          // 중복 에러면 이름 변형 시도해서 업데이트
+          if (e.message.includes('duplicate') || e.message.includes('23505')) {
+            try {
+              const retry = await api('GET', `songs?select=id,name&name=ilike.${encodeURIComponent('%'+name+'%')}`);
+              if (retry && retry[0]) {
+                await api('PATCH', `songs?id=eq.${retry[0].id}`, { count, status, updated_at: new Date().toISOString() }, true);
+                log(`✓ 유사 이름 매칭 업데이트: ${retry[0].name} (${count}회)`, 'ok');
+                updated++;
+              }
+            } catch(e2) {
+              log(`✗ 매칭 실패: ${name}`, 'err');
+              failed++;
+            }
+          } else {
+            log(`✗ 추가 실패: ${name} — ${e.message}`, 'err');
+            failed++;
+          }
+        }
+      }
+    }
+
+    log('');
+    log(`✅ 완료! 업데이트: ${updated}곡 / 신규 추가: ${added}곡 / 실패: ${failed}곡`, 'ok');
+    const sum = document.getElementById('summary');
+    sum.style.display = 'block';
+    sum.innerHTML = `✅ 완료 — 업데이트 ${updated}곡 · 신규 추가 ${added}곡 · 실패 ${failed}곡`;
+  } catch(e) {
+    log(`✗ 오류: ${e.message}`, 'err');
+  }
+  btn.disabled = false;
+  btn.textContent = '다시 실행';
+}
+</script>
+</body>
+</html>

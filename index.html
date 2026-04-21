@@ -193,6 +193,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 <div class="tabs">
   <button class="tab on" onclick="switchTab('songs',this)">🎵 찬양곡</button>
   <button class="tab" onclick="switchTab('history',this)">📅 주일기록</button>
+  <button class="tab" onclick="switchTab('tools',this)">🛠 관리도구</button>
 </div>
 
 <div id="tab-songs">
@@ -246,7 +247,82 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   <div class="list" id="list"><div class="loading"><span class="loading-spin">⟳</span>데이터 불러오는 중...</div></div>
 </div>
 
-<!-- 주일기록 탭 -->
+<!-- 관리도구 탭 -->
+<div id="tab-tools" style="display:none">
+  <div style="padding:1rem;max-width:700px;margin:0 auto">
+    <p style="font-size:.78rem;color:var(--text3);margin-bottom:1rem">각 도구를 클릭하면 새 탭에서 열려요. GitHub에 함께 업로드된 파일들이에요.</p>
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+
+      <a href="tag-update.html" target="_blank" style="text-decoration:none">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <span style="font-size:1.3rem">🏷️</span>
+            <span style="font-size:.9rem;font-weight:600;color:var(--text1)">태그 일괄 업데이트</span>
+            <span style="margin-left:auto;font-size:.68rem;padding:2px 8px;border-radius:20px;background:var(--blue-bg);color:var(--accent)">tag-update.html</span>
+          </div>
+          <p style="font-size:.78rem;color:var(--text2);line-height:1.6;margin-left:2.2rem">AI가 분석한 248곡의 상황별·절기별 태그를 DB에 한 번에 반영합니다. 경배·예배, 위로·치유, 부활절, 성탄절 등 18개 카테고리로 분류해요.</p>
+        </div>
+      </a>
+
+      <a href="score-upload.html" target="_blank" style="text-decoration:none">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <span style="font-size:1.3rem">🎼</span>
+            <span style="font-size:.9rem;font-weight:600;color:var(--text1)">악보 일괄 업로드</span>
+            <span style="margin-left:auto;font-size:.68rem;padding:2px 8px;border-radius:20px;background:var(--green-bg);color:var(--green)">score-upload.html</span>
+          </div>
+          <p style="font-size:.78rem;color:var(--text2);line-height:1.6;margin-left:2.2rem">원드라이브 폴더에서 악보 이미지를 선택하면 파일명으로 곡명을 자동 매칭해서 Supabase Storage에 업로드해요. Mac NFD 자모 분리 문제도 자동 처리돼요.</p>
+        </div>
+      </a>
+
+      <a href="score-sync.html" target="_blank" style="text-decoration:none">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <span style="font-size:1.3rem">🔄</span>
+            <span style="font-size:.9rem;font-weight:600;color:var(--text1)">악보 상태 동기화</span>
+            <span style="margin-left:auto;font-size:.68rem;padding:2px 8px;border-radius:20px;background:var(--green-bg);color:var(--green)">score-sync.html</span>
+          </div>
+          <p style="font-size:.78rem;color:var(--text2);line-height:1.6;margin-left:2.2rem">Supabase Storage에 실제 파일이 있는지 확인해서 has_score 값을 정확하게 업데이트해요. 악보 완료인데 파일 없는 곡은 작업 예정으로 자동 변경해요.</p>
+        </div>
+      </a>
+
+      <a href="song-merge.html" target="_blank" style="text-decoration:none">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent2)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <span style="font-size:1.3rem">🔀</span>
+            <span style="font-size:.9rem;font-weight:600;color:var(--text1)">곡 병합 도구</span>
+            <span style="margin-left:auto;font-size:.68rem;padding:2px 8px;border-radius:20px;background:var(--amber-bg);color:var(--accent2)">song-merge.html</span>
+          </div>
+          <p style="font-size:.78rem;color:var(--text2);line-height:1.6;margin-left:2.2rem">같은 곡인데 다른 이름으로 등록된 경우 하나로 합칩니다. 유사 곡명 자동 탐지 기능으로 비슷한 곡명을 찾아주고, 사용 횟수 합산·주일기록 통일·삭제까지 한 번에 처리해요.</p>
+        </div>
+      </a>
+
+      <a href="name-cleanup.html" target="_blank" style="text-decoration:none">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--text2)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <span style="font-size:1.3rem">✂️</span>
+            <span style="font-size:.9rem;font-weight:600;color:var(--text1)">곡명 공백 정리</span>
+            <span style="margin-left:auto;font-size:.68rem;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--text2)">name-cleanup.html</span>
+          </div>
+          <p style="font-size:.78rem;color:var(--text2);line-height:1.6;margin-left:2.2rem">곡명에 특수 공백·중복 공백이 섞여 있으면 검색이나 매칭이 안 될 수 있어요. 전체 곡명을 분석해서 공백을 정규화하고, 주일기록 곡명도 함께 정리해요.</p>
+        </div>
+      </a>
+
+      <a href="status-update.html" target="_blank" style="text-decoration:none">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--text2)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <span style="font-size:1.3rem">📊</span>
+            <span style="font-size:.9rem;font-weight:600;color:var(--text1)">사용 횟수 업데이트</span>
+            <span style="margin-left:auto;font-size:.68rem;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--text2)">status-update.html</span>
+          </div>
+          <p style="font-size:.78rem;color:var(--text2);line-height:1.6;margin-left:2.2rem">엑셀 파일 기준으로 곡별 사용 횟수와 상태를 일괄 업데이트해요. DB에 없는 곡은 자동으로 추가하고, 유사 이름 매칭으로 공백 차이도 처리해요.</p>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</div>
 <div id="tab-history" style="display:none">
   <div class="history-wrap">
     <div class="history-filter">
@@ -388,6 +464,22 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 
 <div class="toast" id="toast"></div>
 
+<!-- 관리 도구 모달 -->
+<div class="modal-bg" id="tools-modal">
+  <div class="modal" style="max-width:360px">
+    <h2 style="margin-bottom:1rem">🛠 관리 도구</h2>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <a href="tag-update.html" target="_blank" style="display:block;padding:.65rem 1rem;background:var(--blue-bg);color:var(--accent);border-radius:8px;text-decoration:none;font-size:.83rem;font-weight:500">🏷️ 태그 일괄 업데이트<span style="display:block;font-size:.7rem;color:var(--text3);font-weight:400;margin-top:2px">AI가 분석한 상황별·절기별 태그 반영</span></a>
+      <a href="score-upload.html" target="_blank" style="display:block;padding:.65rem 1rem;background:var(--green-bg);color:var(--green);border-radius:8px;text-decoration:none;font-size:.83rem;font-weight:500">🎼 악보 일괄 업로드<span style="display:block;font-size:.7rem;color:var(--text3);font-weight:400;margin-top:2px">파일명 자동 매칭 후 Supabase 업로드</span></a>
+      <a href="score-sync.html" target="_blank" style="display:block;padding:.65rem 1rem;background:var(--green-bg);color:var(--green);border-radius:8px;text-decoration:none;font-size:.83rem;font-weight:500">🔄 악보 상태 동기화<span style="display:block;font-size:.7rem;color:var(--text3);font-weight:400;margin-top:2px">Storage 실제 파일 기준으로 상태 정리</span></a>
+      <a href="song-merge.html" target="_blank" style="display:block;padding:.65rem 1rem;background:var(--amber-bg);color:var(--accent2);border-radius:8px;text-decoration:none;font-size:.83rem;font-weight:500">🔀 곡 병합 도구<span style="display:block;font-size:.7rem;color:var(--text3);font-weight:400;margin-top:2px">중복·유사 곡명 자동 탐지 및 병합</span></a>
+      <a href="name-cleanup.html" target="_blank" style="display:block;padding:.65rem 1rem;background:var(--surface2);color:var(--text2);border-radius:8px;text-decoration:none;font-size:.83rem;font-weight:500">✂️ 곡명 공백 정리<span style="display:block;font-size:.7rem;color:var(--text3);font-weight:400;margin-top:2px">특수 공백·중복 공백 일괄 정규화</span></a>
+      <a href="status-update.html" target="_blank" style="display:block;padding:.65rem 1rem;background:var(--surface2);color:var(--text2);border-radius:8px;text-decoration:none;font-size:.83rem;font-weight:500">📊 사용 횟수 업데이트<span style="display:block;font-size:.7rem;color:var(--text3);font-weight:400;margin-top:2px">엑셀 기준 사용 횟수 일괄 반영</span></a>
+    </div>
+    <button class="btn-cancel" onclick="document.getElementById('tools-modal').classList.remove('show')" style="width:100%;margin-top:1rem;padding:.6rem;border:1px solid var(--border2);border-radius:6px;background:transparent;font-family:'Noto Sans KR',sans-serif;font-size:.8rem;cursor:pointer">닫기</button>
+  </div>
+</div>
+
 <!-- 악보 뷰어 -->
 <div class="viewer-bg" id="viewer">
   <div class="viewer-top">
@@ -420,6 +512,7 @@ function switchTab(tab, btn) {
   btn.classList.add('on');
   document.getElementById('tab-songs').style.display = tab==='songs' ? '' : 'none';
   document.getElementById('tab-history').style.display = tab==='history' ? '' : 'none';
+  document.getElementById('tab-tools').style.display = tab==='tools' ? '' : 'none';
   document.getElementById('fab').style.display = tab==='songs' ? 'flex' : 'none';
   if (tab==='history') { initYearSelect(); loadHistory(); }
 }

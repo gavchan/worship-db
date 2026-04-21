@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>악보 일괄 업로드</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:sans-serif;background:#faf8f5;color:#1a1714;min-height:100vh}
+.header{background:#1a1714;color:#fff;padding:1.2rem 1.5rem}
+.header h1{font-size:1.2rem;font-weight:700;margin-bottom:.2rem}
+.header p{font-size:.75rem;color:rgba(255,255,255,.5)}
+.controls{background:#fff;border-bottom:1px solid #e8e2d9;padding:.9rem 1rem;position:sticky;top:0;z-index:10;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{padding:.5rem 1rem;border:none;border-radius:6px;font-size:.8rem;cursor:pointer;font-family:inherit;white-space:nowrap}
+.btn-blue{background:#2d5a8e;color:#fff}
+.btn-blue:disabled{opacity:.5;cursor:not-allowed}
+.btn-green{background:#3a7a52;color:#fff}
+.btn-green:disabled{opacity:.5;cursor:not-allowed}
+.btn-outline{background:transparent;border:1px solid #d4cec4;color:#6b6560}
+.stat{font-size:.75rem;color:#6b6560;flex:1}
+.drop-zone{border:2px dashed #d4cec4;border-radius:12px;padding:3rem;text-align:center;margin:1rem;cursor:pointer;background:#fff;transition:all .2s}
+.drop-zone.active{border-color:#2d5a8e;background:#eaf0f8}
+.drop-zone input{display:none}
+.list{padding:.75rem;display:flex;flex-direction:column;gap:5px}
+.row{background:#fff;border:1px solid #e8e2d9;border-radius:8px;padding:9px 13px;display:flex;align-items:center;gap:10px}
+.row.ok{border-color:#3a7a52}
+.row.skip{opacity:.4}
+.row.done{border-color:#3a7a52;background:#edf5f0;opacity:.7}
+.row.err{border-color:#b0281f;background:#fdeaea}
+.thumb{width:40px;height:40px;object-fit:cover;border-radius:4px;border:1px solid #e8e2d9;flex-shrink:0;background:#f4f1eb;display:flex;align-items:center;justify-content:center;font-size:1rem}
+.info{flex:1;min-width:0}
+.fname{font-size:.72rem;color:#9e9891;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mrow{display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap}
+.badge{font-size:.62rem;padding:2px 7px;border-radius:20px;white-space:nowrap}
+.b-ok{background:#edf5f0;color:#3a7a52;border:1px solid rgba(58,122,82,.2)}
+.b-sim{background:#eaf0f8;color:#2d5a8e;border:1px solid rgba(45,90,142,.2)}
+.b-no{background:#fdf4e7;color:#c4913a;border:1px solid rgba(196,145,58,.2)}
+.b-done{background:#edf5f0;color:#3a7a52}
+.b-err{background:#fdeaea;color:#b0281f}
+.b-has{background:#edf5f0;color:#3a7a52;border:1px solid rgba(58,122,82,.2)}
+.sel{font-size:.76rem;padding:3px 7px;border:1px solid #d4cec4;border-radius:6px;background:#faf8f5;font-family:sans-serif;max-width:200px;color:#1a1714;outline:none}
+.rb{font-size:.63rem;padding:3px 8px;border:1px solid #d4cec4;border-radius:20px;background:transparent;cursor:pointer;color:#6b6560;white-space:nowrap}
+.rb:hover{border-color:#b0281f;color:#b0281f}
+.prog-wrap{display:none;padding:.5rem 1rem;background:#fff;border-top:1px solid #e8e2d9;position:sticky;bottom:0}
+.prog-bar{height:5px;background:#e8e2d9;border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;background:#2d5a8e;border-radius:3px;transition:width .3s}
+.prog-txt{font-size:.73rem;color:#6b6560;margin-top:3px;text-align:center}
+.debug{background:#1a1714;color:#0f0;padding:.5rem 1rem;font-size:.72rem;font-family:monospace;white-space:pre-wrap;max-height:150px;overflow-y:auto;display:none}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🎼 악보 일괄 업로드</h1>
+  <p>파일명으로 곡명 자동 매칭 → 확인 후 Supabase에 업로드</p>
+</div>
+<div class="controls">
+  <button class="btn btn-blue" id="btnFile" onclick="document.getElementById('fi').click()" disabled>📁 파일 선택</button>
+  <button class="btn btn-green" id="btnUp" onclick="startUpload()" disabled>☁️ 업로드 시작</button>
+  <button class="btn btn-outline" onclick="skipAll()">매칭 안된 곡 건너뛰기</button>
+  <span class="stat" id="stat">⟳ 곡 목록 불러오는 중...</span>
+</div>
+<div class="drop-zone" id="dz">
+  <input type="file" id="fi" multiple accept="image/*,.pdf" onchange="go(this.files)">
+  <p style="font-size:.9rem;color:#6b6560;margin-bottom:.4rem">📂 파일을 드래그하거나 클릭해서 선택</p>
+  <small style="font-size:.75rem;color:#9e9891">PNG, JPG, PDF · 폴더 내 전체 선택 가능</small>
+</div>
+<div class="debug" id="debug"></div>
+<div class="list" id="list"></div>
+<div class="prog-wrap" id="pw">
+  <div class="prog-bar"><div class="prog-fill" id="pf"></div></div>
+  <div class="prog-txt" id="pt"></div>
+</div>
+<script>
+const SURL='https://rmtysrytveexshwzenxj.supabase.co';
+const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdHlzcnl0dmVleHNod3plbnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjQ3OTYsImV4cCI6MjA5MjEwMDc5Nn0.5FzzJ1rg-uRG4jAGZ75xVT3i3NH0m6J_tDeOS4GxyT8';
+const RH={'apikey':KEY,'Authorization':'Bearer '+KEY};
+const JH={'Content-Type':'application/json','apikey':KEY,'Authorization':'Bearer '+KEY,'Prefer':'return=minimal'};
+const SH={'apikey':KEY,'Authorization':'Bearer '+KEY};
+
+let DB=[], items=[];
+
+function dbg(msg){
+  const el=document.getElementById('debug');
+  el.style.display='block';
+  el.textContent+=msg+'\n';
+  el.scrollTop=el.scrollHeight;
+}
+
+function clean(s){
+  // Mac NFD → NFC 정규화 (한글 자모 분리 문제 해결)
+  s = s.normalize('NFC');
+  // 확장자 제거
+  s = s.replace(/\.[a-z0-9]+$/i, '');
+  // 끝 페이지번호 제거 (-1, -2 등)
+  s = s.replace(/-\d+$/, '');
+  // 앞 숫자 제거
+  s = s.replace(/^\d[\d\-]*/, '');
+  // 소문자
+  s = s.toLowerCase();
+  // 공백 전부 제거
+  s = s.split(' ').join('');
+  s = s.split('\t').join('');
+  s = s.split('\u00A0').join('');
+  s = s.split('\u3000').join('');
+  return s;
+}
+
+function match(fileName, songName){
+  const f = clean(fileName);
+  const s = clean(songName);
+  if(!f || !s) return 0;
+  // 완전 일치
+  if(f === s) return 1.0;
+  // 한쪽이 포함
+  if(f.includes(s) || s.includes(f)) return 0.9;
+  // 앞부분 일치 (4글자 이상)
+  const ml = Math.min(f.length, s.length);
+  if(ml >= 4 && f.substring(0, ml) === s.substring(0, ml)) return 0.8;
+  // 글자 교집합 — 한글 글자 단위로 분리
+  const af = Array.from(f); // 한글 분리
+  const as_ = Array.from(s);
+  const sf = new Set(af);
+  const ss = new Set(as_);
+  let inter = 0;
+  sf.forEach(c => { if(ss.has(c)) inter++; });
+  return inter / Math.max(sf.size, ss.size);
+}
+
+// 디버그용 — 첫 파일과 DB 매칭 상세 출력
+function debugMatch(fileName) {
+  const f = clean(fileName);
+  const results = DB.map(s => ({name: s.name, score: match(fileName, s.name)}))
+    .sort((a,b) => b.score - a.score)
+    .slice(0, 3);
+  dbg(`TOP3 매칭: ${results.map(r=>`"${r.name}"(${r.score.toFixed(2)})`).join(', ')}`);
+}
+
+async function load(){
+  try{
+    const r=await fetch(`${SURL}/rest/v1/songs?select=id,name,status,has_score&limit=2000&order=name`,{headers:RH});
+    DB=await r.json();
+    document.getElementById('stat').textContent=`✓ ${DB.length}곡 로드 완료 — 파일을 선택하세요`;
+    document.getElementById('btnFile').disabled=false;
+    document.getElementById('dz').style.opacity='1';
+    document.getElementById('dz').style.pointerEvents='auto';
+    dbg(`DB 로드: ${DB.length}곡`);
+  }catch(e){
+    document.getElementById('stat').textContent='⚠️ 로드 실패: '+e.message;
+  }
+}
+
+document.getElementById('dz').style.opacity='0.5';
+document.getElementById('dz').style.pointerEvents='none';
+load();
+
+function go(files){
+  if(!DB.length){alert('곡 목록이 아직 로드되지 않았어요!');return;}
+  items=[];
+  document.getElementById('dz').style.display='none';
+  document.getElementById('debug').textContent='';
+
+  dbg(`파일 수: ${files.length}, DB 곡 수: ${DB.length}`);
+
+  // 첫 파일 상세 매칭 디버그
+  const firstFile = [...files][0];
+  if(firstFile) {
+    const fc = clean(firstFile.name);
+    dbg(`첫파일 clean: "${fc}" 길이:${fc.length}`);
+    // DB에서 동일한 clean 값 직접 찾기
+    const exact = DB.find(s => {
+      const sc = clean(s.name);
+      return sc === fc;
+    });
+    dbg(`직접 찾기: ${exact ? '"'+exact.name+'"' : '없음'}`);
+    // 첫 번째 한글 곡과 비교
+    const korSong = DB.find(s => /[가-힣]/.test(s.name));
+    if(korSong) {
+      const kc = clean(korSong.name);
+      dbg(`한글곡 예시: "${korSong.name}" → clean:"${kc}" 길이:${kc.length}`);
+      dbg(`같은가? ${fc===kc} | charCode비교: ${fc.charCodeAt(0)} vs ${kc.charCodeAt(0)}`);
+    }
+  }
+
+  // 그룹핑
+  const groups={};
+  [...files].forEach(f=>{
+    const base=f.name.replace(/\.[a-z0-9]+$/i,'').replace(/-\d+$/,'');
+    if(!groups[base]) groups[base]=[];
+    groups[base].push(f);
+  });
+
+  dbg(`그룹 수: ${Object.keys(groups).length}`);
+
+  // 매칭
+  let matchCount=0;
+  Object.entries(groups).forEach(([base,gfiles])=>{
+    let best=null, bestScore=0;
+    DB.forEach(s=>{
+      const sc=match(gfiles[0].name, s.name);
+      if(sc>bestScore){bestScore=sc;best=s;}
+    });
+
+    const matched = bestScore>=0.5 ? best : null;
+    if(matched) matchCount++;
+
+    if(items.length === 0){
+      const firstDB = DB[0];
+      dbg(`DB첫곡:"${firstDB.name}" → clean:"${clean(firstDB.name)}"`);
+      debugMatch(gfiles[0].name);
+    }
+    if(items.length < 5){
+      dbg(`파일clean:"${clean(gfiles[0].name)}" | 매칭:${matched?matched.name+'('+bestScore.toFixed(2)+')':'없음'}`);
+    }
+
+    items.push({
+      id:base,
+      files:gfiles.sort((a,b)=>a.name.localeCompare(b.name)),
+      songId:matched?.id||null,
+      songName:matched?.name||null,
+      score:bestScore,
+      matchType:!matched?'none':bestScore>=0.85?'auto':'sim',
+      hasScore:matched?.has_score||false,
+      skip:matched?.has_score||false,
+      done:false,err:null
+    });
+  });
+
+  dbg(`매칭 결과: ${matchCount}/${items.length}`);
+  render();
+  updateStat();
+  document.getElementById('btnUp').disabled=false;
+}
+
+function render(){
+  document.getElementById('list').innerHTML=items.map((it,i)=>{
+    const f=it.files[0];
+    const isImg=f.type.startsWith('image/');
+    const rc=it.done?'done':it.err?'err':it.skip?'skip':it.songId?'ok':'';
+    const bl=it.done?'b-done':it.err?'b-err':it.matchType==='auto'?'b-ok':it.matchType==='sim'?'b-sim':'b-no';
+    const bt=it.done?'✓ 완료':it.err?'✗ 실패':it.matchType==='auto'?`자동 ${Math.round(it.score*100)}%`:it.matchType==='sim'?`유사 ${Math.round(it.score*100)}%`:'매칭 필요';
+    const opts=DB.map(s=>`<option value="${s.id}"${s.id===it.songId?' selected':''}>${s.name}</option>`).join('');
+    const thumb=isImg?`<img class="thumb" src="${URL.createObjectURL(f)}" style="width:40px;height:40px;object-fit:cover;border-radius:4px">`:`<div class="thumb">📄</div>`;
+    return`<div class="row ${rc}" id="r${i}">
+${thumb}
+<div class="info">
+  <div class="fname">${it.files.map(f=>f.name).join(', ')}</div>
+  <div class="mrow">
+    <span class="badge ${bl}">${bt}</span>
+    ${it.hasScore?'<span class="badge b-has">이미 악보 있음</span>':''}
+    ${!it.done&&!it.err?`<select class="sel" onchange="upd(${i},this.value)"><option value="">-- 곡 선택 --</option>${opts}</select>`:(it.songName?`<span style="font-size:.78rem;font-weight:500">${it.songName}</span>`:'')}
+  </div>
+</div>
+<button class="rb" onclick="tog(${i})">${it.skip&&!it.done?'↩ 취소':'건너뛰기'}</button>
+</div>`;
+  }).join('');
+}
+
+function upd(i,id){
+  const s=DB.find(x=>x.id===id);
+  items[i].songId=id||null;
+  items[i].songName=s?.name||null;
+  items[i].matchType=id?'sim':'none';
+  items[i].score=0.7;
+  render();updateStat();
+}
+function tog(i){items[i].skip=!items[i].skip;render();updateStat();}
+function skipAll(){items.forEach(it=>{if(!it.songId)it.skip=true;});render();updateStat();}
+
+function updateStat(){
+  const tot=items.length,ok=items.filter(i=>i.songId&&!i.skip).length,sk=items.filter(i=>i.skip).length,dn=items.filter(i=>i.done).length;
+  document.getElementById('stat').textContent=`전체 ${tot} · 매칭 ${ok} · 건너뛰기 ${sk} · 완료 ${dn}`;
+}
+
+async function startUpload(){
+  const todo=items.filter(i=>i.songId&&!i.skip&&!i.done);
+  if(!todo.length){alert('업로드할 파일이 없어요');return;}
+  if(!confirm(`${todo.length}개 업로드할까요?`))return;
+  document.getElementById('btnUp').disabled=true;
+  document.getElementById('pw').style.display='block';
+  let done=0;
+  for(const it of todo){
+    document.getElementById('pt').textContent=`${done+1}/${todo.length} — "${it.songName}"`;
+    document.getElementById('pf').style.width=Math.round(done/todo.length*100)+'%';
+    try{
+      // 기존 파일 수 확인
+      const lr=await fetch(`${SURL}/storage/v1/object/list/scores`,{method:'POST',headers:{...SH,'Content-Type':'application/json'},body:JSON.stringify({prefix:it.songId+'/',limit:50})});
+      const ex=lr.ok?await lr.json():[];
+      const exCount=Array.isArray(ex)?ex.filter(f=>f.name&&!f.name.endsWith('/')).length:0;
+      for(let i=0;i<it.files.length;i++){
+        const f=it.files[i];
+        const ext=f.name.split('.').pop();
+        const path=`${it.songId}/${Date.now()}_${exCount+i}.${ext}`;
+        const r=await fetch(`${SURL}/storage/v1/object/scores/${path}`,{method:'POST',headers:{...SH,'Content-Type':f.type,'x-upsert':'false'},body:f});
+        if(!r.ok)throw new Error(await r.text());
+      }
+      const song=DB.find(s=>s.id===it.songId);
+      const newStatus=song?.status==='plan'?'ready':song?.status;
+      await fetch(`${SURL}/rest/v1/songs?id=eq.${it.songId}`,{method:'PATCH',headers:JH,body:JSON.stringify({has_score:true,status:newStatus,updated_at:new Date().toISOString()})});
+      if(song){song.has_score=true;song.status=newStatus;}
+      it.done=true;
+    }catch(e){it.err=e.message;}
+    done++;
+    const idx=items.indexOf(it);
+    const row=document.getElementById('r'+idx);
+    if(row){
+      it.done?row.className='row done':row.className='row err';
+    }
+    updateStat();
+  }
+  document.getElementById('pf').style.width='100%';
+  document.getElementById('pt').textContent=`완료! ${todo.filter(i=>i.done).length}/${todo.length}곡 성공`;
+  document.getElementById('btnUp').disabled=false;
+  render();
+}
+
+// 드래그 앤 드롭
+const dz=document.getElementById('dz');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('active');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('active'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('active');go(e.dataTransfer.files);});
+</script>
+</body>
+</html>
