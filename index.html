@@ -436,8 +436,23 @@ function initYearSelect() {
 
 function getWeekOfMonth(date) {
   const d = new Date(date);
-  const firstDay = new Date(d.getFullYear(), d.getMonth(), 1).getDay();
-  return Math.ceil((d.getDate() + firstDay) / 7);
+  const firstOfMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+  // 그 달 첫 번째 일요일
+  const firstSunday = new Date(firstOfMonth);
+  const dayOfWeek = firstOfMonth.getDay();
+  if (dayOfWeek !== 0) {
+    firstSunday.setDate(1 + (7 - dayOfWeek));
+  }
+  // 날짜가 첫 번째 일요일 이전이면 → 이전 달 마지막 주
+  if (d < firstSunday) {
+    const prevFirst = new Date(d.getFullYear(), d.getMonth() - 1, 1);
+    const prevDow = prevFirst.getDay();
+    const prevFirstSunday = new Date(prevFirst);
+    if (prevDow !== 0) prevFirstSunday.setDate(1 + (7 - prevDow));
+    return Math.floor((d - prevFirstSunday) / (7 * 864e5)) + 1;
+  }
+  // 첫 번째 일요일이 1주차
+  return Math.floor((d - firstSunday) / (7 * 864e5)) + 1;
 }
 
 function weekLabel(date) {
