@@ -357,7 +357,17 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     <h2 id="hmodal-title">주일 기록 추가</h2>
     <div class="form-group">
       <label>날짜 *</label>
-      <input type="date" id="h-date">
+      <div style="display:flex;gap:6px">
+        <select id="h-year-input" style="flex:1.2;padding:.55rem .5rem;border:1px solid var(--border2);border-radius:6px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.83rem;color:var(--text1);outline:none"></select>
+        <select id="h-month-input" style="flex:1;padding:.55rem .5rem;border:1px solid var(--border2);border-radius:6px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.83rem;color:var(--text1);outline:none">
+          <option value="01">1월</option><option value="02">2월</option><option value="03">3월</option>
+          <option value="04">4월</option><option value="05">5월</option><option value="06">6월</option>
+          <option value="07">7월</option><option value="08">8월</option><option value="09">9월</option>
+          <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+        </select>
+        <select id="h-day-input" style="flex:1;padding:.55rem .5rem;border:1px solid var(--border2);border-radius:6px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.83rem;color:var(--text1);outline:none">
+        </select>
+      </div>
     </div>
     <div class="form-group">
       <label>곡 검색</label>
@@ -518,12 +528,17 @@ function switchTab(tab, btn) {
 }
 
 // ── HISTORY ───────────────────────────────────────────────
-function initYearSelect() {
+async function initYearSelect() {
   const sel = document.getElementById('h-year');
-  if (sel.children.length > 1) return;
-  const cur = new Date().getFullYear();
-  for (let y = cur; y >= 2023; y--) {
-    sel.innerHTML += `<option value="${y}">${y}년</option>`;
+  try {
+    const data = await api('GET', 'worship_history?select=worship_date&order=worship_date.asc&limit=1000');
+    const years = [...new Set(data.map(d => new Date(d.worship_date).getFullYear()))].sort((a,b) => b-a);
+    sel.innerHTML = '<option value="">전체 연도</option>';
+    years.forEach(y => sel.innerHTML += `<option value="${y}">${y}년</option>`);
+  } catch(e) {
+    // 실패하면 현재 연도만
+    const cur = new Date().getFullYear();
+    sel.innerHTML = `<option value="">전체 연도</option><option value="${cur}">${cur}년</option>`;
   }
 }
 
@@ -630,7 +645,48 @@ function goToSong(name) {
   }, 100);
 }
 
-function toggleHistory(id) {
+function initDateSelectors() {
+  // 연도 셀렉터 (2020 ~ 현재+2)
+  const yearSel = document.getElementById('h-year-input');
+  const cur = new Date().getFullYear();
+  yearSel.innerHTML = '';
+  for (let y = cur + 2; y >= 2020; y--) {
+    yearSel.innerHTML += `<option value="${y}">${y}년</option>`;
+  }
+  // 일 셀렉터 업데이트
+  updateDaySel();
+  document.getElementById('h-year-input').addEventListener('change', updateDaySel);
+  document.getElementById('h-month-input').addEventListener('change', updateDaySel);
+}
+
+function updateDaySel() {
+  const y = parseInt(document.getElementById('h-year-input').value);
+  const m = parseInt(document.getElementById('h-month-input').value);
+  const days = new Date(y, m, 0).getDate();
+  const daySel = document.getElementById('h-day-input');
+  const cur = parseInt(daySel.value) || 1;
+  daySel.innerHTML = '';
+  for (let d = 1; d <= days; d++) {
+    const v = String(d).padStart(2,'0');
+    daySel.innerHTML += `<option value="${v}" ${d===cur?'selected':''}>${d}일</option>`;
+  }
+}
+
+function getSelectedDate() {
+  const y = document.getElementById('h-year-input').value;
+  const m = document.getElementById('h-month-input').value;
+  const d = document.getElementById('h-day-input').value;
+  return `${y}-${m}-${d}`;
+}
+
+function setSelectedDate(dateStr) {
+  if (!dateStr) return;
+  const [y, m, d] = dateStr.split('-');
+  document.getElementById('h-year-input').value = y;
+  document.getElementById('h-month-input').value = m;
+  updateDaySel();
+  document.getElementById('h-day-input').value = d;
+}
   historyExp = historyExp===id ? null : id;
   // 카드 직접 토글 (loadHistory 재호출 없이)
   document.querySelectorAll('.history-card').forEach(card => {
@@ -656,20 +712,21 @@ async function openHistoryModal(id) {
   document.getElementById('h-song-q').value='';
   document.getElementById('h-song-results').style.display='none';
   document.getElementById('h-note').value='';
+  initDateSelectors();
   if (editHistoryId) {
     document.getElementById('hmodal-title').textContent='주일 기록 수정';
     try {
       const data = await api('GET',`worship_history?id=eq.${editHistoryId}`);
       if (data&&data[0]) {
         const h=data[0];
-        document.getElementById('h-date').value=h.worship_date;
+        setSelectedDate(h.worship_date);
         document.getElementById('h-note').value=h.note||'';
         selectedSongs=(h.song_names||[]).map((name,i)=>({id:(h.song_ids||[])[i]||null,name}));
       }
     } catch(e){}
   } else {
     document.getElementById('hmodal-title').textContent='주일 기록 추가';
-    document.getElementById('h-date').value=new Date().toISOString().split('T')[0];
+    setSelectedDate(new Date().toISOString().split('T')[0]);
   }
   renderSelectedSongs();
   document.getElementById('hmodal').classList.add('show');
@@ -682,13 +739,28 @@ function closeHistoryModal() {
 document.getElementById('hmodal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeHistoryModal();});
 
 function searchHistorySongs() {
-  const q=document.getElementById('h-song-q').value.replace(/\s+/g,' ').trim().toLowerCase();
-  const res=document.getElementById('h-song-results');
+  const raw = document.getElementById('h-song-q').value;
+  const q = raw.replace(/\s+/g,' ').trim().toLowerCase();
+  const res = document.getElementById('h-song-results');
   if(!q){res.style.display='none';return;}
-  const matches=songs.filter(s=>s.name.replace(/\s+/g,' ').trim().toLowerCase().includes(q)).slice(0,8);
-  if(!matches.length){res.style.display='none';return;}
+  const matches = songs.filter(s=>s.name.replace(/\s+/g,' ').trim().toLowerCase().includes(q)).slice(0,8);
+  const orig = raw.trim();
+  const safeOrig = orig.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+
   res.style.display='block';
-  res.innerHTML=matches.map(s=>`<div class="ssr-item" onclick="addToSelected('${s.id}','${s.name.replace(/'/g,"\\'")}')">🎵 ${s.name}</div>`).join('');
+  res.innerHTML = (matches.length
+    ? matches.map(s=>`<div class="ssr-item" onclick="addToSelected('${s.id}','${s.name.replace(/'/g,"\\'")}')">🎵 ${s.name}</div>`).join('')
+    : `<div style="padding:8px 10px;font-size:.75rem;color:var(--text3)">DB에 없는 곡이에요</div>`)
+    + `<div class="ssr-item" style="color:var(--accent2);border-top:1px solid var(--border);font-weight:500" onclick="addToSelectedDirect('${safeOrig}')">➕ "${orig}" 직접 추가</div>`;
+}
+
+function addToSelectedDirect(name) {
+  if(!name) return;
+  if(selectedSongs.find(s=>s.name===name)){showToast('이미 추가된 곡이에요');return;}
+  selectedSongs.push({id:null, name});
+  renderSelectedSongs();
+  document.getElementById('h-song-q').value='';
+  document.getElementById('h-song-results').style.display='none';
 }
 
 function addToSelected(id,name) {
@@ -708,7 +780,7 @@ function renderSelectedSongs() {
 }
 
 async function saveHistory() {
-  const date=document.getElementById('h-date').value;
+  const date=getSelectedDate();
   if(!date){showToast('날짜를 선택해주세요');return;}
   const note=document.getElementById('h-note').value.trim();
   const song_ids=selectedSongs.map(s=>s.id).filter(Boolean);
@@ -738,6 +810,10 @@ async function saveHistory() {
     songs = await api('GET','songs?order=name');
     updateStats();
     render();
+    // 연도 목록 갱신 후 기록 다시 불러오기
+    const sel = document.getElementById('h-year');
+    sel.innerHTML = '<option value="">전체 연도</option>';
+    await initYearSelect();
     loadHistory();
   } catch(e){showToast('저장 실패: '+e.message);setSync('off','저장 실패');}
   btn.disabled=false;btn.textContent='저장';
@@ -938,28 +1014,32 @@ async function api(method, path, body) {
 
 // ── INIT ──────────────────────────────────────────────────
 async function init() {
-  setSync('sync', '연결 중...');
+  setSync('sync', '불러오는 중...');
   try {
     let data = await api('GET', 'songs?order=name');
     if (!data || data.length === 0) {
-      // 첫 실행 — 기본 데이터 업로드
       setSync('sync', '초기 데이터 업로드 중...');
       await uploadBaseData();
       data = await api('GET', 'songs?order=name');
     }
     songs = data;
-    // has_score true인데 plan인 곡 자동으로 ready로 변경
-    const toFix = songs.filter(s => s.has_score && s.status === 'plan');
-    for (const s of toFix) {
-      await api('PATCH', `songs?id=eq.${s.id}`, { status: 'ready', updated_at: new Date().toISOString() });
-      s.status = 'ready';
-    }
-    if (toFix.length > 0) showToast(`악보 있는 곡 ${toFix.length}개 → 악보 완료로 자동 변경 ✓`);
-    setSync('on', '클라우드 연결됨');
+    // 먼저 화면에 바로 렌더링 (빠른 로딩감)
+    setSync('on', `클라우드 연결됨 · ${songs.length}곡`);
     updateStats();
     render();
+    // 백그라운드에서 has_score 불일치 수정 (화면 블로킹 없이)
+    const toFix = songs.filter(s => s.has_score && s.status === 'plan');
+    if (toFix.length > 0) {
+      for (const s of toFix) {
+        await api('PATCH', `songs?id=eq.${s.id}`, { status: 'ready', updated_at: new Date().toISOString() });
+        s.status = 'ready';
+      }
+      showToast(`${toFix.length}곡 상태 자동 수정 ✓`);
+      updateStats();
+      render();
+    }
   } catch(e) {
-    setSync('off', '연결 실패: ' + e.message);
+    setSync('off', '연결 실패 — 인터넷 확인');
     document.getElementById('list').innerHTML = `<div class="nr"><span>⚠️</span>서버 연결에 실패했어요<br><small style="color:var(--red)">${e.message}</small></div>`;
   }
 }
