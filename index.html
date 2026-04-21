@@ -687,6 +687,8 @@ function setSelectedDate(dateStr) {
   updateDaySel();
   document.getElementById('h-day-input').value = d;
 }
+
+function toggleHistory(id) {
   historyExp = historyExp===id ? null : id;
   // 카드 직접 토글 (loadHistory 재호출 없이)
   document.querySelectorAll('.history-card').forEach(card => {
