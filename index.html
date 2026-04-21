@@ -187,7 +187,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   <div class="si"><span class="sn" id="st-used">-</span><div class="sl">사용 이력</div></div>
   <div class="si"><span class="sn" id="st-ready">-</span><div class="sl">악보 완료</div></div>
   <div class="si"><span class="sn" id="st-total">-</span><div class="sl">전체</div></div>
-  <div class="si"><span class="sn" id="st-top">-</span><div class="sl">최다 사용</div></div>
+  <div class="si"><span class="sn" id="st-plan">-</span><div class="sl">작업예정·악보없음</div></div>
 </div>
 
 <div class="tabs">
@@ -206,6 +206,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     <button class="fb" onclick="sf('used',this)">사용 이력</button>
     <button class="fb" onclick="sf('ready',this)">악보 완료</button>
     <button class="fb" onclick="sf('no_score',this)">악보 없음</button>
+    <button class="fb" onclick="sf('plan',this)">작업 예정</button>
     <button class="fb" onclick="sf('top',this)">⭐ TOP 10</button>
   </div>
   <div style="font-size:.65rem;color:var(--text3);margin-top:.5rem;margin-bottom:.2rem;font-weight:500;letter-spacing:.05em">상황별</div>
@@ -839,6 +840,13 @@ async function init() {
       data = await api('GET', 'songs?order=name');
     }
     songs = data;
+    // has_score true인데 plan인 곡 자동으로 ready로 변경
+    const toFix = songs.filter(s => s.has_score && s.status === 'plan');
+    for (const s of toFix) {
+      await api('PATCH', `songs?id=eq.${s.id}`, { status: 'ready', updated_at: new Date().toISOString() });
+      s.status = 'ready';
+    }
+    if (toFix.length > 0) showToast(`악보 있는 곡 ${toFix.length}개 → 악보 완료로 자동 변경 ✓`);
     setSync('on', '클라우드 연결됨');
     updateStats();
     render();
@@ -874,10 +882,11 @@ function setSync(state, txt) {
 // ── STATS ─────────────────────────────────────────────────
 function updateStats() {
   document.getElementById('st-used').textContent = songs.filter(s=>s.status==='used').length;
-  document.getElementById('st-ready').textContent = songs.filter(s=>s.status==='ready').length;
+  // 악보 완료 = status가 ready인 것 + status가 used이면서 has_score인 것
+  document.getElementById('st-ready').textContent = songs.filter(s=>s.status==='ready' || (s.status==='used' && s.has_score)).length;
   document.getElementById('st-total').textContent = songs.length;
-  const top = [...songs].filter(s=>s.count>0).sort((a,b)=>b.count-a.count)[0];
-  document.getElementById('st-top').textContent = top ? top.count : '-';
+  // 작업 예정 = status가 plan인 것 + 악보 없는 것 (중복 제거)
+  document.getElementById('st-plan').textContent = songs.filter(s=>s.status==='plan' || !s.has_score).length;
 }
 
 // ── FILTER ────────────────────────────────────────────────
@@ -1076,18 +1085,19 @@ function showToast(msg) {
 
 // ── RENDER ────────────────────────────────────────────────
 function render() {
-  const q = document.getElementById('q').value.toLowerCase().trim();
+  const q = document.getElementById('q').value.normalize('NFC').toLowerCase().trim();
   const top10 = [...songs].filter(s=>s.count>0).sort((a,b)=>b.count-a.count).slice(0,10).map(s=>s.name);
   const mx = Math.max(...songs.map(s=>s.count), 1);
 
   let list = songs.filter(s=>{
     const normQ = q.replace(/\s+/g,' ').trim();
-    const normName = s.name.replace(/\s+/g,' ').trim().toLowerCase();
+    const normName = s.name.normalize('NFC').replace(/\s+/g,' ').trim().toLowerCase();
     const mq = !q || normName.includes(normQ.toLowerCase());
     if (!mq) return false;
     if (filt==='all') return true;
     if (filt==='used') return s.status==='used';
     if (filt==='ready') return s.status==='ready';
+    if (filt==='plan') return s.status==='plan';
     if (filt==='no_score') return !s.has_score;
     if (filt==='top') return top10.includes(s.name);
     const seas = s.seasons||[];
