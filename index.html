@@ -1213,10 +1213,26 @@ function ss(by, btn) {
   btn.textContent = btn.textContent + (sortDir===1?' ▲':' ▼');
   render();
 }
-function toggle(id) {
+async function toggle(id) {
   exp = exp===id ? null : id;
   render();
-  if (exp === id) loadThumb(id);
+  if (exp === id) {
+    loadThumb(id);
+    // 인라인 악보 로딩
+    const el = document.getElementById('inline-score-' + id);
+    if (!el) return;
+    const song = songs.find(s=>s.id===id);
+    if (!song || !song.has_score) return;
+    try {
+      const files = await listScores(id);
+      const imgs = files.filter(f=>/\.(jpg|jpeg|png|webp)$/i.test(f.name));
+      if (!imgs.length) { el.innerHTML='<span style="font-size:.75rem;color:var(--text3);padding:12px">이미지 없음</span>'; return; }
+      const url = `${STORAGE_URL}/object/public/scores/${id}/${imgs[0].name}`;
+      el.innerHTML = `<img src="${url}" style="width:100%;display:block;border-radius:0 0 7px 7px;cursor:pointer" onclick="openViewer('${id}','${song.name.replace(/'/g,"\\'")}')">`;
+    } catch(e) {
+      el.innerHTML='<span style="font-size:.75rem;color:var(--text3);padding:12px">로딩 실패</span>';
+    }
+  }
 }
 
 // ── MODAL ─────────────────────────────────────────────────
@@ -1526,11 +1542,31 @@ function render() {
     <span class="badge ${bc}">${bl}</span>
     ${s.key?`<span class="stag" style="background:var(--blue-bg);color:var(--accent);border-color:rgba(45,90,142,.2)">🎵 ${s.key}</span>`:''}
     ${s.bpm?`<span class="stag" style="background:var(--green-bg);color:var(--green);border-color:rgba(58,122,82,.2)">♩ ${s.bpm} BPM</span>`:''}
-    ${s.has_score?`<span class="stag" style="background:var(--blue-bg);color:var(--accent)">🎼 악보있음</span>`:`<span class="stag" style="background:var(--red-bg);color:var(--red)">🎼 악보없음</span>`}
-    ${s.music_url?`<span class="stag" style="background:#ffeaea;color:#cc0000;cursor:pointer" onclick="openYT('${s.music_url.replace(/'/g,"\\'")}','${s.name.replace(/'/g,"\\'")}')">▶ 영상있음</span>`:''}
+    ${s.count>0?`<span class="stag">📊 ${s.count}회 사용</span>`:''}
   </div>
-  ${seas.length?`<div class="stags" style="margin-bottom:8px">${seas.map(t=>`<span class="stag">${t}</span>`).join('')}</div>`:''}
-  ${s.count>0?`<div class="bt" style="margin-bottom:8px"><div class="bt-track"><div class="bt-fill" style="width:${barPct}%"></div></div><span class="bt-num">${s.count}/${mx}회</span></div>`:''}
+  ${seas.length?`<div class="stags" style="margin-bottom:10px">${seas.map(t=>`<span class="stag">${t}</span>`).join('')}</div>`:''}
+
+  ${s.music_url?`
+  <div style="margin-bottom:10px">
+    <button onclick="openYT('${s.music_url.replace(/'/g,"\\'")}','${s.name.replace(/'/g,"\\'")}');" style="width:100%;padding:.6rem;background:#cc0000;color:#fff;border:none;border-radius:8px;font-size:.85rem;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+      ▶ 영상 보기
+    </button>
+  </div>`:''}
+
+  ${s.has_score?`
+  <div style="margin-bottom:10px;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface2)">
+    <div style="padding:6px 10px;font-size:.72rem;color:var(--text3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+      <span>🎼 악보</span>
+      <button onclick="openViewer('${s.id}','${s.name.replace(/'/g,"\\'")}');" style="font-size:.68rem;padding:2px 8px;border:1px solid var(--border2);border-radius:20px;background:var(--surface);cursor:pointer;color:var(--text2)">전체화면 ↗</button>
+    </div>
+    <div id="inline-score-${s.id}" style="min-height:80px;display:flex;align-items:center;justify-content:center">
+      <span style="font-size:.75rem;color:var(--text3)">로딩 중...</span>
+    </div>
+  </div>`:`
+  <div style="margin-bottom:10px;padding:10px;background:var(--red-bg);border-radius:8px;font-size:.78rem;color:var(--red);text-align:center">
+    🎼 악보 없음 — 아래 버튼으로 업로드해주세요
+  </div>`}
+
   ${actionBtns}
 </div></div></div>`;
   }).join('');
