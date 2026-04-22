@@ -987,7 +987,13 @@ async function deleteHistory(id) {
 
 // ── YOUTUBE PLAYER ────────────────────────────────────────
 function openYT(url, name) {
-  window.open(url, '_blank');
+  const a = document.createElement('a');
+  a.href = url;
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 const STORAGE_URL = SUPABASE_URL + '/storage/v1';
 const STOR_HEADERS = {'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY};
@@ -1522,11 +1528,12 @@ function render() {
           ? `<span onclick="event.stopPropagation();openYT('${s.music_url.replace(/'/g,"\\'")}','${s.name.replace(/'/g,"\\'")}');" style="font-size:.72rem;padding:2px 8px;border-radius:20px;background:#ffeaea;color:#cc0000;border:1px solid rgba(204,0,0,.2);font-weight:500;cursor:pointer">▶ 영상</span>`
           : `<span style="font-size:.72rem;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--text3);border:1px solid var(--border)">▶ 없음</span>`}
       </div>
-      <!-- 가운데: 템포 -->
-      <div style="text-align:center;flex-shrink:0;padding:0 8px">
+      <!-- 가운데: 템포 + 코드 -->
+      <div style="text-align:center;flex-shrink:0;padding:0 8px;display:flex;gap:4px;align-items:center">
         ${tempoLabel
-          ? `<span style="font-size:.72rem;padding:2px 10px;border-radius:20px;font-weight:600;background:${tempoLabel==='빠름'?'var(--amber-bg)':tempoLabel==='중간'?'var(--green-bg)':'var(--blue-bg)'};color:${tempoColor};border:1px solid ${tempoLabel==='빠름'?'rgba(196,145,58,.3)':tempoLabel==='중간'?'rgba(58,122,82,.3)':'rgba(45,90,142,.3)'}">${tempoLabel}${s.bpm?' '+s.bpm:''}</span>`
+          ? `<span style="font-size:.72rem;padding:2px 10px;border-radius:20px;font-weight:600;background:${tempoLabel==='빠름'?'var(--amber-bg)':tempoLabel==='중간'?'var(--green-bg)':'var(--blue-bg)'};color:${tempoColor};border:1px solid ${tempoLabel==='빠름'?'rgba(196,145,58,.3)':tempoLabel==='중간'?'rgba(58,122,82,.3)':'rgba(45,90,142,.3)'}">${tempoLabel}</span>`
           : `<span style="font-size:.72rem;color:var(--border2)">—</span>`}
+        ${s.key ? `<span style="font-size:.72rem;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--text2);border:1px solid var(--border);font-weight:600">${s.key}</span>` : ''}
       </div>
       <!-- 오른쪽: 상황·절기 -->
       <div style="display:flex;gap:4px;align-items:center;flex:1;justify-content:flex-end;flex-wrap:nowrap;overflow:hidden">
