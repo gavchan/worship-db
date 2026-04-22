@@ -205,52 +205,53 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     <span class="si-icon">🔍</span>
     <input type="text" id="q" placeholder="곡명으로 검색..." oninput="render()">
   </div>
-  <div class="fr">
-    <button class="fb on" onclick="sf('all',this)">전체</button>
-    <button class="fb" onclick="sf('used',this)">사용 이력</button>
-    <button class="fb" onclick="sf('ready',this)">악보 완료</button>
-    <button class="fb" onclick="sf('no_score',this)">악보 없음</button>
-    <button class="fb" onclick="sf('plan',this)">작업 예정</button>
-    <button class="fb" onclick="sf('video',this)">▶ 영상 있음</button>
-    <button class="fb" onclick="sf('top',this)">⭐ TOP 10</button>
-  </div>
-  <div style="font-size:.65rem;color:var(--text3);margin-top:.5rem;margin-bottom:.2rem;font-weight:500;letter-spacing:.05em">상황별</div>
-  <div class="fr">
-    <button class="fb" onclick="sf('경배·예배',this)">경배·예배</button>
-    <button class="fb" onclick="sf('감사·은혜',this)">감사·은혜</button>
-    <button class="fb" onclick="sf('회개·정결',this)">회개·정결</button>
-    <button class="fb" onclick="sf('십자가·보혈·구원',this)">십자가·보혈</button>
-    <button class="fb" onclick="sf('부활·승리',this)">부활·승리</button>
-    <button class="fb" onclick="sf('성령·충만',this)">성령·충만</button>
-    <button class="fb" onclick="sf('소망·위로',this)">소망·위로</button>
-    <button class="fb" onclick="sf('기도·간구',this)">기도·간구</button>
-    <button class="fb" onclick="sf('전도·선교·복음',this)">전도·선교</button>
-    <button class="fb" onclick="sf('치유·회복',this)">치유·회복</button>
-    <button class="fb" onclick="sf('주와동행·신앙생활',this)">주와동행</button>
-    <button class="fb" onclick="sf('기쁨·찬양',this)">기쁨·찬양</button>
-    <button class="fb" onclick="sf('고난·시련극복',this)">고난·시련</button>
-    <button class="fb" onclick="sf('헌신·부르심',this)">헌신·부르심</button>
-    <button class="fb" onclick="sf('가족·교제·나눔',this)">가족·교제</button>
-    <button class="fb" onclick="sf('평강·평안',this)">평강·평안</button>
-  </div>
-  <div style="font-size:.65rem;color:var(--text3);margin-top:.5rem;margin-bottom:.2rem;font-weight:500;letter-spacing:.05em">절기별</div>
-  <div class="fr">
-    <button class="fb" onclick="sf('대림절',this)">대림절 <span style="opacity:.6;font-size:.6rem">기다림</span></button>
-    <button class="fb" onclick="sf('성탄절',this)">성탄절 <span style="opacity:.6;font-size:.6rem">기쁨</span></button>
-    <button class="fb" onclick="sf('주현절',this)">주현절 <span style="opacity:.6;font-size:.6rem">나타남</span></button>
-    <button class="fb" onclick="sf('사순절',this)">사순절 <span style="opacity:.6;font-size:.6rem">회개</span></button>
-    <button class="fb" onclick="sf('고난주간',this)">고난주간 <span style="opacity:.6;font-size:.6rem">수난</span></button>
-    <button class="fb" onclick="sf('부활절',this)">부활절 <span style="opacity:.6;font-size:.6rem">승리</span></button>
-    <button class="fb" onclick="sf('성령강림절',this)">성령강림절 <span style="opacity:.6;font-size:.6rem">성령</span></button>
-    <button class="fb" onclick="sf('추수감사절',this)">추수감사절 <span style="opacity:.6;font-size:.6rem">감사</span></button>
-  </div>
-  <div class="sort-row">
-    <span class="sort-label">정렬:</span>
-    <button class="sb on" onclick="ss('name',this)">가나다 ↕</button>
-    <button class="sb" onclick="ss('status',this)">상태별</button>
-    <button class="sb" onclick="ss('count',this)">사용 많은 순</button>
-    <button class="sb" onclick="ss('key',this)">키(코드)별</button>
-    <button class="sb" onclick="ss('bpm',this)">템포순</button>
+  <div style="display:flex;gap:6px;margin-top:.4rem;flex-wrap:nowrap">
+    <select id="sel-filt" onchange="sfSel(this.value)" style="flex:1;padding:.45rem .4rem;border:1px solid var(--border2);border-radius:8px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.75rem;color:var(--text1);outline:none;min-width:0">
+      <option value="all">📋 전체</option>
+      <option value="used">사용 이력</option>
+      <option value="ready">악보 완료</option>
+      <option value="no_score">악보 없음</option>
+      <option value="plan">작업 예정</option>
+      <option value="video">▶ 영상 있음</option>
+      <option value="top">⭐ TOP 10</option>
+    </select>
+    <select id="sel-situ" onchange="sfDrop(this.value,'situ')" style="flex:1;padding:.45rem .4rem;border:1px solid var(--border2);border-radius:8px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.75rem;color:var(--text1);outline:none;min-width:0">
+      <option value="">🏷 상황별</option>
+      <option value="경배·예배">경배·예배</option>
+      <option value="감사·은혜">감사·은혜</option>
+      <option value="회개·정결">회개·정결</option>
+      <option value="십자가·보혈·구원">십자가·보혈</option>
+      <option value="부활·승리">부활·승리</option>
+      <option value="성령·충만">성령·충만</option>
+      <option value="소망·위로">소망·위로</option>
+      <option value="기도·간구">기도·간구</option>
+      <option value="전도·선교·복음">전도·선교</option>
+      <option value="치유·회복">치유·회복</option>
+      <option value="주와동행·신앙생활">주와동행</option>
+      <option value="기쁨·찬양">기쁨·찬양</option>
+      <option value="고난·시련극복">고난·시련</option>
+      <option value="헌신·부르심">헌신·부르심</option>
+      <option value="가족·교제·나눔">가족·교제</option>
+      <option value="평강·평안">평강·평안</option>
+    </select>
+    <select id="sel-seas" onchange="sfDrop(this.value,'seas')" style="flex:1;padding:.45rem .4rem;border:1px solid var(--border2);border-radius:8px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.75rem;color:var(--text1);outline:none;min-width:0">
+      <option value="">📅 절기별</option>
+      <option value="대림절">대림절</option>
+      <option value="성탄절">성탄절</option>
+      <option value="주현절">주현절</option>
+      <option value="사순절">사순절</option>
+      <option value="고난주간">고난주간</option>
+      <option value="부활절">부활절</option>
+      <option value="성령강림절">성령강림절</option>
+      <option value="추수감사절">추수감사절</option>
+    </select>
+    <select id="sel-sort" onchange="ssDrop(this.value)" style="flex:1;padding:.45rem .4rem;border:1px solid var(--border2);border-radius:8px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.75rem;color:var(--text1);outline:none;min-width:0">
+      <option value="name">가나다순</option>
+      <option value="status">상태별</option>
+      <option value="count">사용 많은순</option>
+      <option value="key">키(코드)별</option>
+      <option value="bpm">템포순</option>
+    </select>
   </div>
   <div class="cb" id="cnt"></div>
 </div>
@@ -466,15 +467,21 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
       <div style="font-size:.68rem;color:var(--text3);margin-bottom:4px;font-weight:500">상황별</div>
       <div class="check-group" style="margin-bottom:8px">
         <label><input type="checkbox" value="경배·예배"> 경배·예배</label>
-        <label><input type="checkbox" value="감사"> 감사</label>
-        <label><input type="checkbox" value="위로·치유"> 위로·치유</label>
-        <label><input type="checkbox" value="회복·소망"> 회복·소망</label>
-        <label><input type="checkbox" value="평안·신뢰"> 평안·신뢰</label>
-        <label><input type="checkbox" value="기쁨·찬양"> 기쁨·찬양</label>
-        <label><input type="checkbox" value="은혜·십자가"> 은혜·십자가</label>
-        <label><input type="checkbox" value="강함·승리"> 강함·승리</label>
-        <label><input type="checkbox" value="사랑·헌신"> 사랑·헌신</label>
+        <label><input type="checkbox" value="감사·은혜"> 감사·은혜</label>
+        <label><input type="checkbox" value="회개·정결"> 회개·정결</label>
+        <label><input type="checkbox" value="십자가·보혈·구원"> 십자가·보혈</label>
+        <label><input type="checkbox" value="부활·승리"> 부활·승리</label>
+        <label><input type="checkbox" value="성령·충만"> 성령·충만</label>
+        <label><input type="checkbox" value="소망·위로"> 소망·위로</label>
         <label><input type="checkbox" value="기도·간구"> 기도·간구</label>
+        <label><input type="checkbox" value="전도·선교·복음"> 전도·선교</label>
+        <label><input type="checkbox" value="치유·회복"> 치유·회복</label>
+        <label><input type="checkbox" value="주와동행·신앙생활"> 주와동행</label>
+        <label><input type="checkbox" value="기쁨·찬양"> 기쁨·찬양</label>
+        <label><input type="checkbox" value="고난·시련극복"> 고난·시련</label>
+        <label><input type="checkbox" value="헌신·부르심"> 헌신·부르심</label>
+        <label><input type="checkbox" value="가족·교제·나눔"> 가족·교제</label>
+        <label><input type="checkbox" value="평강·평안"> 평강·평안</label>
       </div>
       <div style="font-size:.68rem;color:var(--text3);margin-bottom:4px;font-weight:500">절기별</div>
       <div class="check-group">
@@ -1205,40 +1212,52 @@ function updateStats() {
 }
 
 // ── FILTER ────────────────────────────────────────────────
+let dropSitu = '', dropSeas = '';
+
+function sfSel(val) {
+  filt = val;
+  dropSitu = ''; dropSeas = '';
+  document.getElementById('sel-situ').value = '';
+  document.getElementById('sel-seas').value = '';
+  render();
+}
+
+function sfDrop(val, type) {
+  if (type === 'situ') dropSitu = val;
+  if (type === 'seas') dropSeas = val;
+  filt = 'all';
+  document.getElementById('sel-filt').value = 'all';
+  render();
+}
+
+function ssDrop(val) {
+  sortBy = val;
+  sortDir = val === 'count' ? -1 : 1;
+  render();
+}
+
 function sf(f, btn) {
   filt = f;
-  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
+  dropSitu = ''; dropSeas = '';
+  const sf2 = document.getElementById('sel-filt');
+  const ss2 = document.getElementById('sel-situ');
+  const se = document.getElementById('sel-seas');
+  if (sf2) sf2.value = f;
+  if (ss2) ss2.value = '';
+  if (se) se.value = '';
   render();
 }
 function ss(by, btn) {
   if (sortBy === by) { sortDir *= -1; }
   else { sortBy = by; sortDir = 1; }
-  document.querySelectorAll('.sb').forEach(b=>{ b.classList.remove('on'); b.textContent = b.textContent.replace(' ▲','').replace(' ▼',''); });
-  btn.classList.add('on');
-  btn.textContent = btn.textContent + (sortDir===1?' ▲':' ▼');
+  const sd = document.getElementById('sel-sort');
+  if (sd) sd.value = by;
   render();
 }
 async function toggle(id) {
   exp = exp===id ? null : id;
   render();
-  if (exp === id) {
-    loadThumb(id);
-    // 인라인 악보 로딩
-    const el = document.getElementById('inline-score-' + id);
-    if (!el) return;
-    const song = songs.find(s=>s.id===id);
-    if (!song || !song.has_score) return;
-    try {
-      const files = await listScores(id);
-      const imgs = files.filter(f=>/\.(jpg|jpeg|png|webp)$/i.test(f.name));
-      if (!imgs.length) { el.innerHTML='<span style="font-size:.75rem;color:var(--text3);padding:12px">이미지 없음</span>'; return; }
-      const url = `${STORAGE_URL}/object/public/scores/${id}/${imgs[0].name}`;
-      el.innerHTML = `<img src="${url}" style="width:100%;display:block;border-radius:0 0 7px 7px;cursor:pointer" onclick="openViewer('${id}','${song.name.replace(/'/g,"\\'")}')">`;
-    } catch(e) {
-      el.innerHTML='<span style="font-size:.75rem;color:var(--text3);padding:12px">로딩 실패</span>';
-    }
-  }
+  if (exp === id) loadThumb(id);
 }
 
 // ── MODAL ─────────────────────────────────────────────────
@@ -1425,6 +1444,10 @@ function render() {
     const normName = s.name.normalize('NFC').replace(/\s+/g,' ').trim().toLowerCase();
     const mq = !q || normName.includes(normQ.toLowerCase());
     if (!mq) return false;
+    const seas = s.seasons||[];
+    // 드롭다운 필터
+    if (dropSitu && !seas.includes(dropSitu)) return false;
+    if (dropSeas && !seas.includes(dropSeas)) return false;
     if (filt==='all') return true;
     if (filt==='used') return s.status==='used';
     if (filt==='ready') return s.status==='ready';
@@ -1432,7 +1455,6 @@ function render() {
     if (filt==='no_score') return !s.has_score;
     if (filt==='video') return !!s.music_url;
     if (filt==='top') return top10.includes(s.name);
-    const seas = s.seasons||[];
     return seas.includes(filt);
   });
 
@@ -1500,10 +1522,6 @@ function render() {
     }
     actionBtns += '</div>';
     actionBtns += `<div class="ar" style="margin-top:5px">`;
-    if (s.music_url) {
-      actionBtns += `<button class="ab amber" onclick="openYT('${s.music_url.replace(/'/g,"\\'")}','${s.name.replace(/'/g,"\\'")}')">▶ 영상 재생</button>`;
-    }
-    actionBtns += `<button class="ab" style="background:var(--green-bg);color:var(--green);border-color:rgba(58,122,82,.3)" onclick="openViewer('${s.id}','${s.name.replace(/'/g,"\\'")}')">🎼 악보 보기</button>`;
     if (!s.has_score) {
       actionBtns += `<button class="ab" style="background:var(--red-bg);color:var(--red);border-color:rgba(176,40,31,.2)" onclick="openModal('${s.id}')">🎼 악보 올리기</button>`;
     }
@@ -1522,7 +1540,7 @@ function render() {
       <!-- 왼쪽: 악보·영상 -->
       <div style="display:flex;gap:5px;align-items:center;flex:1">
         ${s.has_score
-          ? `<span style="font-size:.72rem;padding:2px 8px;border-radius:20px;background:var(--blue-bg);color:var(--accent);border:1px solid rgba(45,90,142,.2);font-weight:500">🎼 악보</span>`
+          ? `<span onclick="event.stopPropagation();openViewer('${s.id}','${s.name.replace(/'/g,"\\'")}');" style="font-size:.72rem;padding:2px 8px;border-radius:20px;background:var(--blue-bg);color:var(--accent);border:1px solid rgba(45,90,142,.2);font-weight:500;cursor:pointer">🎼 악보</span>`
           : `<span style="font-size:.72rem;padding:2px 8px;border-radius:20px;background:var(--red-bg);color:var(--red);border:1px solid rgba(176,40,31,.2);font-weight:500">🎼 없음</span>`}
         ${s.music_url
           ? `<span onclick="event.stopPropagation();openYT('${s.music_url.replace(/'/g,"\\'")}','${s.name.replace(/'/g,"\\'")}');" style="font-size:.72rem;padding:2px 8px;border-radius:20px;background:#ffeaea;color:#cc0000;border:1px solid rgba(204,0,0,.2);font-weight:500;cursor:pointer">▶ 영상</span>`
@@ -1561,14 +1579,10 @@ function render() {
   </div>`:''}
 
   ${s.has_score?`
-  <div style="margin-bottom:10px;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface2)">
-    <div style="padding:6px 10px;font-size:.72rem;color:var(--text3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-      <span>🎼 악보</span>
-      <button onclick="openViewer('${s.id}','${s.name.replace(/'/g,"\\'")}');" style="font-size:.68rem;padding:2px 8px;border:1px solid var(--border2);border-radius:20px;background:var(--surface);cursor:pointer;color:var(--text2)">전체화면 ↗</button>
-    </div>
-    <div id="inline-score-${s.id}" style="min-height:80px;display:flex;align-items:center;justify-content:center">
-      <span style="font-size:.75rem;color:var(--text3)">로딩 중...</span>
-    </div>
+  <div style="margin-bottom:10px">
+    <button onclick="openViewer('${s.id}','${s.name.replace(/'/g,"\\'")}');" style="width:100%;padding:.6rem;background:var(--blue-bg);color:var(--accent);border:1px solid rgba(45,90,142,.2);border-radius:8px;font-size:.85rem;font-weight:500;cursor:pointer">
+      🎼 악보 보기
+    </button>
   </div>`:`
   <div style="margin-bottom:10px;padding:10px;background:var(--red-bg);border-radius:8px;font-size:.78rem;color:var(--red);text-align:center">
     🎼 악보 없음 — 아래 버튼으로 업로드해주세요
