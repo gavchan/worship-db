@@ -357,16 +357,36 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     <h2 id="hmodal-title">주일 기록 추가</h2>
     <div class="form-group">
       <label>날짜 *</label>
-      <div style="display:flex;gap:6px">
-        <select id="h-year-input" style="flex:1.2;padding:.55rem .5rem;border:1px solid var(--border2);border-radius:6px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.83rem;color:var(--text1);outline:none"></select>
-        <select id="h-month-input" style="flex:1;padding:.55rem .5rem;border:1px solid var(--border2);border-radius:6px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.83rem;color:var(--text1);outline:none">
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <select id="h-year-input" style="flex:1.2;padding:.55rem .5rem;border:1px solid var(--border2);border-radius:6px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.83rem;color:var(--text1);outline:none" onchange="updateDaySel();renderCalendar()"></select>
+        <select id="h-month-input" style="flex:1;padding:.55rem .5rem;border:1px solid var(--border2);border-radius:6px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.83rem;color:var(--text1);outline:none" onchange="updateDaySel();renderCalendar()">
           <option value="01">1월</option><option value="02">2월</option><option value="03">3월</option>
           <option value="04">4월</option><option value="05">5월</option><option value="06">6월</option>
           <option value="07">7월</option><option value="08">8월</option><option value="09">9월</option>
           <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
         </select>
-        <select id="h-day-input" style="flex:1;padding:.55rem .5rem;border:1px solid var(--border2);border-radius:6px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.83rem;color:var(--text1);outline:none">
+        <select id="h-day-input" style="flex:1;padding:.55rem .5rem;border:1px solid var(--border2);border-radius:6px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.83rem;color:var(--text1);outline:none" onchange="syncCalendarFromSelectors()">
         </select>
+        <button type="button" onclick="toggleCalendar()" style="padding:.5rem .6rem;border:1px solid var(--border2);border-radius:6px;background:var(--bg);cursor:pointer;font-size:.9rem;flex-shrink:0">🗓</button>
+      </div>
+      <div id="h-date-preview" style="margin-top:6px;font-size:.78rem;color:var(--accent);font-weight:500;min-height:1.2em"></div>
+      <!-- 달력 팝업 -->
+      <div id="h-calendar" style="display:none;margin-top:6px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);padding:8px;user-select:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <button type="button" onclick="moveCalMonth(-1)" style="border:none;background:none;cursor:pointer;font-size:1rem;color:var(--text2);padding:2px 6px">‹</button>
+          <span id="cal-title" style="font-size:.82rem;font-weight:600;color:var(--text1)"></span>
+          <button type="button" onclick="moveCalMonth(1)" style="border:none;background:none;cursor:pointer;font-size:1rem;color:var(--text2);padding:2px 6px">›</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center">
+          <div style="font-size:.65rem;color:var(--red);font-weight:500;padding:2px">일</div>
+          <div style="font-size:.65rem;color:var(--text3);font-weight:500;padding:2px">월</div>
+          <div style="font-size:.65rem;color:var(--text3);font-weight:500;padding:2px">화</div>
+          <div style="font-size:.65rem;color:var(--text3);font-weight:500;padding:2px">수</div>
+          <div style="font-size:.65rem;color:var(--text3);font-weight:500;padding:2px">목</div>
+          <div style="font-size:.65rem;color:var(--text3);font-weight:500;padding:2px">금</div>
+          <div style="font-size:.65rem;color:var(--accent2);font-weight:500;padding:2px">토</div>
+        </div>
+        <div id="cal-days" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center"></div>
       </div>
     </div>
     <div class="form-group">
@@ -645,6 +665,87 @@ function goToSong(name) {
   }, 100);
 }
 
+// ── 달력 ──────────────────────────────────────────────────
+let calYear, calMonth;
+
+function toggleCalendar() {
+  const cal = document.getElementById('h-calendar');
+  if (cal.style.display === 'none') {
+    calYear = parseInt(document.getElementById('h-year-input').value);
+    calMonth = parseInt(document.getElementById('h-month-input').value) - 1;
+    renderCalendar();
+    cal.style.display = 'block';
+  } else {
+    cal.style.display = 'none';
+  }
+}
+
+function moveCalMonth(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  if (!calYear) calYear = parseInt(document.getElementById('h-year-input').value);
+  if (calMonth === undefined) calMonth = parseInt(document.getElementById('h-month-input').value) - 1;
+  const selDay = parseInt(document.getElementById('h-day-input').value) || 0;
+  const selY = parseInt(document.getElementById('h-year-input').value);
+  const selM = parseInt(document.getElementById('h-month-input').value) - 1;
+  document.getElementById('cal-title').textContent = `${calYear}년 ${calMonth+1}월`;
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  let html = '';
+  for (let i = 0; i < firstDay; i++) html += '<div></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dow = (firstDay + d - 1) % 7;
+    const isSelected = (d === selDay && calYear === selY && calMonth === selM);
+    const isToday = (d === new Date().getDate() && calYear === new Date().getFullYear() && calMonth === new Date().getMonth());
+    const color = isSelected ? '#fff' : dow===0 ? 'var(--red)' : dow===6 ? 'var(--accent2)' : 'var(--text1)';
+    const bg = isSelected ? 'var(--accent)' : isToday ? 'var(--blue-bg)' : 'transparent';
+    html += `<div onclick="pickCalDay(${d})" style="cursor:pointer;font-size:.75rem;padding:4px 2px;border-radius:4px;color:${color};background:${bg};font-weight:${isSelected||isToday?'600':'400'}">${d}</div>`;
+  }
+  document.getElementById('cal-days').innerHTML = html;
+}
+
+function pickCalDay(d) {
+  document.getElementById('h-year-input').value = String(calYear);
+  document.getElementById('h-month-input').value = String(calMonth+1).padStart(2,'0');
+  updateDaySel();
+  document.getElementById('h-day-input').value = String(d).padStart(2,'0');
+  renderCalendar();
+  updateDatePreview();
+  // 일요일이면 달력 닫기
+  if (new Date(calYear, calMonth, d).getDay() === 0) {
+    document.getElementById('h-calendar').style.display = 'none';
+  }
+}
+
+function updateDatePreview() {
+  const date = getSelectedDate();
+  if (!date || date.includes('NaN')) {
+    document.getElementById('h-date-preview').textContent = '';
+    return;
+  }
+  const d = new Date(date);
+  const dayNames = ['일','월','화','수','목','금','토'];
+  const weekLabels = ['','첫째','둘째','셋째','넷째','다섯째'];
+  const week = getWeekOfMonth(date);
+  const dow = d.getDay();
+  const isSun = dow === 0;
+  document.getElementById('h-date-preview').innerHTML =
+    `📅 ${d.getFullYear()}년 ${d.getMonth()+1}월 ${weekLabels[week]||week} 주 (${dayNames[dow]}요일)` +
+    (isSun ? ' <span style="color:var(--green);font-size:.72rem">✓ 주일</span>' : ' <span style="color:var(--accent2);font-size:.72rem">⚠️ 주일이 아니에요</span>');
+}
+
+function syncCalendarFromSelectors() {
+  calYear = parseInt(document.getElementById('h-year-input').value);
+  calMonth = parseInt(document.getElementById('h-month-input').value) - 1;
+  if (document.getElementById('h-calendar').style.display !== 'none') renderCalendar();
+  updateDatePreview();
+}
+
 function initDateSelectors() {
   // 연도 셀렉터 (2020 ~ 현재+2)
   const yearSel = document.getElementById('h-year-input');
@@ -686,6 +787,7 @@ function setSelectedDate(dateStr) {
   document.getElementById('h-month-input').value = m;
   updateDaySel();
   document.getElementById('h-day-input').value = d;
+  updateDatePreview();
 }
 
 function toggleHistory(id) {
