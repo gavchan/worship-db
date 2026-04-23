@@ -320,14 +320,25 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
         </div>
       </a>
 
-      <a href="status-update.html" target="_blank" style="text-decoration:none">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--text2)'" onmouseout="this.style.borderColor='var(--border)'">
+      <a href="song-editor.html" target="_blank" style="text-decoration:none">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <span style="font-size:1.3rem">✏️</span>
+            <span style="font-size:.9rem;font-weight:600;color:var(--text1)">곡 순차 편집기</span>
+            <span style="margin-left:auto;font-size:.68rem;padding:2px 8px;border-radius:20px;background:var(--amber-bg);color:var(--accent2)">song-editor.html</span>
+          </div>
+          <p style="font-size:.78rem;color:var(--text2);line-height:1.6;margin-left:2.2rem">곡을 한 개씩 순서대로 넘기면서 유튜브 링크·키·BPM·상황태그·절기태그·악보를 빠르게 입력해요. 저장 후 다음 버튼 하나로 370곡을 빠르게 정리할 수 있어요.</p>
+        </div>
+      </a>
+
+      <a href="data-update.html" target="_blank" style="text-decoration:none">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
             <span style="font-size:1.3rem">📊</span>
-            <span style="font-size:.9rem;font-weight:600;color:var(--text1)">사용 횟수 업데이트</span>
-            <span style="margin-left:auto;font-size:.68rem;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--text2)">status-update.html</span>
+            <span style="font-size:.9rem;font-weight:600;color:var(--text1)">곡 데이터 일괄 업데이트</span>
+            <span style="margin-left:auto;font-size:.68rem;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--text2)">data-update.html</span>
           </div>
-          <p style="font-size:.78rem;color:var(--text2);line-height:1.6;margin-left:2.2rem">엑셀 파일 기준으로 곡별 사용 횟수와 상태를 일괄 업데이트해요. DB에 없는 곡은 자동으로 추가하고, 유사 이름 매칭으로 공백 차이도 처리해요.</p>
+          <p style="font-size:.78rem;color:var(--text2);line-height:1.6;margin-left:2.2rem">354곡의 BPM·키·상황태그·절기태그를 한 번에 DB에 반영해요. 처음 세팅할 때 한 번 실행하면 돼요.</p>
         </div>
       </a>
 
