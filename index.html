@@ -251,6 +251,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
       <option value="count">사용 많은순</option>
       <option value="key">키(코드)별</option>
       <option value="bpm">템포순</option>
+      <option value="created">추가된순</option>
     </select>
   </div>
   <div class="cb" id="cnt"></div>
@@ -261,84 +262,46 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 <!-- 관리도구 탭 -->
 <div id="tab-tools" style="display:none">
   <div style="padding:1rem;max-width:700px;margin:0 auto">
-    <p style="font-size:.78rem;color:var(--text3);margin-bottom:1rem">각 도구를 클릭하면 새 탭에서 열려요. GitHub에 함께 업로드된 파일들이에요.</p>
-
-    <div style="display:flex;flex-direction:column;gap:10px">
-
-      <a href="tag-update.html" target="_blank" style="text-decoration:none">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-            <span style="font-size:1.3rem">🏷️</span>
-            <span style="font-size:.9rem;font-weight:600;color:var(--text1)">태그 일괄 업데이트</span>
-            <span style="margin-left:auto;font-size:.68rem;padding:2px 8px;border-radius:20px;background:var(--blue-bg);color:var(--accent)">tag-update.html</span>
-          </div>
-          <p style="font-size:.78rem;color:var(--text2);line-height:1.6;margin-left:2.2rem">AI가 분석한 248곡의 상황별·절기별 태그를 DB에 한 번에 반영합니다. 경배·예배, 위로·치유, 부활절, 성탄절 등 18개 카테고리로 분류해요.</p>
-        </div>
-      </a>
+    <p style="font-size:.75rem;color:var(--text3);margin-bottom:1rem">각 도구를 클릭하면 새 탭에서 열려요.</p>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
 
       <a href="score-upload.html" target="_blank" style="text-decoration:none">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-            <span style="font-size:1.3rem">🎼</span>
-            <span style="font-size:.9rem;font-weight:600;color:var(--text1)">악보 일괄 업로드</span>
-            <span style="margin-left:auto;font-size:.68rem;padding:2px 8px;border-radius:20px;background:var(--green-bg);color:var(--green)">score-upload.html</span>
-          </div>
-          <p style="font-size:.78rem;color:var(--text2);line-height:1.6;margin-left:2.2rem">원드라이브 폴더에서 악보 이미지를 선택하면 파일명으로 곡명을 자동 매칭해서 Supabase Storage에 업로드해요. Mac NFD 자모 분리 문제도 자동 처리돼요.</p>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 10px;text-align:center;transition:all .15s;cursor:pointer" onmouseover="this.style.borderColor='var(--green)';this.style.background='var(--green-bg)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
+          <div style="font-size:2rem;margin-bottom:8px">🎼</div>
+          <div style="font-size:.78rem;font-weight:600;color:var(--text1);margin-bottom:4px">악보 업로드</div>
+          <div style="font-size:.65rem;color:var(--text3);line-height:1.4">내 파일의 악보를<br>일괄 등록합니다</div>
         </div>
       </a>
 
       <a href="score-sync.html" target="_blank" style="text-decoration:none">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-            <span style="font-size:1.3rem">🔄</span>
-            <span style="font-size:.9rem;font-weight:600;color:var(--text1)">악보 상태 동기화</span>
-            <span style="margin-left:auto;font-size:.68rem;padding:2px 8px;border-radius:20px;background:var(--green-bg);color:var(--green)">score-sync.html</span>
-          </div>
-          <p style="font-size:.78rem;color:var(--text2);line-height:1.6;margin-left:2.2rem">Supabase Storage에 실제 파일이 있는지 확인해서 has_score 값을 정확하게 업데이트해요. 악보 완료인데 파일 없는 곡은 작업 예정으로 자동 변경해요.</p>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 10px;text-align:center;transition:all .15s;cursor:pointer" onmouseover="this.style.borderColor='var(--accent2)';this.style.background='var(--blue-bg)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
+          <div style="font-size:2rem;margin-bottom:8px">🔄</div>
+          <div style="font-size:.78rem;font-weight:600;color:var(--text1);margin-bottom:4px">악보 동기화</div>
+          <div style="font-size:.65rem;color:var(--text3);line-height:1.4">DB와 실제 파일값<br>비교 후 업데이트</div>
         </div>
       </a>
 
       <a href="song-merge.html" target="_blank" style="text-decoration:none">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent2)'" onmouseout="this.style.borderColor='var(--border)'">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-            <span style="font-size:1.3rem">🔀</span>
-            <span style="font-size:.9rem;font-weight:600;color:var(--text1)">곡 병합 도구</span>
-            <span style="margin-left:auto;font-size:.68rem;padding:2px 8px;border-radius:20px;background:var(--amber-bg);color:var(--accent2)">song-merge.html</span>
-          </div>
-          <p style="font-size:.78rem;color:var(--text2);line-height:1.6;margin-left:2.2rem">같은 곡인데 다른 이름으로 등록된 경우 하나로 합칩니다. 유사 곡명 자동 탐지 기능으로 비슷한 곡명을 찾아주고, 사용 횟수 합산·주일기록 통일·삭제까지 한 번에 처리해요.</p>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 10px;text-align:center;transition:all .15s;cursor:pointer" onmouseover="this.style.borderColor='var(--accent2)';this.style.background='var(--blue-bg)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
+          <div style="font-size:2rem;margin-bottom:8px">🔀</div>
+          <div style="font-size:.78rem;font-weight:600;color:var(--text1);margin-bottom:4px">곡 병합</div>
+          <div style="font-size:.65rem;color:var(--text3);line-height:1.4">중복·유사 곡명<br>탐지 및 병합</div>
         </div>
       </a>
 
       <a href="name-cleanup.html" target="_blank" style="text-decoration:none">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--text2)'" onmouseout="this.style.borderColor='var(--border)'">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-            <span style="font-size:1.3rem">✂️</span>
-            <span style="font-size:.9rem;font-weight:600;color:var(--text1)">곡명 공백 정리</span>
-            <span style="margin-left:auto;font-size:.68rem;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--text2)">name-cleanup.html</span>
-          </div>
-          <p style="font-size:.78rem;color:var(--text2);line-height:1.6;margin-left:2.2rem">곡명에 특수 공백·중복 공백이 섞여 있으면 검색이나 매칭이 안 될 수 있어요. 전체 곡명을 분석해서 공백을 정규화하고, 주일기록 곡명도 함께 정리해요.</p>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 10px;text-align:center;transition:all .15s;cursor:pointer" onmouseover="this.style.borderColor='var(--text2)';this.style.background='var(--surface2)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
+          <div style="font-size:2rem;margin-bottom:8px">✂️</div>
+          <div style="font-size:.78rem;font-weight:600;color:var(--text1);margin-bottom:4px">공백 정리</div>
+          <div style="font-size:.65rem;color:var(--text3);line-height:1.4">곡명 특수공백·<br>중복공백 정규화</div>
         </div>
       </a>
 
       <a href="song-editor.html" target="_blank" style="text-decoration:none">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-            <span style="font-size:1.3rem">✏️</span>
-            <span style="font-size:.9rem;font-weight:600;color:var(--text1)">곡 순차 편집기</span>
-            <span style="margin-left:auto;font-size:.68rem;padding:2px 8px;border-radius:20px;background:var(--amber-bg);color:var(--accent2)">song-editor.html</span>
-          </div>
-          <p style="font-size:.78rem;color:var(--text2);line-height:1.6;margin-left:2.2rem">곡을 한 개씩 순서대로 넘기면서 유튜브 링크·키·BPM·상황태그·절기태그·악보를 빠르게 입력해요. 저장 후 다음 버튼 하나로 370곡을 빠르게 정리할 수 있어요.</p>
-        </div>
-      </a>
-
-      <a href="data-update.html" target="_blank" style="text-decoration:none">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-            <span style="font-size:1.3rem">📊</span>
-            <span style="font-size:.9rem;font-weight:600;color:var(--text1)">곡 데이터 일괄 업데이트</span>
-            <span style="margin-left:auto;font-size:.68rem;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--text2)">data-update.html</span>
-          </div>
-          <p style="font-size:.78rem;color:var(--text2);line-height:1.6;margin-left:2.2rem">354곡의 BPM·키·상황태그·절기태그를 한 번에 DB에 반영해요. 처음 세팅할 때 한 번 실행하면 돼요.</p>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 10px;text-align:center;transition:all .15s;cursor:pointer" onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--amber-bg)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
+          <div style="font-size:2rem;margin-bottom:8px">✏️</div>
+          <div style="font-size:.78rem;font-weight:600;color:var(--text1);margin-bottom:4px">순차 편집기</div>
+          <div style="font-size:.65rem;color:var(--text3);line-height:1.4">각 곡을 순차적으로<br>확인·정리하는 도구</div>
         </div>
       </a>
 
@@ -944,7 +907,7 @@ async function saveHistory() {
     setSync('on','클라우드 연결됨');
     closeHistoryModal();
     // 찬양곡 데이터 새로 불러오기
-    songs = await api('GET','songs?order=name');
+    songs = await api('GET','songs?select=*&order=name');
     updateStats();
     render();
     // 연도 목록 갱신 후 기록 다시 불러오기
@@ -995,7 +958,7 @@ async function deleteHistory(id) {
     await api('DELETE',`worship_history?id=eq.${id}`);
     // 사용 횟수 -1
     await syncSongCounts([], prevNames);
-    songs = await api('GET','songs?order=name');
+    songs = await api('GET','songs?select=*&order=name');
     updateStats();
     render();
     showToast('삭제되었습니다');
@@ -1162,11 +1125,11 @@ async function api(method, path, body) {
 async function init() {
   setSync('sync', '불러오는 중...');
   try {
-    let data = await api('GET', 'songs?order=name');
+    let data = await api('GET', 'songs?select=*&order=name');
     if (!data || data.length === 0) {
       setSync('sync', '초기 데이터 업로드 중...');
       await uploadBaseData();
-      data = await api('GET', 'songs?order=name');
+      data = await api('GET', 'songs?select=*&order=name');
     }
     songs = data;
     // 먼저 화면에 바로 렌더링 (빠른 로딩감)
@@ -1478,6 +1441,7 @@ function render() {
     else if (sortBy==='count') v = (b.count||0) - (a.count||0);
     else if (sortBy==='key') v = (a.key||'zzz').localeCompare(b.key||'zzz');
     else if (sortBy==='bpm') v = (a.bpm||0) - (b.bpm||0);
+    else if (sortBy==='created') v = new Date(b.created_at||0) - new Date(a.created_at||0);
     return sortBy==='count' ? v : v * sortDir;
   });
   document.getElementById('cnt').textContent = list.length+'곡 표시 중';
@@ -1560,7 +1524,7 @@ function render() {
       <!-- 가운데: 템포 + 코드 -->
       <div style="text-align:center;flex-shrink:0;padding:0 8px;display:flex;gap:4px;align-items:center">
         ${tempoLabel
-          ? `<span style="font-size:.72rem;padding:2px 10px;border-radius:20px;font-weight:600;background:${tempoLabel==='빠름'?'var(--amber-bg)':tempoLabel==='중간'?'var(--green-bg)':'var(--blue-bg)'};color:${tempoColor};border:1px solid ${tempoLabel==='빠름'?'rgba(196,145,58,.3)':tempoLabel==='중간'?'rgba(58,122,82,.3)':'rgba(45,90,142,.3)'}">${tempoLabel}</span>`
+          ? `<span style="font-size:.72rem;padding:2px 10px;border-radius:20px;font-weight:600;background:${tempoLabel==='빠름'?'var(--amber-bg)':tempoLabel==='중간'?'var(--green-bg)':'var(--blue-bg)'};color:${tempoColor};border:1px solid ${tempoLabel==='빠름'?'rgba(196,145,58,.3)':tempoLabel==='중간'?'rgba(58,122,82,.3)':'rgba(45,90,142,.3)'}">${tempoLabel} <span style="opacity:.7;font-weight:400">${s.bpm}</span></span>`
           : `<span style="font-size:.72rem;color:var(--border2)">—</span>`}
         ${s.key ? `<span style="font-size:.72rem;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--text2);border:1px solid var(--border);font-weight:600">${s.key}</span>` : ''}
       </div>
