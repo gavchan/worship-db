@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>드림찬양단 곡 에디터</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f0e0c;--surface:#1a1814;--surface2:#242118;--border:#2e2b24;
+  --accent:#c4913a;--accent2:#8fb3d4;--green:#4a9e6a;--red:#c0392b;
+  --text1:#f0ece3;--text2:#a09880;--text3:#5a5548;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text1);min-height:100vh;display:flex;flex-direction:column}
+
+/* 상단 헤더 */
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:12px}
+.header h1{font-family:'Noto Serif KR',serif;font-size:1rem;color:var(--accent)}
+.progress-bar{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s}
+.progress-text{font-size:.72rem;color:var(--text2);white-space:nowrap}
+
+/* 곡 카드 */
+.song-card{flex:1;display:flex;flex-direction:column;padding:16px;gap:12px;max-width:600px;margin:0 auto;width:100%}
+.song-name{font-family:'Noto Serif KR',serif;font-size:1.5rem;font-weight:700;color:var(--text1);text-align:center;padding:16px 0 8px;line-height:1.4}
+.song-name-sub{font-size:.72rem;color:var(--text3);text-align:center;margin-top:-8px;margin-bottom:4px}
+
+/* 섹션 */
+.section{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.section-label{font-size:.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;font-weight:500}
+
+/* 유튜브 링크 */
+.url-row{display:flex;gap:8px;align-items:center}
+.url-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:.5rem .7rem;font-family:'Noto Sans KR',sans-serif;font-size:.82rem;color:var(--text1);outline:none}
+.url-input:focus{border-color:var(--accent)}
+.url-input::placeholder{color:var(--text3)}
+.url-preview{margin-top:8px;display:none}
+.url-preview a{font-size:.72rem;color:var(--accent2);text-decoration:none;word-break:break-all}
+
+/* 키/템포 */
+.row2{display:flex;gap:8px}
+.sel-wrap{flex:1}
+.sel-wrap select,.sel-wrap input[type=number]{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:.5rem .7rem;font-family:'Noto Sans KR',sans-serif;font-size:.82rem;color:var(--text1);outline:none}
+.sel-wrap select:focus,.sel-wrap input:focus{border-color:var(--accent)}
+
+/* 태그 체크박스 */
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag-btn{padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text2);font-family:'Noto Sans KR',sans-serif;font-size:.72rem;cursor:pointer;transition:all .15s}
+.tag-btn:hover{border-color:var(--accent2);color:var(--accent2)}
+.tag-btn.on{background:var(--accent2);border-color:var(--accent2);color:#0f0e0c;font-weight:500}
+.tag-btn.season.on{background:var(--accent);border-color:var(--accent);color:#0f0e0c}
+
+/* 악보 업로드 */
+.score-zone{border:1px dashed var(--border);border-radius:8px;padding:14px;text-align:center;cursor:pointer;transition:border-color .15s}
+.score-zone:hover{border-color:var(--accent2)}
+.score-zone input{display:none}
+.score-zone .zone-txt{font-size:.78rem;color:var(--text3)}
+.score-thumbs{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.score-thumb{width:60px;height:60px;object-fit:cover;border-radius:4px;border:1px solid var(--border)}
+.existing-tag{font-size:.68rem;color:var(--green);margin-bottom:6px}
+
+/* 하단 네비 */
+.nav{background:var(--surface);border-top:1px solid var(--border);padding:12px 16px;display:flex;gap:8px;align-items:center}
+.btn-skip{flex:1;padding:.6rem;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text2);font-family:'Noto Sans KR',sans-serif;font-size:.82rem;cursor:pointer}
+.btn-skip:hover{border-color:var(--text2)}
+.btn-save{flex:2;padding:.6rem;background:var(--accent);border:none;border-radius:8px;color:#0f0e0c;font-family:'Noto Sans KR',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;transition:opacity .15s}
+.btn-save:hover{opacity:.85}
+.btn-save:disabled{opacity:.4;cursor:not-allowed}
+.btn-prev{width:40px;padding:.6rem;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text2);font-family:'Noto Sans KR',sans-serif;font-size:.9rem;cursor:pointer}
+.btn-prev:hover{border-color:var(--text2)}
+
+/* 완료 화면 */
+.done{display:none;flex:1;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;padding:2rem}
+.done h2{font-size:2rem}
+.done p{color:var(--text2);font-size:.9rem}
+
+/* 로딩 */
+.loading{display:flex;flex:1;align-items:center;justify-content:center;flex-direction:column;gap:8px}
+.spin{font-size:2rem;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--accent);color:#000;padding:8px 18px;border-radius:20px;font-size:.8rem;font-weight:500;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🎵 곡 에디터</h1>
+  <div class="progress-bar"><div class="progress-fill" id="pf" style="width:0"></div></div>
+  <span class="progress-text" id="ptxt">0 / 0</span>
+</div>
+
+<div class="loading" id="loading">
+  <span class="spin">⟳</span>
+  <span style="color:var(--text2);font-size:.85rem">곡 목록 불러오는 중...</span>
+</div>
+
+<div class="song-card" id="card" style="display:none">
+  <div class="song-name" id="song-name"></div>
+  <div class="song-name-sub" id="song-sub"></div>
+
+  <!-- 유튜브 링크 -->
+  <div class="section">
+    <div class="section-label">▶ 유튜브 링크</div>
+    <div class="url-row">
+      <input type="text" class="url-input" id="f-url" placeholder="https://youtube.com/watch?v=..." oninput="onUrlInput()">
+      <button onclick="clearUrl()" style="padding:4px 8px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;font-size:.75rem">지우기</button>
+    </div>
+    <div class="url-preview" id="url-preview">
+      <a id="url-link" href="#" target="_blank">🔗 링크 확인</a>
+    </div>
+  </div>
+
+  <!-- 키 & 템포 -->
+  <div class="section">
+    <div class="section-label">🎵 키 & 템포</div>
+    <div class="row2">
+      <div class="sel-wrap">
+        <select id="f-key">
+          <option value="">키 선택</option>
+          <option>C</option><option>C#</option><option>D</option><option>D#</option>
+          <option>E</option><option>F</option><option>F#</option><option>G</option>
+          <option>G#</option><option>A</option><option>A#</option><option>B</option>
+        </select>
+      </div>
+      <div class="sel-wrap">
+        <input type="number" id="f-bpm" placeholder="BPM (예: 100)" min="40" max="200">
+      </div>
+    </div>
+  </div>
+
+  <!-- 상황별 태그 -->
+  <div class="section">
+    <div class="section-label">🏷 상황별</div>
+    <div class="tags" id="situ-tags">
+      <button class="tag-btn" data-val="경배·예배">경배·예배</button>
+      <button class="tag-btn" data-val="감사·은혜">감사·은혜</button>
+      <button class="tag-btn" data-val="회개·정결">회개·정결</button>
+      <button class="tag-btn" data-val="십자가·보혈·구원">십자가·보혈</button>
+      <button class="tag-btn" data-val="부활·승리">부활·승리</button>
+      <button class="tag-btn" data-val="성령·충만">성령·충만</button>
+      <button class="tag-btn" data-val="소망·위로">소망·위로</button>
+      <button class="tag-btn" data-val="기도·간구">기도·간구</button>
+      <button class="tag-btn" data-val="전도·선교·복음">전도·선교</button>
+      <button class="tag-btn" data-val="치유·회복">치유·회복</button>
+      <button class="tag-btn" data-val="주와동행·신앙생활">주와동행</button>
+      <button class="tag-btn" data-val="기쁨·찬양">기쁨·찬양</button>
+      <button class="tag-btn" data-val="고난·시련극복">고난·시련</button>
+      <button class="tag-btn" data-val="헌신·부르심">헌신·부르심</button>
+      <button class="tag-btn" data-val="가족·교제·나눔">가족·교제</button>
+      <button class="tag-btn" data-val="평강·평안">평강·평안</button>
+    </div>
+  </div>
+
+  <!-- 절기별 태그 -->
+  <div class="section">
+    <div class="section-label">📅 절기별</div>
+    <div class="tags" id="seas-tags">
+      <button class="tag-btn season" data-val="대림절">대림절</button>
+      <button class="tag-btn season" data-val="성탄절">성탄절</button>
+      <button class="tag-btn season" data-val="주현절">주현절</button>
+      <button class="tag-btn season" data-val="사순절">사순절</button>
+      <button class="tag-btn season" data-val="고난주간">고난주간</button>
+      <button class="tag-btn season" data-val="부활절">부활절</button>
+      <button class="tag-btn season" data-val="성령강림절">성령강림절</button>
+      <button class="tag-btn season" data-val="추수감사절">추수감사절</button>
+    </div>
+  </div>
+
+  <!-- 악보 업로드 -->
+  <div class="section">
+    <div class="section-label">🎼 악보</div>
+    <div id="existing-info" class="existing-tag" style="display:none"></div>
+    <div class="score-zone" onclick="document.getElementById('f-score').click()">
+      <input type="file" id="f-score" accept="image/*" multiple onchange="previewScores(this)">
+      <div class="zone-txt">📷 이미지 선택해서 악보 추가</div>
+      <div class="score-thumbs" id="score-thumbs"></div>
+    </div>
+  </div>
+</div>
+
+<div class="done" id="done">
+  <div style="font-size:3rem">🎉</div>
+  <h2>완료!</h2>
+  <p id="done-msg"></p>
+  <button onclick="restart()" style="margin-top:12px;padding:10px 24px;background:var(--accent);border:none;border-radius:8px;color:#000;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif">처음부터 다시</button>
+</div>
+
+<div class="nav" id="nav" style="display:none">
+  <button class="btn-prev" onclick="goPrev()" title="이전 곡">←</button>
+  <button class="btn-skip" onclick="goNext(false)">건너뛰기</button>
+  <button class="btn-save" id="btn-save" onclick="saveAndNext()">저장 후 다음 ➜</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const URL_BASE = 'https://rmtysrytveexshwzenxj.supabase.co';
+const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdHlzcnl0dmVleHNod3plbnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjQ3OTYsImV4cCI6MjA5MjEwMDc5Nn0.5FzzJ1rg-uRG4jAGZ75xVT3i3NH0m6J_tDeOS4GxyT8';
+const H = {'Content-Type':'application/json','apikey':KEY,'Authorization':'Bearer '+KEY,'Prefer':'return=minimal'};
+const RH = {'apikey':KEY,'Authorization':'Bearer '+KEY};
+const STORAGE = URL_BASE + '/storage/v1';
+
+let songs = [], idx = 0, scoreFiles = [], savedCount = 0, skippedCount = 0;
+
+async function api(method, path, body) {
+  const res = await fetch(URL_BASE+'/rest/v1/'+path, {
+    method, headers: method==='GET' ? RH : H,
+    body: body ? JSON.stringify(body) : undefined
+  });
+  if(method==='GET') return res.json();
+}
+
+async function init() {
+  const data = await api('GET', 'songs?select=id,name,key,bpm,seasons,has_score,music_url&order=name&limit=500');
+  songs = data;
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('card').style.display = 'flex';
+  document.getElementById('nav').style.display = 'flex';
+  loadSong();
+}
+
+function loadSong() {
+  if(idx >= songs.length) { showDone(); return; }
+  const s = songs[idx];
+  scoreFiles = [];
+
+  // 헤더 진행
+  const pct = Math.round((idx/songs.length)*100);
+  document.getElementById('pf').style.width = pct+'%';
+  document.getElementById('ptxt').textContent = `${idx+1} / ${songs.length}`;
+
+  // 곡명
+  document.getElementById('song-name').textContent = s.name;
+  document.getElementById('song-sub').textContent = `#${idx+1}`;
+
+  // 필드 채우기
+  document.getElementById('f-url').value = s.music_url || '';
+  document.getElementById('f-key').value = s.key || '';
+  document.getElementById('f-bpm').value = s.bpm || '';
+  onUrlInput();
+
+  // 태그 초기화
+  document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('on'));
+  const seas = s.seasons || [];
+  seas.forEach(t => {
+    const btn = document.querySelector(`.tag-btn[data-val="${t}"]`);
+    if(btn) btn.classList.add('on');
+  });
+
+  // 악보 상태
+  const ei = document.getElementById('existing-info');
+  if(s.has_score) {
+    ei.style.display = 'block';
+    ei.textContent = '✓ 악보 있음 — 새 이미지 추가 가능';
+  } else {
+    ei.style.display = 'none';
+  }
+  document.getElementById('score-thumbs').innerHTML = '';
+  document.getElementById('f-score').value = '';
+
+  // 스크롤 맨 위
+  document.getElementById('card').scrollTop = 0;
+}
+
+function onUrlInput() {
+  const val = document.getElementById('f-url').value.trim();
+  const preview = document.getElementById('url-preview');
+  const link = document.getElementById('url-link');
+  if(val.includes('youtube') || val.includes('youtu.be')) {
+    preview.style.display = 'block';
+    link.href = val;
+    link.textContent = '🔗 ' + val.substring(0,50) + (val.length>50?'...':'');
+  } else {
+    preview.style.display = 'none';
+  }
+}
+
+function clearUrl() {
+  document.getElementById('f-url').value = '';
+  onUrlInput();
+}
+
+// 태그 토글
+document.querySelectorAll('.tag-btn').forEach(btn => {
+  btn.addEventListener('click', () => btn.classList.toggle('on'));
+});
+
+function getSelectedTags() {
+  return [...document.querySelectorAll('.tag-btn.on')].map(b => b.dataset.val);
+}
+
+function previewScores(input) {
+  scoreFiles = [...input.files];
+  const wrap = document.getElementById('score-thumbs');
+  wrap.innerHTML = '';
+  scoreFiles.forEach(f => {
+    const img = document.createElement('img');
+    img.className = 'score-thumb';
+    img.src = URL.createObjectURL(f);
+    wrap.appendChild(img);
+  });
+}
+
+async function saveAndNext() {
+  const btn = document.getElementById('btn-save');
+  btn.disabled = true;
+  btn.textContent = '저장 중...';
+  const s = songs[idx];
+
+  try {
+    // 곡 데이터 저장
+    const body = {
+      updated_at: new Date().toISOString(),
+      seasons: getSelectedTags(),
+    };
+    const url = document.getElementById('f-url').value.trim();
+    const key = document.getElementById('f-key').value.trim();
+    const bpm = parseInt(document.getElementById('f-bpm').value) || 0;
+    if(url) body.music_url = url;
+    if(key) body.key = key;
+    if(bpm) body.bpm = bpm;
+
+    await fetch(URL_BASE+'/rest/v1/songs?id=eq.'+s.id, {method:'PATCH',headers:H,body:JSON.stringify(body)});
+
+    // 악보 업로드
+    if(scoreFiles.length) {
+      for(const file of scoreFiles) {
+        const safeName = file.name.normalize('NFC');
+        const path = `${s.id}/${safeName}`;
+        await fetch(`${STORAGE}/object/scores/${path}`, {
+          method:'POST',
+          headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':file.type,'x-upsert':'true'},
+          body: file
+        });
+      }
+      // has_score 업데이트
+      await fetch(URL_BASE+'/rest/v1/songs?id=eq.'+s.id, {
+        method:'PATCH',headers:H,
+        body:JSON.stringify({has_score:true,status:s.status==='plan'?'ready':s.status,updated_at:new Date().toISOString()})
+      });
+    }
+
+    savedCount++;
+    showToast('✓ 저장됨');
+    goNext(true);
+  } catch(e) {
+    showToast('⚠ 저장 실패: '+e.message);
+  }
+
+  btn.disabled = false;
+  btn.textContent = '저장 후 다음 ➜';
+}
+
+function goNext(saved) {
+  if(!saved) skippedCount++;
+  idx++;
+  loadSong();
+}
+
+function goPrev() {
+  if(idx > 0) { idx--; loadSong(); }
+}
+
+function showDone() {
+  document.getElementById('card').style.display = 'none';
+  document.getElementById('nav').style.display = 'none';
+  document.getElementById('done').style.display = 'flex';
+  document.getElementById('done-msg').textContent = `저장 ${savedCount}곡 · 건너뜀 ${skippedCount}곡`;
+  document.getElementById('pf').style.width = '100%';
+}
+
+function restart() {
+  idx = 0; savedCount = 0; skippedCount = 0;
+  document.getElementById('done').style.display = 'none';
+  document.getElementById('card').style.display = 'flex';
+  document.getElementById('nav').style.display = 'flex';
+  loadSong();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+init();
+</script>
+</body>
+</html>
