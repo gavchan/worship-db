@@ -29,14 +29,14 @@ p{font-size:.82rem;color:#6b6560;margin-bottom:1.5rem;line-height:1.6}
 <div id="status"></div>
 
 <script>
-const URL = 'https://rmtysrytveexshwzenxj.supabase.co';
+const SURL = 'https://rmtysrytveexshwzenxj.supabase.co';
 const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdHlzcnl0dmVleHNod3plbnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjQ3OTYsImV4cCI6MjA5MjEwMDc5Nn0.5FzzJ1rg-uRG4jAGZ75xVT3i3NH0m6J_tDeOS4GxyT8';
 const H = {'apikey':KEY,'Authorization':'Bearer '+KEY};
 
 let songs = [];
 
 async function load() {
-  const res = await fetch(URL+'/rest/v1/songs?select=*&order=name&limit=500', {headers:H});
+  const res = await fetch(SURL+'/rest/v1/songs?select=*&order=name&limit=500', {headers:H});
   songs = await res.json();
   document.getElementById('cnt').textContent = songs.length + '곡';
   document.getElementById('cnt-sub').textContent = '전체 데이터 준비 완료';
@@ -45,9 +45,15 @@ async function load() {
 function download(content, filename, type) {
   const blob = new Blob([content], {type});
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
+  const objUrl = window.URL.createObjectURL(blob);
+  a.href = objUrl;
   a.download = filename;
+  document.body.appendChild(a);
   a.click();
+  setTimeout(() => {
+    window.URL.revokeObjectURL(objUrl);
+    document.body.removeChild(a);
+  }, 100);
   document.getElementById('status').textContent = `✅ ${filename} 다운로드 완료!`;
 }
 
