@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>DB 내보내기</title>
+<style>
+body{font-family:'Apple SD Gothic Neo',sans-serif;max-width:500px;margin:3rem auto;padding:1rem;background:#faf8f5;color:#1a1714}
+h1{font-size:1.2rem;margin-bottom:.3rem}
+p{font-size:.82rem;color:#6b6560;margin-bottom:1.5rem;line-height:1.6}
+.btn{display:block;width:100%;padding:.75rem;margin-bottom:.6rem;border:none;border-radius:8px;font-family:inherit;font-size:.9rem;font-weight:600;cursor:pointer;transition:opacity .15s}
+.btn:hover{opacity:.85}
+.btn-json{background:#2d5a8e;color:#fff}
+.btn-csv{background:#3a7a52;color:#fff}
+.btn-xlsx{background:#c4913a;color:#fff}
+#status{font-size:.78rem;color:#6b6560;margin-top:.5rem;text-align:center}
+.cnt{font-size:2rem;font-weight:700;color:#2d5a8e;text-align:center;margin:1rem 0 .2rem}
+.cnt-sub{font-size:.75rem;color:#9e9891;text-align:center;margin-bottom:1.5rem}
+</style>
+</head>
+<body>
+<h1>📦 찬양곡 DB 내보내기</h1>
+<p>Supabase DB의 전체 곡 데이터를 다운받습니다.</p>
+<div class="cnt" id="cnt">-</div>
+<div class="cnt-sub" id="cnt-sub">불러오는 중...</div>
+
+<button class="btn btn-json" onclick="exportJSON()">📄 JSON으로 다운받기</button>
+<button class="btn btn-csv" onclick="exportCSV()">📊 CSV로 다운받기</button>
+
+<div id="status"></div>
+
+<script>
+const URL = 'https://rmtysrytveexshwzenxj.supabase.co';
+const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdHlzcnl0dmVleHNod3plbnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjQ3OTYsImV4cCI6MjA5MjEwMDc5Nn0.5FzzJ1rg-uRG4jAGZ75xVT3i3NH0m6J_tDeOS4GxyT8';
+const H = {'apikey':KEY,'Authorization':'Bearer '+KEY};
+
+let songs = [];
+
+async function load() {
+  const res = await fetch(URL+'/rest/v1/songs?select=*&order=name&limit=500', {headers:H});
+  songs = await res.json();
+  document.getElementById('cnt').textContent = songs.length + '곡';
+  document.getElementById('cnt-sub').textContent = '전체 데이터 준비 완료';
+}
+
+function download(content, filename, type) {
+  const blob = new Blob([content], {type});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  document.getElementById('status').textContent = `✅ ${filename} 다운로드 완료!`;
+}
+
+function exportJSON() {
+  const date = new Date().toISOString().slice(0,10);
+  download(JSON.stringify(songs, null, 2), `찬양곡DB_${date}.json`, 'application/json');
+}
+
+function exportCSV() {
+  const date = new Date().toISOString().slice(0,10);
+  const cols = ['id','name','status','count','key','bpm','has_score','music_url','seasons','created_at','updated_at'];
+  const header = cols.join(',');
+  const rows = songs.map(s => cols.map(c => {
+    const v = s[c];
+    if(v === null || v === undefined) return '';
+    if(Array.isArray(v)) return `"${v.join('|')}"`;
+    if(typeof v === 'string' && (v.includes(',') || v.includes('"') || v.includes('\n')))
+      return `"${v.replace(/"/g,'""')}"`;
+    return v;
+  }).join(','));
+  download('\uFEFF'+[header,...rows].join('\n'), `찬양곡DB_${date}.csv`, 'text/csv;charset=utf-8');
+}
+
+load();
+</script>
+</body>
+</html>
