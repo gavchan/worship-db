@@ -1095,30 +1095,56 @@
         ...metaRows,
         [`<tr><td colspan="8"></td></tr>`],
         [`<tr>${rows.header.map((cell) => `<th>${escapeHtml(cell)}</th>`).join("")}</tr>`],
-        ...itemRows.map((row) => [`<tr style="height:24px">${row.map((cell, index) => `<td${index >= 5 ? ' style="mso-number-format:&quot;#,##0&quot;"' : ""}>${escapeHtml(cell)}</td>`).join("")}</tr>`]),
+        ...itemRows.map((row) => [`<tr>${row.map((cell, index) => `<td${index >= 5 ? ' class="num" style="mso-number-format:&quot;#,##0&quot;"' : index === 3 ? ' class="num"' : ""}>${escapeHtml(cell)}</td>`).join("")}</tr>`]),
         [`<tr><td colspan="8"></td></tr>`],
-        ...rows.totals.map((row) => [`<tr><td colspan="6">${escapeHtml(row[0])}</td><td style="mso-number-format:&quot;#,##0&quot;">${escapeHtml(Math.round(row[1]))}</td><td></td></tr>`])
+        ...rows.totals.map((row) => [`<tr><td colspan="6" class="label">${escapeHtml(row[0])}</td><td class="num" style="mso-number-format:&quot;#,##0&quot;">${escapeHtml(Math.round(row[1]))}</td><td></td></tr>`])
       ].flat().join("");
-      const html = `<!doctype html><html><head><meta charset="utf-8"><style>
-        @page { size: A4 portrait; margin: 8mm; mso-page-orientation: portrait; }
-        body { margin: 0; mso-fit-to-page: yes; }
-        table { border-collapse: collapse; width: 720px; table-layout: fixed; font-family: Arial, sans-serif; font-size: 10pt; }
-        th { background: #24577a; color: #fff; font-weight: 700; height: 26px; }
-        td { height: 24px; overflow: hidden; white-space: normal; word-break: keep-all; }
+      const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head><meta charset="utf-8">
+      <!--[if gte mso 9]><xml>
+        <x:ExcelWorkbook>
+          <x:ExcelWorksheets>
+            <x:ExcelWorksheet>
+              <x:Name>견적서</x:Name>
+              <x:WorksheetOptions>
+                <x:FitToPage/>
+                <x:PageSetup>
+                  <x:Layout x:Orientation="Portrait"/>
+                  <x:PageMargins x:Left="0.18" x:Right="0.18" x:Top="0.22" x:Bottom="0.22"/>
+                </x:PageSetup>
+                <x:Print>
+                  <x:FitWidth>1</x:FitWidth>
+                  <x:FitHeight>1</x:FitHeight>
+                  <x:ValidPrinterInfo/>
+                </x:Print>
+                <x:Selected/>
+              </x:WorksheetOptions>
+            </x:ExcelWorksheet>
+          </x:ExcelWorksheets>
+        </x:ExcelWorkbook>
+      </xml><![endif]-->
+      <style>
+        @page Section1 { size: 595.3pt 841.9pt; margin: 16pt 13pt 16pt 13pt; mso-page-orientation: portrait; }
+        div.Section1 { page: Section1; }
+        body { margin: 0; }
+        table { border-collapse: collapse; width: 520pt; table-layout: fixed; font-family: Arial, sans-serif; font-size: 9pt; }
+        th { background: #24577a; color: #fff; font-weight: 700; height: 19pt; }
+        td { height: 17pt; overflow: hidden; white-space: normal; word-break: keep-all; padding: 1pt 3pt; }
         .label { background: #f3f6f8; font-weight: 700; text-align: center; }
-      </style></head><body><table border="1">
+        .num { text-align: right; }
+      </style></head><body><div class="Section1"><table border="1">
         <colgroup>
-          <col style="width:42px">
-          <col style="width:132px">
-          <col style="width:130px">
-          <col style="width:80px">
-          <col style="width:58px">
-          <col style="width:104px">
-          <col style="width:112px">
-          <col style="width:62px">
+          <col style="width:30pt">
+          <col style="width:105pt">
+          <col style="width:105pt">
+          <col style="width:48pt">
+          <col style="width:40pt">
+          <col style="width:75pt">
+          <col style="width:82pt">
+          <col style="width:35pt">
         </colgroup>
         ${tableRows}
-      </table></body></html>`;
+      </table></div></body></html>`;
       download(`견적서_${getQuoteNo()}.xls`, "\ufeff" + html, "application/vnd.ms-excel;charset=utf-8");
     }
 
