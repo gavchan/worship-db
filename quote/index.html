@@ -1082,9 +1082,17 @@
     function exportXls() {
       const rows = exportRows();
       const itemRows = padRowsForPage(rows.itemRows);
+      const metaRows = rows.meta.map((row) => `
+        <tr>
+          <td class="label">${escapeHtml(row[0])}</td>
+          <td colspan="3">${escapeHtml(row[1])}</td>
+          <td class="label">${escapeHtml(row[2])}</td>
+          <td colspan="3">${escapeHtml(row[3])}</td>
+        </tr>
+      `);
       const tableRows = [
         [`<tr><th colspan="8">견 적 서</th></tr>`],
-        ...rows.meta.map((row) => [`<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`]),
+        ...metaRows,
         [`<tr><td colspan="8"></td></tr>`],
         [`<tr>${rows.header.map((cell) => `<th>${escapeHtml(cell)}</th>`).join("")}</tr>`],
         ...itemRows.map((row) => [`<tr style="height:24px">${row.map((cell, index) => `<td${index >= 5 ? ' style="mso-number-format:&quot;#,##0&quot;"' : ""}>${escapeHtml(cell)}</td>`).join("")}</tr>`]),
@@ -1092,11 +1100,25 @@
         ...rows.totals.map((row) => [`<tr><td colspan="6">${escapeHtml(row[0])}</td><td style="mso-number-format:&quot;#,##0&quot;">${escapeHtml(Math.round(row[1]))}</td><td></td></tr>`])
       ].flat().join("");
       const html = `<!doctype html><html><head><meta charset="utf-8"><style>
-        @page { size: A4; margin: 12mm; }
-        table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; font-size: 11pt; }
+        @page { size: A4 portrait; margin: 8mm; mso-page-orientation: portrait; }
+        body { margin: 0; mso-fit-to-page: yes; }
+        table { border-collapse: collapse; width: 720px; table-layout: fixed; font-family: Arial, sans-serif; font-size: 10pt; }
         th { background: #24577a; color: #fff; font-weight: 700; height: 26px; }
-        td { height: 24px; }
-      </style></head><body><table border="1">${tableRows}</table></body></html>`;
+        td { height: 24px; overflow: hidden; white-space: normal; word-break: keep-all; }
+        .label { background: #f3f6f8; font-weight: 700; text-align: center; }
+      </style></head><body><table border="1">
+        <colgroup>
+          <col style="width:42px">
+          <col style="width:132px">
+          <col style="width:130px">
+          <col style="width:80px">
+          <col style="width:58px">
+          <col style="width:104px">
+          <col style="width:112px">
+          <col style="width:62px">
+        </colgroup>
+        ${tableRows}
+      </table></body></html>`;
       download(`견적서_${getQuoteNo()}.xls`, "\ufeff" + html, "application/vnd.ms-excel;charset=utf-8");
     }
 
