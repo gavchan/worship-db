@@ -380,7 +380,7 @@
 
     .db-grid {
       display: grid;
-      grid-template-columns: 1fr 80px 110px 36px;
+      grid-template-columns: 1fr 80px 90px 110px 36px;
       gap: 8px;
       margin-bottom: 8px;
       align-items: center;
@@ -562,7 +562,7 @@
 
       <h2>품목DB</h2>
       <div class="db-grid header">
-        <span>품명</span><span>단위</span><span>기본단가</span><span></span>
+        <span>품명</span><span>단위</span><span>기본수량</span><span>기본단가</span><span></span>
       </div>
       <div id="dbRows"></div>
       <button id="addDbItem">+ DB</button>
@@ -600,16 +600,16 @@
         bankAccount: "국민 509001-01-162432"
       },
       db: [
-        { name: "벽돌 조적", unit: "㎡", price: 0 },
-        { name: "블럭 조적", unit: "㎡", price: 0 },
-        { name: "미장", unit: "㎡", price: 0 },
-        { name: "철거", unit: "식", price: 0 },
-        { name: "운반비", unit: "식", price: 0 },
-        { name: "자재비", unit: "식", price: 0 },
-        { name: "인건비", unit: "인", price: 0 },
-        { name: "장비대", unit: "일", price: 0 },
-        { name: "폐기물 처리", unit: "식", price: 0 },
-        { name: "기타", unit: "식", price: 0 }
+        { name: "벽돌 조적", unit: "㎡", qty: "", price: 0 },
+        { name: "블럭 조적", unit: "㎡", qty: "", price: 0 },
+        { name: "미장", unit: "㎡", qty: "", price: 0 },
+        { name: "철거", unit: "식", qty: "", price: 0 },
+        { name: "운반비", unit: "식", qty: "", price: 0 },
+        { name: "자재비", unit: "식", qty: "", price: 0 },
+        { name: "인건비", unit: "인", qty: "", price: 0 },
+        { name: "장비대", unit: "일", qty: "", price: 0 },
+        { name: "폐기물 처리", unit: "식", qty: "", price: 0 },
+        { name: "기타", unit: "식", qty: "", price: 0 }
       ],
       items: [
         { name: "", desc: "", qty: "", unit: "", price: "", note: "" }
@@ -757,6 +757,7 @@
         <div class="db-grid">
           <input data-db="${index}" data-field="name" value="${escapeHtml(item.name)}">
           <input data-db="${index}" data-field="unit" value="${escapeHtml(item.unit)}">
+          <input data-db="${index}" data-field="qty" inputmode="decimal" value="${escapeHtml(item.qty || "")}">
           <input data-db="${index}" data-field="price" inputmode="numeric" value="${escapeHtml(item.price)}">
           <button class="icon danger" data-db-remove="${index}" title="삭제">×</button>
         </div>
@@ -845,6 +846,7 @@
         const found = getDbItem(value);
         if (found) {
           item.unit = found.unit || item.unit;
+          if (found.qty !== undefined && found.qty !== "") item.qty = String(found.qty);
           item.price = String(found.price || "");
         }
         saveState();
@@ -894,7 +896,7 @@
       });
 
       $("addDbItem").addEventListener("click", () => {
-        state.db.push({ name: "", unit: "", price: 0 });
+        state.db.push({ name: "", unit: "", qty: "", price: 0 });
         saveState();
         renderAll();
       });
