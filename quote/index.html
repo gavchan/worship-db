@@ -1,0 +1,1089 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>견적서 작성</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --ink: #17202a;
+      --muted: #667085;
+      --line: #d8dee8;
+      --panel: #f7f9fc;
+      --input: #fff8d9;
+      --brand: #24577a;
+      --brand-2: #2f7d6d;
+      --danger: #b42318;
+      --paper: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: #eef2f6;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      min-height: 36px;
+      padding: 0 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button.primary {
+      border-color: var(--brand);
+      background: var(--brand);
+      color: #fff;
+      font-weight: 700;
+    }
+
+    button.success {
+      border-color: var(--brand-2);
+      background: var(--brand-2);
+      color: #fff;
+      font-weight: 700;
+    }
+
+    button.icon {
+      width: 36px;
+      padding: 0;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    button.danger {
+      color: var(--danger);
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      min-height: 36px;
+      padding: 7px 9px;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    textarea {
+      min-height: 72px;
+      resize: vertical;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(420px, 1fr) minmax(360px, 640px);
+    }
+
+    .editor {
+      padding: 20px;
+      overflow: auto;
+    }
+
+    .preview {
+      background: #dfe5ec;
+      padding: 20px;
+      overflow: auto;
+      border-left: 1px solid #c9d2dd;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 22px 0 10px;
+      font-size: 15px;
+      letter-spacing: 0;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .connection {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+
+    .connection-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-weight: 800;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .status.ok { color: var(--brand-2); }
+    .status.err { color: var(--danger); }
+
+    .history-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .history-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+    }
+
+    .history-item strong,
+    .history-item span {
+      display: block;
+      overflow-wrap: anywhere;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .field.span-2 { grid-column: span 2; }
+    .field.span-4 { grid-column: span 4; }
+
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .items-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 7px;
+      vertical-align: middle;
+    }
+
+    th {
+      background: var(--brand);
+      color: #fff;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    td input, td select {
+      min-height: 32px;
+      border-color: transparent;
+      background: var(--input);
+    }
+
+    td.number, th.number {
+      text-align: right;
+    }
+
+    .w-no { width: 44px; }
+    .w-name { min-width: 150px; }
+    .w-desc { min-width: 180px; }
+    .w-qty { width: 76px; }
+    .w-unit { width: 70px; }
+    .w-price, .w-total { width: 110px; }
+    .w-note { min-width: 130px; }
+    .w-act { width: 44px; }
+
+    .footer-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 10px;
+      align-items: flex-start;
+    }
+
+    .totals {
+      min-width: 280px;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .total-line {
+      display: grid;
+      grid-template-columns: 1fr 130px;
+      gap: 8px;
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .total-line:last-child {
+      border-bottom: 0;
+      background: #eaf4f1;
+      font-weight: 800;
+    }
+
+    .money {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .paper {
+      width: min(100%, 760px);
+      min-height: 980px;
+      margin: 0 auto;
+      background: var(--paper);
+      padding: 34px 34px 40px;
+      box-shadow: 0 18px 45px rgba(35, 47, 62, .18);
+    }
+
+    .quote-title {
+      text-align: center;
+      font-size: 30px;
+      font-weight: 900;
+      margin: 0 0 20px;
+      letter-spacing: 0;
+    }
+
+    .quote-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 18px;
+    }
+
+    .quote-box {
+      border: 1px solid #808a95;
+    }
+
+    .quote-box div {
+      display: grid;
+      grid-template-columns: 92px 1fr;
+      min-height: 30px;
+      border-bottom: 1px solid #c5cbd3;
+    }
+
+    .quote-box div:last-child {
+      border-bottom: 0;
+    }
+
+    .quote-box strong {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--panel);
+      border-right: 1px solid #c5cbd3;
+      font-size: 12px;
+    }
+
+    .quote-box span {
+      display: flex;
+      align-items: center;
+      padding: 5px 8px;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .quote-table th {
+      background: var(--brand);
+      color: #fff;
+      border: 1px solid #808a95;
+    }
+
+    .quote-table td {
+      border: 1px solid #c5cbd3;
+      min-height: 28px;
+    }
+
+    .quote-table .name-cell {
+      text-align: left;
+    }
+
+    .quote-total {
+      width: 100%;
+      margin-top: 0;
+      border: 1px solid #808a95;
+    }
+
+    .quote-total td {
+      border: 1px solid #c5cbd3;
+      padding: 8px;
+    }
+
+    .quote-total td:first-child {
+      background: var(--panel);
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .note-box {
+      margin-top: 20px;
+      border: 1px solid #808a95;
+    }
+
+    .note-box strong {
+      display: block;
+      padding: 8px;
+      background: var(--panel);
+      border-bottom: 1px solid #c5cbd3;
+    }
+
+    .note-box p {
+      margin: 0;
+      padding: 7px 9px;
+      min-height: 28px;
+    }
+
+    .db-grid {
+      display: grid;
+      grid-template-columns: 1fr 80px 110px 36px;
+      gap: 8px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+
+    .db-grid.header {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    @media (max-width: 980px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .preview {
+        border-left: 0;
+        border-top: 1px solid #c9d2dd;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .editor, .preview {
+        padding: 12px;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .field.span-4 { grid-column: span 2; }
+      .paper { padding: 20px 14px; }
+      .quote-meta { grid-template-columns: 1fr; }
+      .footer-row { display: block; }
+      .totals { margin-top: 12px; width: 100%; }
+    }
+
+    @media print {
+      body { background: #fff; }
+      .editor { display: none; }
+      .app { display: block; }
+      .preview { padding: 0; border: 0; background: #fff; }
+      .paper { width: 100%; min-height: auto; box-shadow: none; padding: 18mm; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="editor">
+      <div class="topbar">
+        <h1>견적서 작성</h1>
+        <div class="actions">
+          <button class="success" id="saveCloud">저장</button>
+          <button id="loadCloud">불러오기</button>
+          <button class="success" id="exportXls">엑셀</button>
+          <button id="exportCsv">CSV</button>
+          <button class="primary" id="printQuote">인쇄</button>
+        </div>
+      </div>
+
+      <div class="connection">
+        <div class="connection-title">
+          <span>Supabase 연결</span>
+          <span class="status" id="cloudStatus">로컬 저장</span>
+        </div>
+        <div class="form-grid">
+          <div class="field span-2">
+            <label for="supabaseUrl">Supabase URL</label>
+            <input id="supabaseUrl" type="text" placeholder="https://xxxx.supabase.co">
+          </div>
+          <div class="field span-2">
+            <label for="supabaseAnonKey">Supabase anon key</label>
+            <input id="supabaseAnonKey" type="password" placeholder="eyJ...">
+          </div>
+        </div>
+        <div id="historyList" class="history-list"></div>
+      </div>
+
+      <h2>견적 정보</h2>
+      <div class="form-grid">
+        <div class="field">
+          <label for="quoteDate">견적일자</label>
+          <input id="quoteDate" type="date">
+        </div>
+        <div class="field">
+          <label for="quoteNo">견적번호</label>
+          <input id="quoteNo" type="text">
+        </div>
+        <div class="field">
+          <label for="vatMode">부가세</label>
+          <select id="vatMode">
+            <option value="separate">별도</option>
+            <option value="included">포함</option>
+            <option value="none">없음</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="payment">결제조건</label>
+          <input id="payment" type="text" value="협의">
+        </div>
+        <div class="field span-2">
+          <label for="clientName">거래처명</label>
+          <input id="clientName" type="text">
+        </div>
+        <div class="field">
+          <label for="clientPerson">담당자</label>
+          <input id="clientPerson" type="text">
+        </div>
+        <div class="field">
+          <label for="clientPhone">연락처</label>
+          <input id="clientPhone" type="text">
+        </div>
+        <div class="field span-4">
+          <label for="siteAddress">현장/주소</label>
+          <input id="siteAddress" type="text">
+        </div>
+        <div class="field span-4">
+          <label for="memo">비고</label>
+          <textarea id="memo"></textarea>
+        </div>
+      </div>
+
+      <h2>품목</h2>
+      <div class="items-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="w-no">No</th>
+              <th class="w-name">품명</th>
+              <th class="w-desc">규격/내용</th>
+              <th class="w-qty number">수량</th>
+              <th class="w-unit">단위</th>
+              <th class="w-price number">단가</th>
+              <th class="w-total number">금액</th>
+              <th class="w-note">비고</th>
+              <th class="w-act"></th>
+            </tr>
+          </thead>
+          <tbody id="itemRows"></tbody>
+        </table>
+      </div>
+      <div class="footer-row">
+        <button id="addItem">+ 품목</button>
+        <div class="totals">
+          <div class="total-line"><span>공급가액</span><span class="money" id="subtotalText">0</span></div>
+          <div class="total-line"><span>부가세</span><span class="money" id="vatText">0</span></div>
+          <div class="total-line"><span>합계</span><span class="money" id="grandText">0</span></div>
+        </div>
+      </div>
+
+      <h2>공급자</h2>
+      <div class="form-grid">
+        <div class="field">
+          <label for="bizNo">사업자번호</label>
+          <input id="bizNo" type="text">
+        </div>
+        <div class="field">
+          <label for="company">업체명</label>
+          <input id="company" type="text">
+        </div>
+        <div class="field">
+          <label for="owner">대표</label>
+          <input id="owner" type="text">
+        </div>
+        <div class="field">
+          <label for="companyPhone">연락처</label>
+          <input id="companyPhone" type="text">
+        </div>
+        <div class="field span-2">
+          <label for="companyAddress">주소</label>
+          <input id="companyAddress" type="text">
+        </div>
+        <div class="field span-2">
+          <label for="bankAccount">계좌번호</label>
+          <input id="bankAccount" type="text">
+        </div>
+      </div>
+
+      <h2>품목DB</h2>
+      <div class="db-grid header">
+        <span>품명</span><span>단위</span><span>기본단가</span><span></span>
+      </div>
+      <div id="dbRows"></div>
+      <button id="addDbItem">+ DB</button>
+    </section>
+
+    <section class="preview">
+      <article class="paper" id="quotePaper"></article>
+    </section>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const money = new Intl.NumberFormat("ko-KR");
+    const storeKey = "quote-web-app-v1";
+    const supabaseConfigKey = "quote-supabase-config-v1";
+    const DEFAULT_SUPABASE_URL = "https://rmtysrytveexshwzenxj.supabase.co";
+    const DEFAULT_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdHlzcnl0dmVleHNod3plbnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjQ3OTYsImV4cCI6MjA5MjEwMDc5Nn0.5FzzJ1rg-uRG4jAGZ75xVT3i3NH0m6J_tDeOS4GxyT8";
+
+    const defaultState = {
+      quoteDate: new Date().toISOString().slice(0, 10),
+      quoteNo: "",
+      vatMode: "separate",
+      payment: "협의",
+      clientName: "",
+      clientPerson: "",
+      clientPhone: "",
+      siteAddress: "",
+      memo: "",
+      provider: {
+        bizNo: "707-07-12219",
+        company: "경기 조적",
+        owner: "최 형순",
+        companyPhone: "010-8435-2299",
+        companyAddress: "고양시",
+        bankAccount: "국민 509001-01-162432"
+      },
+      db: [
+        { name: "벽돌 조적", unit: "㎡", price: 0 },
+        { name: "블럭 조적", unit: "㎡", price: 0 },
+        { name: "미장", unit: "㎡", price: 0 },
+        { name: "철거", unit: "식", price: 0 },
+        { name: "운반비", unit: "식", price: 0 },
+        { name: "자재비", unit: "식", price: 0 },
+        { name: "인건비", unit: "인", price: 0 },
+        { name: "장비대", unit: "일", price: 0 },
+        { name: "폐기물 처리", unit: "식", price: 0 },
+        { name: "기타", unit: "식", price: 0 }
+      ],
+      items: [
+        { name: "", desc: "", qty: "", unit: "", price: "", note: "" }
+      ]
+    };
+
+    let state = loadState();
+    let cloudClient = null;
+
+    function loadState() {
+      const saved = localStorage.getItem(storeKey);
+      if (!saved) return structuredClone(defaultState);
+      try {
+        const parsed = JSON.parse(saved);
+        return {
+          ...structuredClone(defaultState),
+          ...parsed,
+          provider: { ...defaultState.provider, ...(parsed.provider || {}) },
+          db: parsed.db?.length ? parsed.db : structuredClone(defaultState.db),
+          items: parsed.items?.length ? parsed.items : structuredClone(defaultState.items)
+        };
+      } catch {
+        return structuredClone(defaultState);
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(storeKey, JSON.stringify(state));
+    }
+
+    function loadSupabaseConfig() {
+      try {
+        return JSON.parse(localStorage.getItem(supabaseConfigKey)) || { url: DEFAULT_SUPABASE_URL, anonKey: DEFAULT_SUPABASE_ANON_KEY };
+      } catch {
+        return { url: DEFAULT_SUPABASE_URL, anonKey: DEFAULT_SUPABASE_ANON_KEY };
+      }
+    }
+
+    function saveSupabaseConfig(url, anonKey) {
+      localStorage.setItem(supabaseConfigKey, JSON.stringify({ url, anonKey }));
+    }
+
+    function setCloudStatus(text, kind = "") {
+      const status = $("cloudStatus");
+      status.textContent = text;
+      status.className = `status ${kind}`.trim();
+    }
+
+    function setupSupabase() {
+      const { url, anonKey } = loadSupabaseConfig();
+      $("supabaseUrl").value = url || "";
+      $("supabaseAnonKey").value = anonKey || "";
+      if (url && anonKey && window.supabase) {
+        cloudClient = window.supabase.createClient(url, anonKey);
+        setCloudStatus("Supabase 연결됨", "ok");
+      } else {
+        cloudClient = null;
+        setCloudStatus("로컬 저장", "");
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function numberValue(value) {
+      const clean = String(value ?? "").replaceAll(",", "").trim();
+      const parsed = Number(clean);
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function formatMoney(value) {
+      return money.format(Math.round(numberValue(value)));
+    }
+
+    function getQuoteNo() {
+      if (state.quoteNo) return state.quoteNo;
+      const date = (state.quoteDate || new Date().toISOString().slice(0, 10)).replaceAll("-", "");
+      return `EST-${date}-001`;
+    }
+
+    function getDbItem(name) {
+      return state.db.find((item) => item.name === name);
+    }
+
+    function itemTotal(item) {
+      return numberValue(item.qty) * numberValue(item.price);
+    }
+
+    function totals() {
+      const subtotal = state.items.reduce((sum, item) => sum + itemTotal(item), 0);
+      let vat = 0;
+      let grand = subtotal;
+      if (state.vatMode === "separate") {
+        vat = Math.round(subtotal * 0.1);
+        grand = subtotal + vat;
+      } else if (state.vatMode === "included") {
+        vat = Math.round(subtotal / 11);
+      }
+      return { subtotal, vat, grand };
+    }
+
+    function syncTopFields() {
+      const fields = ["quoteDate", "quoteNo", "vatMode", "payment", "clientName", "clientPerson", "clientPhone", "siteAddress", "memo"];
+      for (const field of fields) {
+        $(field).value = state[field] || "";
+      }
+      $("quoteNo").placeholder = getQuoteNo();
+      $("bizNo").value = state.provider.bizNo;
+      $("company").value = state.provider.company;
+      $("owner").value = state.provider.owner;
+      $("companyPhone").value = state.provider.companyPhone;
+      $("companyAddress").value = state.provider.companyAddress;
+      $("bankAccount").value = state.provider.bankAccount;
+    }
+
+    function renderItems() {
+      const options = ['<option value=""></option>'].concat(
+        state.db.filter((item) => item.name).map((item) => `<option value="${escapeHtml(item.name)}">${escapeHtml(item.name)}</option>`)
+      ).join("");
+      $("itemRows").innerHTML = state.items.map((item, index) => `
+        <tr>
+          <td class="w-no">${index + 1}</td>
+          <td><select data-item="${index}" data-field="name">${options}</select></td>
+          <td><input data-item="${index}" data-field="desc" value="${escapeHtml(item.desc)}"></td>
+          <td><input class="number" data-item="${index}" data-field="qty" inputmode="decimal" value="${escapeHtml(item.qty)}"></td>
+          <td><input data-item="${index}" data-field="unit" value="${escapeHtml(item.unit)}"></td>
+          <td><input class="number" data-item="${index}" data-field="price" inputmode="numeric" value="${escapeHtml(item.price)}"></td>
+          <td class="number" data-total="${index}">${formatMoney(itemTotal(item))}</td>
+          <td><input data-item="${index}" data-field="note" value="${escapeHtml(item.note)}"></td>
+          <td><button class="icon danger" data-remove="${index}" title="삭제">×</button></td>
+        </tr>
+      `).join("");
+      document.querySelectorAll("[data-item][data-field='name']").forEach((select) => {
+        select.value = state.items[Number(select.dataset.item)].name || "";
+      });
+    }
+
+    function renderDb() {
+      $("dbRows").innerHTML = state.db.map((item, index) => `
+        <div class="db-grid">
+          <input data-db="${index}" data-field="name" value="${escapeHtml(item.name)}">
+          <input data-db="${index}" data-field="unit" value="${escapeHtml(item.unit)}">
+          <input data-db="${index}" data-field="price" inputmode="numeric" value="${escapeHtml(item.price)}">
+          <button class="icon danger" data-db-remove="${index}" title="삭제">×</button>
+        </div>
+      `).join("");
+    }
+
+    function renderPreview() {
+      const { subtotal, vat, grand } = totals();
+      $("subtotalText").textContent = formatMoney(subtotal);
+      $("vatText").textContent = formatMoney(vat);
+      $("grandText").textContent = formatMoney(grand);
+
+      const visibleItems = state.items.filter((item) => item.name || item.desc || numberValue(item.qty) || numberValue(item.price));
+      const rows = Array.from({ length: Math.max(20, visibleItems.length) }, (_, index) => {
+        const item = visibleItems[index];
+        if (!item) {
+          return "<tr><td>&nbsp;</td><td class=\"name-cell\"></td><td></td><td></td><td class=\"number\"></td><td class=\"number\"></td><td></td></tr>";
+        }
+        const name = [item.name, item.desc].filter(Boolean).join(" - ");
+        return `
+          <tr>
+            <td>${index + 1}</td>
+            <td class="name-cell">${escapeHtml(name)}</td>
+            <td class="number">${escapeHtml(item.qty)}</td>
+            <td>${escapeHtml(item.unit)}</td>
+            <td class="number">${formatMoney(item.price)}</td>
+            <td class="number">${formatMoney(itemTotal(item))}</td>
+            <td>${escapeHtml(item.note)}</td>
+          </tr>
+        `;
+      }).join("");
+
+      $("quotePaper").innerHTML = `
+        <h2 class="quote-title">견 적 서</h2>
+        <div class="quote-meta">
+          <div class="quote-box">
+            <div><strong>견적일자</strong><span>${escapeHtml(state.quoteDate)}</span></div>
+            <div><strong>거래처명</strong><span>${escapeHtml(state.clientName)}</span></div>
+            <div><strong>담당자</strong><span>${escapeHtml(state.clientPerson)}</span></div>
+            <div><strong>현장/주소</strong><span>${escapeHtml(state.siteAddress)}</span></div>
+            <div><strong>합계금액</strong><span>${formatMoney(grand)}</span></div>
+            <div><strong>견적번호</strong><span>${escapeHtml(getQuoteNo())}</span></div>
+          </div>
+          <div class="quote-box">
+            <div><strong>공급자</strong><span>${escapeHtml(state.provider.company)}</span></div>
+            <div><strong>사업자번호</strong><span>${escapeHtml(state.provider.bizNo)}</span></div>
+            <div><strong>대표</strong><span>${escapeHtml(state.provider.owner)}</span></div>
+            <div><strong>주소</strong><span>${escapeHtml(state.provider.companyAddress)}</span></div>
+            <div><strong>연락처</strong><span>${escapeHtml(state.provider.companyPhone)}</span></div>
+            <div><strong>계좌번호</strong><span>${escapeHtml(state.provider.bankAccount)}</span></div>
+          </div>
+        </div>
+        <table class="quote-table">
+          <thead>
+            <tr>
+              <th>No</th><th>품명</th><th>수량</th><th>단위</th><th>단가</th><th>금액</th><th>비고</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <table class="quote-total">
+          <tr><td>공급가액</td><td class="number">${formatMoney(subtotal)}</td></tr>
+          <tr><td>부가세</td><td class="number">${formatMoney(vat)}</td></tr>
+          <tr><td>합계</td><td class="number"><strong>${formatMoney(grand)}</strong></td></tr>
+        </table>
+        <div class="note-box">
+          <strong>*기타 사항</strong>
+          <p>1. 입금계좌: ${escapeHtml(state.provider.bankAccount)}</p>
+          <p>2. 견적서 유효 기간은 견적일로부터 7일입니다.</p>
+          <p>3. ${escapeHtml(state.memo || "세부 조건은 현장 상황에 따라 협의 후 조정될 수 있습니다.")}</p>
+        </div>
+      `;
+    }
+
+    function renderAll() {
+      syncTopFields();
+      renderItems();
+      renderDb();
+      renderPreview();
+    }
+
+    function updateItem(index, field, value) {
+      const item = state.items[index];
+      item[field] = value;
+      if (field === "name") {
+        const found = getDbItem(value);
+        if (found) {
+          item.unit = found.unit || item.unit;
+          item.price = String(found.price || "");
+        }
+        saveState();
+        renderAll();
+        return;
+      }
+      saveState();
+      const totalCell = document.querySelector(`[data-total="${index}"]`);
+      if (totalCell) totalCell.textContent = formatMoney(itemTotal(item));
+      renderPreview();
+    }
+
+    function bindEvents() {
+      $("supabaseUrl").addEventListener("input", () => {
+        saveSupabaseConfig($("supabaseUrl").value.trim(), $("supabaseAnonKey").value.trim());
+        setupSupabase();
+      });
+
+      $("supabaseAnonKey").addEventListener("input", () => {
+        saveSupabaseConfig($("supabaseUrl").value.trim(), $("supabaseAnonKey").value.trim());
+        setupSupabase();
+      });
+
+      const topFields = ["quoteDate", "quoteNo", "vatMode", "payment", "clientName", "clientPerson", "clientPhone", "siteAddress", "memo"];
+      for (const field of topFields) {
+        $(field).addEventListener("input", (event) => {
+          state[field] = event.target.value;
+          saveState();
+          renderPreview();
+          if (field === "quoteDate" || field === "quoteNo") $("quoteNo").placeholder = getQuoteNo();
+        });
+      }
+
+      const providerMap = ["bizNo", "company", "owner", "companyPhone", "companyAddress", "bankAccount"];
+      for (const field of providerMap) {
+        $(field).addEventListener("input", (event) => {
+          state.provider[field] = event.target.value;
+          saveState();
+          renderPreview();
+        });
+      }
+
+      $("addItem").addEventListener("click", () => {
+        state.items.push({ name: "", desc: "", qty: "", unit: "", price: "", note: "" });
+        saveState();
+        renderAll();
+      });
+
+      $("addDbItem").addEventListener("click", () => {
+        state.db.push({ name: "", unit: "", price: 0 });
+        saveState();
+        renderAll();
+      });
+
+      $("itemRows").addEventListener("input", (event) => {
+        const target = event.target;
+        if (!target.dataset.item) return;
+        updateItem(Number(target.dataset.item), target.dataset.field, target.value);
+      });
+
+      $("itemRows").addEventListener("change", (event) => {
+        const target = event.target;
+        if (!target.dataset.item) return;
+        updateItem(Number(target.dataset.item), target.dataset.field, target.value);
+      });
+
+      $("itemRows").addEventListener("click", (event) => {
+        const button = event.target.closest("[data-remove]");
+        if (!button) return;
+        state.items.splice(Number(button.dataset.remove), 1);
+        if (!state.items.length) state.items.push({ name: "", desc: "", qty: "", unit: "", price: "", note: "" });
+        saveState();
+        renderAll();
+      });
+
+      $("dbRows").addEventListener("input", (event) => {
+        const target = event.target;
+        if (!target.dataset.db) return;
+        state.db[Number(target.dataset.db)][target.dataset.field] = target.value;
+        saveState();
+        renderPreview();
+      });
+
+      $("dbRows").addEventListener("click", (event) => {
+        const button = event.target.closest("[data-db-remove]");
+        if (!button) return;
+        state.db.splice(Number(button.dataset.dbRemove), 1);
+        saveState();
+        renderAll();
+      });
+
+      $("exportXls").addEventListener("click", exportXls);
+      $("exportCsv").addEventListener("click", exportCsv);
+      $("printQuote").addEventListener("click", () => window.print());
+      $("saveCloud").addEventListener("click", saveCloud);
+      $("loadCloud").addEventListener("click", loadCloud);
+    }
+
+    async function saveCloud() {
+      if (!cloudClient) {
+        setCloudStatus("Supabase URL/key 필요", "err");
+        return;
+      }
+      const { subtotal, vat, grand } = totals();
+      const payload = {
+        quote_no: getQuoteNo(),
+        quote_date: state.quoteDate || null,
+        client_name: state.clientName || "",
+        client_person: state.clientPerson || "",
+        client_phone: state.clientPhone || "",
+        site_address: state.siteAddress || "",
+        subtotal: Math.round(subtotal),
+        vat: Math.round(vat),
+        grand_total: Math.round(grand),
+        data: state
+      };
+      setCloudStatus("저장 중...");
+      const { error } = await cloudClient
+        .from("estimates")
+        .upsert(payload, { onConflict: "quote_no" });
+      if (error) {
+        setCloudStatus(error.message, "err");
+        return;
+      }
+      setCloudStatus("저장 완료", "ok");
+      await loadCloud();
+    }
+
+    async function loadCloud() {
+      if (!cloudClient) {
+        setCloudStatus("Supabase URL/key 필요", "err");
+        return;
+      }
+      setCloudStatus("불러오는 중...");
+      const { data, error } = await cloudClient
+        .from("estimates")
+        .select("quote_no, quote_date, client_name, grand_total, updated_at, data")
+        .order("updated_at", { ascending: false })
+        .limit(20);
+      if (error) {
+        setCloudStatus(error.message, "err");
+        return;
+      }
+      setCloudStatus("불러오기 완료", "ok");
+      $("historyList").innerHTML = data.map((row, index) => `
+        <div class="history-item">
+          <div>
+            <strong>${escapeHtml(row.quote_no)} · ${escapeHtml(row.client_name || "거래처 미입력")}</strong>
+            <span>${escapeHtml(row.quote_date || "")} · ${formatMoney(row.grand_total || 0)}원</span>
+          </div>
+          <button data-load-estimate="${index}">열기</button>
+        </div>
+      `).join("");
+      $("historyList").querySelectorAll("[data-load-estimate]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const row = data[Number(button.dataset.loadEstimate)];
+          if (!row?.data) return;
+          state = row.data;
+          saveState();
+          renderAll();
+          setCloudStatus("견적 불러옴", "ok");
+        });
+      });
+    }
+
+    function download(filename, content, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportRows() {
+      const { subtotal, vat, grand } = totals();
+      const itemRows = state.items
+        .filter((item) => item.name || item.desc || numberValue(item.qty) || numberValue(item.price))
+        .map((item, index) => [
+          index + 1,
+          item.name,
+          item.desc,
+          item.qty,
+          item.unit,
+          numberValue(item.price),
+          itemTotal(item),
+          item.note
+        ]);
+      return {
+        meta: [
+          ["견적일자", state.quoteDate, "견적번호", getQuoteNo()],
+          ["거래처명", state.clientName, "담당자", state.clientPerson],
+          ["연락처", state.clientPhone, "현장/주소", state.siteAddress],
+          ["공급자", state.provider.company, "사업자번호", state.provider.bizNo],
+          ["대표", state.provider.owner, "공급자 연락처", state.provider.companyPhone],
+          ["주소", state.provider.companyAddress, "계좌번호", state.provider.bankAccount]
+        ],
+        header: ["No", "품명", "규격/내용", "수량", "단위", "단가", "금액", "비고"],
+        itemRows,
+        totals: [["공급가액", subtotal], ["부가세", vat], ["합계", grand]]
+      };
+    }
+
+    function exportCsv() {
+      const rows = exportRows();
+      const csvRows = [
+        ["견적서"],
+        ...rows.meta,
+        [],
+        rows.header,
+        ...rows.itemRows,
+        [],
+        ...rows.totals
+      ];
+      const csv = "\ufeff" + csvRows.map((row) => row.map((cell) => `"${String(cell ?? "").replaceAll('"', '""')}"`).join(",")).join("\n");
+      download(`견적서_${getQuoteNo()}.csv`, csv, "text/csv;charset=utf-8");
+    }
+
+    function exportXls() {
+      const rows = exportRows();
+      const tableRows = [
+        [`<tr><th colspan="8">견 적 서</th></tr>`],
+        ...rows.meta.map((row) => [`<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`]),
+        [`<tr><td colspan="8"></td></tr>`],
+        [`<tr>${rows.header.map((cell) => `<th>${escapeHtml(cell)}</th>`).join("")}</tr>`],
+        ...rows.itemRows.map((row) => [`<tr>${row.map((cell, index) => `<td${index >= 5 ? ' style="mso-number-format:&quot;#,##0&quot;"' : ""}>${escapeHtml(cell)}</td>`).join("")}</tr>`]),
+        [`<tr><td colspan="8"></td></tr>`],
+        ...rows.totals.map((row) => [`<tr><td colspan="6">${escapeHtml(row[0])}</td><td style="mso-number-format:&quot;#,##0&quot;">${escapeHtml(Math.round(row[1]))}</td><td></td></tr>`])
+      ].flat().join("");
+      const html = `<!doctype html><html><head><meta charset="utf-8"></head><body><table border="1">${tableRows}</table></body></html>`;
+      download(`견적서_${getQuoteNo()}.xls`, "\ufeff" + html, "application/vnd.ms-excel;charset=utf-8");
+    }
+
+    setupSupabase();
+    renderAll();
+    bindEvents();
+  </script>
+</body>
+</html>
