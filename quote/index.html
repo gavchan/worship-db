@@ -578,7 +578,7 @@
     const money = new Intl.NumberFormat("ko-KR");
     const storeKey = "quote-web-app-v1";
     const supabaseConfigKey = "quote-supabase-config-v1";
-    const PAGE_ITEM_ROWS = 20;
+    const PAGE_ITEM_ROWS = 12;
     const DEFAULT_SUPABASE_URL = "https://rmtysrytveexshwzenxj.supabase.co";
     const DEFAULT_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdHlzcnl0dmVleHNod3plbnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjQ3OTYsImV4cCI6MjA5MjEwMDc5Nn0.5FzzJ1rg-uRG4jAGZ75xVT3i3NH0m6J_tDeOS4GxyT8";
 
@@ -1091,7 +1091,7 @@
         </tr>
       `);
       const tableRows = [
-        [`<tr><th colspan="8">견 적 서</th></tr>`],
+        [`<tr><th colspan="8" class="title">견 적 서</th></tr>`],
         ...metaRows,
         [`<tr><td colspan="8"></td></tr>`],
         [`<tr>${rows.header.map((cell) => `<th>${escapeHtml(cell)}</th>`).join("")}</tr>`],
@@ -1127,9 +1127,10 @@
         @page Section1 { size: 595.3pt 841.9pt; margin: 16pt 13pt 16pt 13pt; mso-page-orientation: portrait; }
         div.Section1 { page: Section1; }
         body { margin: 0; }
-        table { border-collapse: collapse; width: 520pt; table-layout: fixed; font-family: Arial, sans-serif; font-size: 9pt; }
-        th { background: #24577a; color: #fff; font-weight: 700; height: 19pt; }
-        td { height: 17pt; overflow: hidden; white-space: normal; word-break: keep-all; padding: 1pt 3pt; }
+        table { border-collapse: collapse; width: 520pt; table-layout: fixed; font-family: Arial, sans-serif; font-size: 15pt; }
+        th { background: #24577a; color: #fff; font-weight: 700; height: 28pt; text-align: center; vertical-align: middle; }
+        td { height: 31pt; overflow: hidden; white-space: normal; word-break: keep-all; padding: 2pt 4pt; text-align: center; vertical-align: middle; }
+        .title { height: 42pt; font-size: 30pt; background: #ffffff; color: #111111; }
         .label { background: #f3f6f8; font-weight: 700; text-align: center; }
         .num { text-align: right; }
       </style></head><body><div class="Section1"><table border="1">
