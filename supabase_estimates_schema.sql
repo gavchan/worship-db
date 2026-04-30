@@ -39,21 +39,18 @@ execute function public.set_updated_at();
 
 alter table public.estimates enable row level security;
 
-create policy "Allow authenticated estimate read"
+create policy "Allow estimate read"
 on public.estimates
 for select
-to authenticated
 using (true);
 
-create policy "Allow authenticated estimate insert"
+create policy "Allow estimate insert"
 on public.estimates
 for insert
-to authenticated
 with check (true);
 
-create policy "Allow authenticated estimate update"
+create policy "Allow estimate update"
 on public.estimates
 for update
-to authenticated
 using (true)
 with check (true);
