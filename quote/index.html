@@ -578,6 +578,7 @@
     const money = new Intl.NumberFormat("ko-KR");
     const storeKey = "quote-web-app-v1";
     const supabaseConfigKey = "quote-supabase-config-v1";
+    const PAGE_ITEM_ROWS = 20;
     const DEFAULT_SUPABASE_URL = "https://rmtysrytveexshwzenxj.supabase.co";
     const DEFAULT_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdHlzcnl0dmVleHNod3plbnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjQ3OTYsImV4cCI6MjA5MjEwMDc5Nn0.5FzzJ1rg-uRG4jAGZ75xVT3i3NH0m6J_tDeOS4GxyT8";
 
@@ -1053,6 +1054,16 @@
       };
     }
 
+    function padRowsForPage(rows) {
+      const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_ITEM_ROWS));
+      const targetCount = pageCount * PAGE_ITEM_ROWS;
+      const padded = rows.slice();
+      while (padded.length < targetCount) {
+        padded.push(["", "", "", "", "", "", "", ""]);
+      }
+      return padded;
+    }
+
     function exportCsv() {
       const rows = exportRows();
       const csvRows = [
@@ -1070,16 +1081,22 @@
 
     function exportXls() {
       const rows = exportRows();
+      const itemRows = padRowsForPage(rows.itemRows);
       const tableRows = [
         [`<tr><th colspan="8">견 적 서</th></tr>`],
         ...rows.meta.map((row) => [`<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`]),
         [`<tr><td colspan="8"></td></tr>`],
         [`<tr>${rows.header.map((cell) => `<th>${escapeHtml(cell)}</th>`).join("")}</tr>`],
-        ...rows.itemRows.map((row) => [`<tr>${row.map((cell, index) => `<td${index >= 5 ? ' style="mso-number-format:&quot;#,##0&quot;"' : ""}>${escapeHtml(cell)}</td>`).join("")}</tr>`]),
+        ...itemRows.map((row) => [`<tr style="height:24px">${row.map((cell, index) => `<td${index >= 5 ? ' style="mso-number-format:&quot;#,##0&quot;"' : ""}>${escapeHtml(cell)}</td>`).join("")}</tr>`]),
         [`<tr><td colspan="8"></td></tr>`],
         ...rows.totals.map((row) => [`<tr><td colspan="6">${escapeHtml(row[0])}</td><td style="mso-number-format:&quot;#,##0&quot;">${escapeHtml(Math.round(row[1]))}</td><td></td></tr>`])
       ].flat().join("");
-      const html = `<!doctype html><html><head><meta charset="utf-8"></head><body><table border="1">${tableRows}</table></body></html>`;
+      const html = `<!doctype html><html><head><meta charset="utf-8"><style>
+        @page { size: A4; margin: 12mm; }
+        table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; font-size: 11pt; }
+        th { background: #24577a; color: #fff; font-weight: 700; height: 26px; }
+        td { height: 24px; }
+      </style></head><body><table border="1">${tableRows}</table></body></html>`;
       download(`견적서_${getQuoteNo()}.xls`, "\ufeff" + html, "application/vnd.ms-excel;charset=utf-8");
     }
 
