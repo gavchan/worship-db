@@ -1083,21 +1083,21 @@
       const rows = exportRows();
       const itemRows = padRowsForPage(rows.itemRows);
       const metaRows = rows.meta.map((row) => `
-        <tr>
-          <td class="label">${escapeHtml(row[0])}</td>
-          <td colspan="3">${escapeHtml(row[1])}</td>
-          <td class="label">${escapeHtml(row[2])}</td>
-          <td colspan="3">${escapeHtml(row[3])}</td>
+        <tr class="meta-row">
+          <td colspan="2" class="label">${escapeHtml(row[0])}</td>
+          <td colspan="2">${escapeHtml(row[1])}</td>
+          <td colspan="2" class="label">${escapeHtml(row[2])}</td>
+          <td colspan="2">${escapeHtml(row[3])}</td>
         </tr>
       `);
       const tableRows = [
         [`<tr><th colspan="8" class="title">견 적 서</th></tr>`],
         ...metaRows,
-        [`<tr><td colspan="8"></td></tr>`],
+        [`<tr class="spacer"><td colspan="8"></td></tr>`],
         [`<tr>${rows.header.map((cell) => `<th>${escapeHtml(cell)}</th>`).join("")}</tr>`],
-        ...itemRows.map((row) => [`<tr>${row.map((cell, index) => `<td${index >= 5 ? ' class="num" style="mso-number-format:&quot;#,##0&quot;"' : index === 3 ? ' class="num"' : ""}>${escapeHtml(cell)}</td>`).join("")}</tr>`]),
-        [`<tr><td colspan="8"></td></tr>`],
-        ...rows.totals.map((row) => [`<tr><td colspan="6" class="label">${escapeHtml(row[0])}</td><td class="num" style="mso-number-format:&quot;#,##0&quot;">${escapeHtml(Math.round(row[1]))}</td><td></td></tr>`])
+        ...itemRows.map((row) => [`<tr class="item-row">${row.map((cell, index) => `<td${index >= 5 ? ' class="num" style="mso-number-format:&quot;#,##0&quot;"' : index === 3 ? ' class="num"' : ""}>${escapeHtml(cell)}</td>`).join("")}</tr>`]),
+        [`<tr class="spacer"><td colspan="8"></td></tr>`],
+        ...rows.totals.map((row) => [`<tr class="total-row"><td colspan="6" class="label">${escapeHtml(row[0])}</td><td class="num" style="mso-number-format:&quot;#,##0&quot;">${escapeHtml(Math.round(row[1]))}</td><td></td></tr>`])
       ].flat().join("");
       const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
       <head><meta charset="utf-8">
@@ -1127,22 +1127,26 @@
         @page Section1 { size: 595.3pt 841.9pt; margin: 16pt 13pt 16pt 13pt; mso-page-orientation: portrait; }
         div.Section1 { page: Section1; }
         body { margin: 0; }
-        table { border-collapse: collapse; width: 520pt; table-layout: fixed; font-family: Arial, sans-serif; font-size: 15pt; }
-        th { background: #24577a; color: #fff; font-weight: 700; height: 28pt; text-align: center; vertical-align: middle; }
-        td { height: 31pt; overflow: hidden; white-space: normal; word-break: keep-all; padding: 2pt 4pt; text-align: center; vertical-align: middle; }
-        .title { height: 42pt; font-size: 30pt; background: #ffffff; color: #111111; }
+        table { border-collapse: collapse; width: 520pt; table-layout: fixed; font-family: Arial, sans-serif; font-size: 11pt; }
+        th { background: #24577a; color: #fff; font-weight: 700; height: 20pt; text-align: center; vertical-align: middle; }
+        td { height: 18pt; overflow: hidden; white-space: normal; word-break: keep-all; padding: 1pt 3pt; text-align: center; vertical-align: middle; }
+        .title { height: 34pt; font-size: 26pt; background: #ffffff; color: #111111; letter-spacing: 4pt; }
+        .meta-row td { height: 24pt; font-size: 11pt; }
+        .item-row td { height: 18pt; font-size: 10pt; }
+        .total-row td { height: 20pt; font-size: 11pt; font-weight: 700; }
+        .spacer td { height: 7pt; border-left: none; border-right: none; }
         .label { background: #f3f6f8; font-weight: 700; text-align: center; }
         .num { text-align: right; }
       </style></head><body><div class="Section1"><table border="1">
         <colgroup>
-          <col style="width:30pt">
-          <col style="width:105pt">
-          <col style="width:105pt">
+          <col style="width:34pt">
+          <col style="width:95pt">
+          <col style="width:92pt">
           <col style="width:48pt">
-          <col style="width:40pt">
-          <col style="width:75pt">
-          <col style="width:82pt">
-          <col style="width:35pt">
+          <col style="width:42pt">
+          <col style="width:78pt">
+          <col style="width:86pt">
+          <col style="width:45pt">
         </colgroup>
         ${tableRows}
       </table></div></body></html>`;
