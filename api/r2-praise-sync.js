@@ -94,10 +94,10 @@ async function supabaseFetch(path, options = {}) {
   return response;
 }
 
-async function getPraiseSongs(songIds) {
+async function getPraiseSongs(songIds, offset = 0, limit = 5000) {
   const fields = 'id,name,status,count,seasons,key,bpm,has_score,music_url,updated_at';
   const filter = songIds && songIds.length ? `&id=in.(${songIds.join(',')})` : '';
-  const response = await supabaseFetch(`/rest/v1/songs?select=${fields}&has_score=eq.true${filter}&order=name&limit=5000`);
+  const response = await supabaseFetch(`/rest/v1/songs?select=${fields}&has_score=eq.true${filter}&order=name&limit=${limit}&offset=${offset}`);
   return response.json();
 }
 
@@ -249,8 +249,11 @@ module.exports = async function handler(req, res) {
   try {
     const body = typeof req.body === 'object' && req.body ? req.body : JSON.parse(req.body || '{}');
     const songIds = Array.isArray(body.songIds) ? body.songIds.filter(Boolean) : [];
+    const offset = Number.isFinite(Number(body.offset)) ? Number(body.offset) : 0;
+    const limit = Number.isFinite(Number(body.limit)) ? Math.min(Math.max(Number(body.limit), 1), 50) : 5000;
+    const batch = body.batch === true;
     const force = body.force !== false;
-    const songs = await getPraiseSongs(songIds);
+    const songs = await getPraiseSongs(songIds, offset, batch ? limit : 5000);
     const uploaded = [];
     const uploadedById = new Map();
 
@@ -260,7 +263,7 @@ module.exports = async function handler(req, res) {
       if (files.length) uploaded.push({ id: song.id, name: song.name, pages: files.length });
     }
 
-    const manifest = songIds.length
+    const manifest = songIds.length || batch
       ? await updateManifestForSongs(songs, uploadedById)
       : await buildManifest();
     await putR2Object(
@@ -269,7 +272,14 @@ module.exports = async function handler(req, res) {
       'application/json; charset=utf-8',
     );
 
-    return json(res, 200, { ok: true, uploaded, manifestCount: manifest.length });
+    return json(res, 200, {
+      ok: true,
+      uploaded,
+      processedCount: songs.length,
+      nextOffset: offset + songs.length,
+      done: batch ? songs.length < limit : true,
+      manifestCount: manifest.length,
+    });
   } catch (error) {
     return json(res, 500, { ok: false, error: error.message });
   }

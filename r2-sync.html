@@ -31,20 +31,40 @@ async function syncAll() {
   btn.disabled = true;
   btn.textContent = '동기화 중...';
   document.getElementById('log').innerHTML = '';
-  write('R2 서버에 반영하는 중입니다. 곡이 많으면 시간이 조금 걸릴 수 있어요.', 'info');
+  write('R2 서버에 반영하는 중입니다. 20곡씩 나눠서 처리합니다.', 'info');
 
   try {
-    const res = await fetch('/api/r2-praise-sync', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({force:false})
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data.ok) throw new Error(data.error || '동기화 실패');
-    write(`완료: ${data.manifestCount}곡이 praise_songs.json에 반영됐습니다.`, 'ok');
-    write(`이번에 확인한 곡: ${data.uploaded.length}곡`, 'ok');
+    let offset = Number(localStorage.getItem('r2-praise-sync-offset') || '0');
+    let totalProcessed = 0;
+    let totalUploaded = 0;
+    let lastManifestCount = 0;
+
+    while (true) {
+      write(`${offset + 1}번째 곡부터 확인 중...`, 'info');
+      const res = await fetch('/api/r2-praise-sync', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({force:false,batch:true,offset,limit:20})
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) throw new Error(data.error || '동기화 실패');
+
+      totalProcessed += data.processedCount || 0;
+      totalUploaded += Array.isArray(data.uploaded) ? data.uploaded.length : 0;
+      lastManifestCount = data.manifestCount || lastManifestCount;
+      offset = data.nextOffset || offset + (data.processedCount || 0);
+      localStorage.setItem('r2-praise-sync-offset', String(offset));
+
+      write(`이번 묶음 완료: ${data.processedCount || 0}곡 확인 · 누적 ${totalProcessed}곡`, 'ok');
+      if (data.done) break;
+    }
+
+    localStorage.removeItem('r2-praise-sync-offset');
+    write(`완료: ${lastManifestCount}곡이 praise_songs.json에 반영됐습니다.`, 'ok');
+    write(`이번에 새로 확인/업로드한 곡: ${totalUploaded}곡`, 'ok');
   } catch(e) {
     write('실패: ' + e.message, 'err');
+    write('다시 누르면 마지막 처리 위치부터 이어서 진행합니다.', 'info');
   }
 
   btn.disabled = false;
