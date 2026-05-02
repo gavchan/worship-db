@@ -156,6 +156,51 @@ module.exports = async function handler(req, res) {
       return json(res, 200, { ok: true, deleted: !!current, manifestCount: nextManifest.length });
     }
 
+    if (payload.mode === 'page') {
+      const pageNumber = Math.max(1, Number(payload.pageNumber || 1));
+      const pageCount = Math.max(pageNumber, Number(payload.pageCount || pageNumber));
+      const page = payload.page || {};
+      if (!songName || !page.data) return json(res, 400, { ok: false, error: 'songName and page.data are required' });
+
+      const contentType = page.contentType || 'image/jpeg';
+      const ext = extFromContentType(contentType);
+      const key = `scores/choir/${songId}/page_${pageNumber}.${ext}`;
+      const body = Buffer.from(String(page.data || ''), 'base64');
+      await putR2Object(key, body, contentType);
+
+      const current = manifest.find((song) => song && (song.id === songId || song.name === songName));
+      const currentFiles = Array.isArray(current?.files) ? current.files : [];
+      const nextFile = {
+        page: pageNumber,
+        path: key,
+        url: `${R2_PUBLIC_BASE_URL}/${key}`,
+      };
+      const files = [
+        ...currentFiles.filter((file) => Number(file?.page || 0) !== pageNumber),
+        nextFile,
+      ].sort((a, b) => Number(a.page || 0) - Number(b.page || 0));
+      const nextEntry = {
+        id: songId,
+        type: 'choir',
+        title: songName,
+        name: songName,
+        pages: Math.max(pageCount, files.length),
+        files,
+        updated_at: new Date().toISOString(),
+      };
+      const nextManifest = [
+        nextEntry,
+        ...manifest.filter((song) => song && song.id !== songId && song.name !== songName),
+      ].sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'ko'));
+
+      await putR2Object(
+        'choir_songs.json',
+        Buffer.from(JSON.stringify(nextManifest, null, 2)),
+        'application/json; charset=utf-8',
+      );
+      return json(res, 200, { ok: true, song: nextEntry, page: nextFile, manifestCount: nextManifest.length });
+    }
+
     const pages = Array.isArray(payload.pages) ? payload.pages : [];
     if (!songName || !pages.length) return json(res, 400, { ok: false, error: 'songName and pages are required' });
 
