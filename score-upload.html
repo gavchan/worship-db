@@ -78,6 +78,22 @@ const SH={'apikey':KEY,'Authorization':'Bearer '+KEY};
 
 let DB=[], items=[];
 
+async function syncR2Praise(songIds) {
+  try {
+    const r = await fetch('/api/r2-praise-sync', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({songIds, force: true})
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok || !data.ok) throw new Error(data.error || 'R2 반영 실패');
+    return true;
+  } catch(e) {
+    dbg('R2 반영 실패: ' + e.message);
+    return false;
+  }
+}
+
 function dbg(msg){
   const el=document.getElementById('debug');
   el.style.display='block';
@@ -308,6 +324,14 @@ async function startUpload(){
   }
   document.getElementById('pf').style.width='100%';
   document.getElementById('pt').textContent=`완료! ${todo.filter(i=>i.done).length}/${todo.length}곡 성공`;
+  const syncedIds = [...new Set(todo.filter(i=>i.done && i.songId).map(i=>i.songId))];
+  if (syncedIds.length) {
+    document.getElementById('pt').textContent='R2 서버에 반영 중...';
+    const ok = await syncR2Praise(syncedIds);
+    document.getElementById('pt').textContent = ok
+      ? `완료! ${todo.filter(i=>i.done).length}/${todo.length}곡 성공 · R2 반영 완료`
+      : `완료! ${todo.filter(i=>i.done).length}/${todo.length}곡 성공 · R2 반영 실패`;
+  }
   document.getElementById('btnUp').disabled=false;
   render();
 }

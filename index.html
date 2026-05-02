@@ -281,6 +281,14 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
         </div>
       </a>
 
+      <a href="r2-sync.html" target="_blank" style="text-decoration:none">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 10px;text-align:center;transition:all .15s;cursor:pointer" onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--amber-bg)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
+          <div style="font-size:2rem;margin-bottom:8px">☁️</div>
+          <div style="font-size:.78rem;font-weight:600;color:var(--text1);margin-bottom:4px">R2 배포 동기화</div>
+          <div style="font-size:.65rem;color:var(--text3);line-height:1.4">앱에서 볼 악보를<br>R2 서버에 반영</div>
+        </div>
+      </a>
+
       <a href="song-merge.html" target="_blank" style="text-decoration:none">
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 10px;text-align:center;transition:all .15s;cursor:pointer" onmouseover="this.style.borderColor='var(--accent2)';this.style.background='var(--blue-bg)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
           <div style="font-size:2rem;margin-bottom:8px">🔀</div>
@@ -1000,6 +1008,26 @@ function scoreUrl(path) {
   return `${STORAGE_URL}/object/public/scores/${path}`;
 }
 
+async function syncR2Praise(songId) {
+  try {
+    setSync('sync', 'R2 반영 중...');
+    const res = await fetch('/api/r2-praise-sync', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({songIds: songId ? [songId] : [], force: true})
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) throw new Error(data.error || 'R2 반영 실패');
+    setSync('on', 'R2 반영 완료');
+    return true;
+  } catch(e) {
+    console.warn('R2 sync failed', e);
+    setSync('off', 'R2 반영 실패');
+    showToast('저장은 됐지만 R2 반영은 실패했어요');
+    return false;
+  }
+}
+
 async function uploadScore(songId, file, idx, total) {
   const ext = file.name.split('.').pop();
   const path = `${songId}/${Date.now()}_${idx}.${ext}`;
@@ -1353,6 +1381,9 @@ async function saveSong() {
       document.getElementById('upload-bar').style.width = '100%';
       showToast('악보 업로드 완료 ✓');
       setSync('on', '클라우드 연결됨');
+    }
+    if (uploadTargetId) {
+      await syncR2Praise(uploadTargetId);
     }
     closeModal();
     updateStats();

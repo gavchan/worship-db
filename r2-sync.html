@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>R2 배포 동기화</title>
+<style>
+body{font-family:sans-serif;max-width:680px;margin:2rem auto;padding:1rem;background:#faf8f5;color:#1a1714}
+h1{font-size:1.3rem;margin-bottom:.5rem}
+p{font-size:.85rem;color:#6b6560;line-height:1.6;margin-bottom:1rem}
+button{width:100%;padding:.75rem 1rem;border:0;border-radius:8px;background:#2d5a8e;color:white;font-size:1rem;cursor:pointer}
+button:disabled{opacity:.55;cursor:not-allowed}
+#log{margin-top:1rem;padding:1rem;background:white;border:1px solid #e8e2d9;border-radius:8px;font-size:.8rem;line-height:1.8;white-space:pre-wrap;max-height:520px;overflow:auto}
+.ok{color:#3a7a52}.err{color:#b0281f}.info{color:#2d5a8e}
+</style>
+</head>
+<body>
+<h1>R2 배포 동기화</h1>
+<p>Supabase에 악보가 있는 찬양단 곡을 R2 서버로 옮기고, 앱에서 읽을 <code>praise_songs.json</code>을 다시 만듭니다.</p>
+<button id="btn" onclick="syncAll()">전체 동기화 시작</button>
+<div id="log">버튼을 누르면 시작합니다.</div>
+<script>
+function write(msg, cls='') {
+  const log = document.getElementById('log');
+  log.innerHTML += `<span class="${cls}">${msg}</span>\n`;
+  log.scrollTop = log.scrollHeight;
+}
+
+async function syncAll() {
+  const btn = document.getElementById('btn');
+  btn.disabled = true;
+  btn.textContent = '동기화 중...';
+  document.getElementById('log').innerHTML = '';
+  write('R2 서버에 반영하는 중입니다. 곡이 많으면 시간이 조금 걸릴 수 있어요.', 'info');
+
+  try {
+    const res = await fetch('/api/r2-praise-sync', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({force:false})
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) throw new Error(data.error || '동기화 실패');
+    write(`완료: ${data.manifestCount}곡이 praise_songs.json에 반영됐습니다.`, 'ok');
+    write(`이번에 확인한 곡: ${data.uploaded.length}곡`, 'ok');
+  } catch(e) {
+    write('실패: ' + e.message, 'err');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '다시 동기화';
+}
+</script>
+</body>
+</html>
