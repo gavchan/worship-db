@@ -75,6 +75,35 @@ async function putR2Object(key, body, contentType) {
   }
 }
 
+async function deleteR2Object(key) {
+  const host = `${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`;
+  const path = `/${R2_BUCKET}/${encodeKey(key)}`;
+  const { amzDate, dateStamp } = dateParts();
+  const payloadHash = sha256('');
+  const canonicalHeaders = [
+    `host:${host}`,
+    `x-amz-content-sha256:${payloadHash}`,
+    `x-amz-date:${amzDate}`,
+  ].join('\n') + '\n';
+  const signedHeaders = 'host;x-amz-content-sha256;x-amz-date';
+  const canonicalRequest = ['DELETE', path, '', canonicalHeaders, signedHeaders, payloadHash].join('\n');
+  const credentialScope = `${dateStamp}/auto/s3/aws4_request`;
+  const stringToSign = ['AWS4-HMAC-SHA256', amzDate, credentialScope, sha256(canonicalRequest)].join('\n');
+  const signature = hmac(signingKey(dateStamp), stringToSign, 'hex');
+
+  const response = await fetch(`https://${host}${path}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `AWS4-HMAC-SHA256 Credential=${R2_ACCESS_KEY_ID}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`,
+      'x-amz-content-sha256': payloadHash,
+      'x-amz-date': amzDate,
+    },
+  });
+  if (!response.ok && response.status !== 404) {
+    throw new Error(`R2 delete failed: ${response.status} ${await response.text()}`);
+  }
+}
+
 async function loadManifest() {
   try {
     const response = await fetch(`${R2_PUBLIC_BASE_URL}/choir_songs.json`, { cache: 'no-store' });
@@ -97,7 +126,9 @@ function extFromContentType(contentType) {
 }
 
 module.exports = async function handler(req, res) {
-  if (req.method !== 'POST') return json(res, 405, { ok: false, error: 'POST only' });
+  if (req.method !== 'POST' && req.method !== 'DELETE') {
+    return json(res, 405, { ok: false, error: 'POST or DELETE only' });
+  }
 
   const missing = requiredEnv();
   if (missing.length) return json(res, 500, { ok: false, error: `Missing environment variables: ${missing.join(', ')}` });
@@ -105,10 +136,34 @@ module.exports = async function handler(req, res) {
   try {
     const payload = typeof req.body === 'object' && req.body ? req.body : JSON.parse(req.body || '{}');
     const songName = String(payload.songName || '').trim();
+    const songId = payload.songId || (songName ? makeId(songName) : '');
+    const manifest = await loadManifest();
+
+    if (req.method === 'DELETE') {
+      if (!songId && !songName) return json(res, 400, { ok: false, error: 'songId or songName is required' });
+      const current = manifest.find((song) => song && (song.id === songId || song.name === songName));
+      if (current && Array.isArray(current.files)) {
+        for (const file of current.files) {
+          if (file && file.path) await deleteR2Object(String(file.path));
+        }
+      }
+      const nextManifest = manifest.filter((song) => song && song.id !== songId && song.name !== songName);
+      await putR2Object(
+        'choir_songs.json',
+        Buffer.from(JSON.stringify(nextManifest, null, 2)),
+        'application/json; charset=utf-8',
+      );
+      return json(res, 200, { ok: true, deleted: !!current, manifestCount: nextManifest.length });
+    }
+
     const pages = Array.isArray(payload.pages) ? payload.pages : [];
     if (!songName || !pages.length) return json(res, 400, { ok: false, error: 'songName and pages are required' });
 
-    const songId = payload.songId || makeId(songName);
+    const existing = manifest.find((song) => song && (song.id === songId || song.name === songName));
+    if (payload.skipExisting === true && existing && Number(existing.pages || 0) >= pages.length) {
+      return json(res, 200, { ok: true, skipped: true, song: existing, manifestCount: manifest.length });
+    }
+
     const files = [];
 
     for (let i = 0; i < pages.length; i++) {
@@ -126,7 +181,6 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    const manifest = await loadManifest();
     const nextEntry = {
       id: songId,
       type: 'choir',
