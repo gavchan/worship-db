@@ -12,6 +12,9 @@
 :root{--bg:#0b1020;--panel:#11182d;--panel2:#151d34;--line:rgba(255,255,255,.10);--line2:rgba(255,255,255,.18);--text:#fff;--muted:#a7adbd;--muted2:#747b8f;--white:#fff;--black:#050816;--green:#87d3a2;--red:#ff8a8a;--amber:#e9c276;--blue:#8fb8ff}
 *{box-sizing:border-box;margin:0;padding:0}body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}.bg{position:fixed;inset:0;pointer-events:none;overflow:hidden}.bg:before{content:'';position:absolute;left:-120px;top:-160px;width:520px;height:520px;border-radius:50%;background:rgba(99,102,241,.13);filter:blur(70px)}.bg:after{content:'';position:absolute;right:-150px;bottom:-180px;width:540px;height:540px;border-radius:50%;background:rgba(14,165,233,.11);filter:blur(80px)}
 .wrap{position:relative;max-width:1280px;margin:0 auto;padding:22px 22px 60px}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:22px}.eyebrow{display:inline-flex;gap:7px;align-items:center;padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.05);font-size:12px;color:#d3d8e8}.top h1{font-size:42px;line-height:1.12;margin-top:14px;letter-spacing:-.04em}.top p{font-size:14px;color:var(--muted);margin-top:10px}.nav{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.nav button,.nav a{border:1px solid var(--line);background:rgba(255,255,255,.05);color:white;text-decoration:none;border-radius:14px;padding:10px 14px;font-size:13px;cursor:pointer;transition:.15s}.nav .on,.nav button:hover,.nav a:hover{background:white;color:#070a12;border-color:white}.section{display:none}.section.show{display:block}.hero{position:relative;border:1px solid var(--line);border-radius:30px;background:linear-gradient(135deg,#151b30,#0d1325);padding:26px;margin-bottom:18px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.25)}.hero:after{content:'';position:absolute;right:-60px;top:-80px;width:260px;height:260px;border-radius:50%;background:rgba(129,140,248,.13);filter:blur(48px)}.hero-in{position:relative;display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:center}.hero h2{font-size:34px;line-height:1.18;letter-spacing:-.035em;margin-top:12px}.hero p{color:var(--muted);font-size:14px;line-height:1.7;margin-top:14px}.actions{display:grid;gap:10px}.action{border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.055);color:white;text-align:left;padding:15px;cursor:pointer;transition:.15s}.action:hover{border-color:var(--line2);background:rgba(255,255,255,.09);transform:translateY(-1px)}.action.primary{background:white;color:#070a12;border-color:white;box-shadow:0 14px 40px rgba(255,255,255,.08)}.action b{display:block;font-size:17px}.action span{display:block;font-size:12px;color:inherit;opacity:.66;margin-top:5px}.grid{display:grid;grid-template-columns:.95fr 1.05fr;gap:16px}.card{border:1px solid var(--line);border-radius:26px;background:rgba(255,255,255,.05);backdrop-filter:blur(16px);padding:18px}.card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:14px}.card h3{font-size:23px;letter-spacing:-.03em}.card small{display:block;color:var(--muted);font-size:12px;margin-top:4px}.mini-btn{border:1px solid var(--line);background:rgba(255,255,255,.05);color:white;border-radius:11px;padding:8px 10px;font-size:12px;cursor:pointer;text-decoration:none;display:inline-flex;gap:5px;align-items:center}.mini-btn.white{background:white;color:#050816;border-color:white;font-weight:700}.mini-btn:hover{background:rgba(255,255,255,.1)}.mini-btn.white:hover{background:white}.flow-list{display:grid;gap:9px}.flow-item{width:100%;border:1px solid rgba(255,255,255,.07);background:#12192d;color:white;border-radius:16px;padding:12px;text-align:left;cursor:pointer;transition:.15s}.flow-item.on{background:white;color:#050816;border-color:white}.flow-row{display:flex;align-items:center;justify-content:space-between;gap:10px}.flow-left{display:flex;gap:10px;align-items:center;min-width:0}.num{width:34px;height:34px;border-radius:12px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0}.flow-item.on .num{background:rgba(0,0,0,.08)}.song-title{font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.meta{font-size:11px;color:var(--muted);margin-top:2px}.flow-item.on .meta{color:#656b78}.pill-row{display:flex;gap:6px;flex-wrap:wrap}.pill{font-size:10.5px;border:1px solid var(--line);background:rgba(255,255,255,.05);border-radius:9px;padding:4px 7px;color:#dbe1ee}.flow-item.on .pill{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.1);color:#333}.score-grid{display:grid;grid-template-columns:1fr 220px;gap:14px}.score-box{background:white;border-radius:20px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.28);min-height:360px;display:flex;align-items:center;justify-content:center;color:#6b7280}.score-box img{display:block;max-width:100%;width:100%;height:auto}.score-empty{text-align:center;color:#7b8190;font-weight:700}.side-stack{display:grid;gap:10px;align-content:start}.info{background:#12192d;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:12px}.info-label{font-size:11px;color:var(--muted)}.info p{font-size:13px;line-height:1.55;color:#d7dced;margin-top:6px}.pager{display:flex;gap:8px}.pager button{flex:1}.db-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-end;margin-bottom:14px}.db-head h3{font-size:27px}.searchbar{display:flex;gap:8px;flex-wrap:wrap}.searchbar input,.searchbar select{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:12px;color:white;padding:10px 12px;font-size:13px;outline:none}.searchbar input{width:220px}.searchbar option{color:#111}.song-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}.song-card{border:1px solid var(--line);background:rgba(255,255,255,.05);border-radius:18px;padding:13px;cursor:pointer;transition:.15s}.song-card:hover{border-color:var(--line2);background:rgba(255,255,255,.08)}.song-card h4{font-size:16px;letter-spacing:-.02em}.song-card .meta{margin-top:5px}.song-card .memo{font-size:12px;color:var(--muted);line-height:1.5;margin-top:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.btn-row{display:flex;gap:7px;margin-top:12px;flex-wrap:wrap}.history-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:11px}.history-card{border:1px solid var(--line);background:#12192d;border-radius:18px;padding:14px}.history-date{font-size:11px;color:var(--muted)}.history-title{font-size:17px;font-weight:800;margin-top:3px}.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);background:#fff;color:#050816;padding:10px 16px;border-radius:999px;font-size:13px;font-weight:700;opacity:0;transition:.2s;z-index:1000}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.viewer{display:none;position:fixed;inset:0;background:rgba(2,5,14,.94);z-index:500;flex-direction:column}.viewer.show{display:flex}.viewer-top{height:54px;display:flex;justify-content:space-between;align-items:center;padding:0 16px;border-bottom:1px solid rgba(255,255,255,.1)}.viewer-body{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:10px;align-items:center}.viewer-body img{max-width:100%;border-radius:12px}.close{border:0;background:rgba(255,255,255,.1);color:white;border-radius:999px;width:34px;height:34px;cursor:pointer}.loading{color:var(--muted);padding:20px;text-align:center}.tools{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}.tool{display:block;border:1px solid var(--line);background:rgba(255,255,255,.05);border-radius:18px;padding:15px;color:white;text-decoration:none}.tool b{display:block;margin-top:7px}.tool span{display:block;color:var(--muted);font-size:12px;line-height:1.45;margin-top:5px}@media(max-width:980px){.top{display:block}.nav{justify-content:flex-start;margin-top:16px}.hero-in,.grid,.score-grid{grid-template-columns:1fr}.song-grid,.history-grid,.tools{grid-template-columns:repeat(2,1fr)}.hero h2{font-size:30px}.top h1{font-size:38px}}@media(max-width:640px){.wrap{padding:16px 14px 42px}.song-grid,.history-grid,.tools{grid-template-columns:1fr}.searchbar input{width:100%}.db-head{display:block}.searchbar{margin-top:10px}.hero{padding:18px;border-radius:24px}.card{padding:14px;border-radius:22px}.score-box{min-height:280px}.top h1{font-size:32px}.hero h2{font-size:25px}.nav button,.nav a{padding:9px 11px;font-size:12px}}
+
+.modal{display:none;position:fixed;inset:0;background:rgba(2,5,14,.74);z-index:700;align-items:flex-end;justify-content:center;padding:16px}.modal.show{display:flex}.sheet{width:min(720px,100%);max-height:92vh;overflow:auto;background:#0f172a;border:1px solid var(--line);border-radius:24px;padding:18px;box-shadow:0 30px 90px rgba(0,0,0,.45)}.sheet-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.sheet h3{font-size:21px}.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.field{display:grid;gap:5px}.field.full{grid-column:1/-1}.field label{font-size:11px;color:var(--muted)}.field input,.field select,.field textarea{width:100%;background:rgba(255,255,255,.06);border:1px solid var(--line);color:white;border-radius:12px;padding:11px 12px;font-size:14px;outline:none}.field option{color:#111}.field textarea{min-height:86px;resize:vertical}.sheet-actions{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:14px}.danger{background:rgba(255,110,110,.12)!important;border-color:rgba(255,110,110,.38)!important;color:#ffd0d0!important}.selected-list{display:grid;gap:7px;margin-top:8px}.selected-item{display:flex;justify-content:space-between;align-items:center;gap:8px;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:12px;padding:8px 10px;font-size:13px}.selected-item button{border:0;background:transparent;color:#ffb1b1;cursor:pointer}.result-list{display:none;background:#0b1020;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:6px;max-height:190px;overflow-y:auto}.result-list button{display:block;width:100%;text-align:left;background:transparent;border:0;color:white;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer}.result-list button:hover{background:rgba(255,255,255,.07)}@media(max-width:640px){.form-grid{grid-template-columns:1fr}.modal{padding:8px}.sheet{border-radius:20px;padding:15px}}
+
 </style>
 </head>
 <body>
@@ -28,7 +31,7 @@
       <button onclick="showSection('songs',this)">🎼 찬양곡</button>
       <button onclick="showSection('history',this)">📖 주일 기록</button>
       <button onclick="showSection('tools',this)">⚙ 관리도구</button>
-      <a href="index.html">💻 PC 화면</a>
+      <a href="index.html">🏠 화면 선택</a>
     </nav>
   </header>
 
@@ -43,14 +46,14 @@
         <div class="actions">
           <button class="action primary" onclick="openCurrentYoutube()"><b>🎧 유튜브 보기</b><span>콘티 곡 중 영상이 있는 곡 열기</span></button>
           <button class="action" onclick="scrollToScore()"><b>🎼 곡별 악보</b><span>콘티 순서대로 악보 보기</span></button>
-          <button class="action" onclick="openFullScore()"><b>🖼 전체 악보</b><span>전체 악보 업로드 기능은 다음 단계</span></button>
+          <button class="action" onclick="openFullScore()"><b>🖼 전체 악보</b><span>이번 주 전체 악보 보기</span></button>
         </div>
       </div>
     </div>
 
     <div class="grid">
       <div class="card">
-        <div class="card-head"><div><h3>이번 주 찬양 흐름</h3><small>곡 순서와 상태 확인</small></div><a class="mini-btn" href="index.html#history">PC에서 수정</a></div>
+        <div class="card-head"><div><h3>이번 주 찬양 흐름</h3><small>곡 순서와 상태 확인</small></div><button class="mini-btn" onclick="openMobileHistory()">모바일 수정</button></div>
         <div class="flow-list" id="flow-list"><div class="loading">불러오는 중...</div></div>
       </div>
       <div class="card" id="score-panel">
@@ -76,24 +79,83 @@
 
   <section id="sec-history" class="section">
     <div class="card">
-      <div class="card-head"><div><h3>주일 기록</h3><small>이전 예배 흐름 아카이브</small></div><a class="mini-btn white" href="index.html">기록 추가/수정</a></div>
+      <div class="card-head"><div><h3>주일 기록</h3><small>이전 예배 흐름 아카이브</small></div><button class="mini-btn white" onclick="openMobileHistory()">기록 추가</button></div>
       <div class="history-grid" id="history-grid"><div class="loading">불러오는 중...</div></div>
     </div>
   </section>
 
   <section id="sec-tools" class="section">
-    <div class="card">
-      <div class="card-head"><div><h3>관리도구</h3><small>기존 관리 기능으로 이동합니다</small></div></div>
-      <div class="tools">
-        <a class="tool" href="score-upload.html"><div>🎼</div><b>악보 일괄 업로드</b><span>파일명 자동 매칭 후 업로드</span></a>
-        <a class="tool" href="score-sync.html"><div>🔄</div><b>악보 상태 동기화</b><span>Storage 기준 상태 정리</span></a>
-        <a class="tool" href="tag-update.html"><div>🏷️</div><b>태그 일괄 업데이트</b><span>상황별·절기별 태그 반영</span></a>
-        <a class="tool" href="song-merge.html"><div>🔀</div><b>곡 병합 도구</b><span>중복·유사 곡명 병합</span></a>
-        <a class="tool" href="name-cleanup.html"><div>✂️</div><b>곡명 공백 정리</b><span>특수 공백·중복 공백 정리</span></a>
-        <a class="tool" href="status-update.html"><div>📊</div><b>사용 횟수 업데이트</b><span>엑셀 기준 사용 횟수 반영</span></a>
-      </div>
+    <div class="db-head"><div><h3>관리도구</h3><small>모바일에서 바로 추가·수정·삭제할 수 있는 관리 화면</small></div></div>
+    <div class="tools">
+      <button class="tool" onclick="openSongEdit()"><span>🎵</span><b>새 찬양곡 추가</b><span>곡명, Key, BPM, 영상 링크, 태그 입력</span></button>
+      <button class="tool" onclick="showSection('songs',document.querySelectorAll('.nav button')[1])"><span>🗂</span><b>찬양곡 수정</b><span>찬양곡 카드에서 바로 수정/삭제</span></button>
+      <button class="tool" onclick="openMobileHistory()"><span>📖</span><b>주일 기록 추가</b><span>날짜와 콘티 곡 순서를 모바일에서 입력</span></button>
+      <button class="tool" onclick="showSection('history',document.querySelectorAll('.nav button')[2])"><span>🕊</span><b>주일 기록 수정</b><span>기존 콘티를 열어 편집</span></button>
+      <button class="tool" onclick="openFullScoreManager()"><span>🖼</span><b>전체악보 관리</b><span>이번 주 콘티용 JPG/PNG 업로드·보기·삭제</span></button>
+      <button class="tool" onclick="toast('곡별 악보 업로드는 PC 관리화면과 연결 유지, 다음 업데이트에서 모바일 업로드까지 확장 가능해요')"><span>🎼</span><b>곡별 악보 관리</b><span>곡별 악보 확인 및 PC 관리 연결</span></button>
     </div>
   </section>
+</div>
+
+
+<div class="modal" id="song-modal">
+  <div class="sheet">
+    <div class="sheet-head"><h3 id="song-modal-title">찬양곡 추가</h3><button class="close" onclick="closeSongEdit()">✕</button></div>
+    <div class="form-grid">
+      <div class="field full"><label>곡명</label><input id="m-song-name" placeholder="예: 예수 열방의 소망"></div>
+      <div class="field"><label>상태</label><select id="m-song-status"><option value="used">사용 이력 있음</option><option value="ready">악보 완료</option><option value="plan">작업 예정</option></select></div>
+      <div class="field"><label>사용 횟수</label><input id="m-song-count" type="number" min="0" value="1"></div>
+      <div class="field"><label>Key</label><input id="m-song-key" placeholder="G"></div>
+      <div class="field"><label>BPM</label><input id="m-song-bpm" type="number" min="0" value="0"></div>
+      <div class="field full"><label>유튜브 링크</label><input id="m-song-url" placeholder="https://youtube.com/..."></div>
+      <div class="field full"><label>태그 / 절기</label><input id="m-song-tags" placeholder="쉼표로 구분: 부활절, 묵상, 선포"></div>
+      <div class="field full"><label>메모</label><textarea id="m-song-memo" placeholder="콘티 흐름, 연결 팁, 연주 메모"></textarea></div>
+    </div>
+    <div class="sheet-actions">
+      <button class="mini-btn danger" id="m-song-delete" onclick="deleteMobileSong()">삭제</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="mini-btn" onclick="closeSongEdit()">취소</button><button class="mini-btn white" onclick="saveMobileSong()">저장</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="history-modal">
+  <div class="sheet">
+    <div class="sheet-head"><h3 id="history-modal-title">주일 기록 추가</h3><button class="close" onclick="closeMobileHistory()">✕</button></div>
+    <div class="form-grid">
+      <div class="field"><label>예배 날짜</label><input id="m-history-date" type="date"></div>
+      <div class="field"><label>곡 검색 후 추가</label><input id="m-history-q" placeholder="곡명 검색" oninput="searchMobileHistorySongs()"><div class="result-list" id="m-history-results"></div></div>
+      <div class="field full"><label>선택된 콘티 순서</label><div class="selected-list" id="m-history-selected"></div></div>
+      <div class="field full"><label>메모</label><textarea id="m-history-note" placeholder="예배 흐름 메모"></textarea></div>
+    </div>
+    <div class="sheet-actions">
+      <button class="mini-btn danger" id="m-history-delete" onclick="deleteMobileHistory()">삭제</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="mini-btn" onclick="closeMobileHistory()">취소</button><button class="mini-btn white" onclick="saveMobileHistory()">저장</button></div>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal" id="full-score-modal">
+  <div class="sheet">
+    <div class="sheet-head"><h3>전체악보 관리</h3><button class="close" onclick="closeFullScoreManager()">✕</button></div>
+    <div class="form-grid">
+      <div class="field full">
+        <label>이번 주 콘티용 전체악보 JPG / PNG 업로드</label>
+        <input id="full-score-files" type="file" accept="image/png,image/jpeg,image/jpg" multiple>
+      </div>
+      <div class="field full">
+        <label>업로드된 전체악보</label>
+        <div class="selected-list" id="full-score-list"><div class="selected-item"><span>불러오는 중...</span></div></div>
+      </div>
+    </div>
+    <div class="sheet-actions">
+      <button class="mini-btn" onclick="closeFullScoreManager()">닫기</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="mini-btn" onclick="openFullScore()">전체악보 보기</button>
+        <button class="mini-btn white" onclick="uploadFullScores()">업로드</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="viewer" id="viewer"><div class="viewer-top"><strong id="viewer-title">악보</strong><button class="close" onclick="closeViewer()">✕</button></div><div class="viewer-body" id="viewer-body"></div></div>
@@ -102,7 +164,7 @@
 <script>
 const SUPABASE_URL = 'https://rmtysrytveexshwzenxj.supabase.co';
 const REAL_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdHlzcnl0dmVleHNod3plbnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjQ3OTYsImV4cCI6MjA5MjEwMDc5Nn0.5FzzJ1rg-uRG4jAGZ75xVT3i3NH0m6J_tDeOS4GxyT8';
-const HEADERS = {'Content-Type':'application/json','apikey':REAL_KEY,'Authorization':'Bearer '+REAL_KEY};
+const HEADERS = {'Content-Type':'application/json','apikey':REAL_KEY,'Authorization':'Bearer '+REAL_KEY,'Prefer':'return=representation'};
 const STORAGE_URL = SUPABASE_URL + '/storage/v1';
 const STOR_HEADERS = {'apikey': REAL_KEY, 'Authorization': 'Bearer ' + REAL_KEY};
 let songs = [], history = [], currentConti = null, contiSongs = [], activeIdx = 0, scoreCache = {};
@@ -127,16 +189,92 @@ function moveSong(d){setActiveSong(activeIdx+d)}
 function scrollToScore(){document.getElementById('score-panel').scrollIntoView({behavior:'smooth',block:'start'})}
 function openActiveYoutube(){const s=contiSongs[activeIdx];if(s&&s.music_url)window.open(s.music_url,'_blank');else toast('이 곡은 유튜브 링크가 없어요')}
 function openCurrentYoutube(){const first=contiSongs.find(s=>s.music_url);if(first)window.open(first.music_url,'_blank');else toast('콘티에 유튜브 링크가 있는 곡이 없어요')}
-function openFullScore(){toast('전체악보 업로드/보기는 다음 단계에서 추가하면 됩니다')}
+
+function fullScorePrefix(){
+  const key = currentConti?.id || currentConti?.worship_date || 'latest';
+  return `_full_scores/${key}/`;
+}
+function safeFileName(name){
+  const ext = (name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
+  return `${Date.now()}_${Math.random().toString(36).slice(2,7)}.${ext}`;
+}
+async function listFullScores(){
+  const res=await fetch(`${STORAGE_URL}/object/list/scores`,{method:'POST',headers:{...STOR_HEADERS,'Content-Type':'application/json'},body:JSON.stringify({prefix:fullScorePrefix(),limit:100,sortBy:{column:'name',order:'asc'}})});
+  if(!res.ok)return[];
+  return (await res.json()).filter(f=>!f.name.startsWith('.'));
+}
+function fullScoreUrl(name){return scoreUrl(fullScorePrefix()+name)}
+async function openFullScore(){
+  document.getElementById('viewer-title').textContent='이번 주 전체악보';
+  document.getElementById('viewer-body').innerHTML='<div class="loading">전체악보 불러오는 중...</div>';
+  document.getElementById('viewer').classList.add('show');
+  const files=await listFullScores();
+  if(!files.length){document.getElementById('viewer-body').innerHTML='<div class="loading">업로드된 전체악보가 없습니다.<br><br><button class="mini-btn white" onclick="closeViewer();openFullScoreManager()">전체악보 업로드</button></div>';return}
+  document.getElementById('viewer-body').innerHTML=files.map(f=>`<img src="${fullScoreUrl(f.name)}" alt="전체악보">`).join('');
+}
+async function openFullScoreManager(){
+  document.getElementById('full-score-modal').classList.add('show');
+  await renderFullScoreList();
+}
+function closeFullScoreManager(){document.getElementById('full-score-modal').classList.remove('show')}
+async function renderFullScoreList(){
+  const el=document.getElementById('full-score-list');
+  el.innerHTML='<div class="selected-item"><span>불러오는 중...</span></div>';
+  const files=await listFullScores();
+  if(!files.length){el.innerHTML='<div class="selected-item"><span>아직 업로드된 전체악보가 없습니다.</span></div>';return}
+  el.innerHTML=files.map((f,i)=>`<div class="selected-item"><span>${i+1}. ${esc(f.name)}</span><span><button onclick="openFullScore()">보기</button> <button onclick="deleteFullScore('${esc(f.name)}')">삭제</button></span></div>`).join('');
+}
+async function uploadFullScores(){
+  const input=document.getElementById('full-score-files');
+  const files=[...(input.files||[])];
+  if(!files.length){toast('업로드할 JPG/PNG를 선택해주세요');return}
+  for(const file of files){
+    if(!/^image\/(png|jpeg)$/.test(file.type)){toast('JPG/PNG 파일만 가능해요');continue}
+    const path=fullScorePrefix()+safeFileName(file.name);
+    const res=await fetch(`${STORAGE_URL}/object/scores/${path}`,{method:'POST',headers:{...STOR_HEADERS,'Content-Type':file.type,'x-upsert':'true'},body:file});
+    if(!res.ok){toast('업로드 실패: '+await res.text());return}
+  }
+  input.value='';
+  await renderFullScoreList();
+  toast('전체악보를 업로드했어요');
+}
+async function deleteFullScore(name){
+  if(!confirm('이 전체악보 이미지를 삭제할까요?'))return;
+  const path=fullScorePrefix()+name;
+  const res=await fetch(`${STORAGE_URL}/object/scores`,{method:'DELETE',headers:{...STOR_HEADERS,'Content-Type':'application/json'},body:JSON.stringify({prefixes:[path]})});
+  if(!res.ok){toast('삭제 실패: '+await res.text());return}
+  await renderFullScoreList();
+  toast('삭제했어요');
+}
+
 async function openSongViewer(){const s=contiSongs[activeIdx];if(!s||!s.id){toast('악보를 열 수 없어요');return}document.getElementById('viewer-title').textContent=s.name+' — 악보';document.getElementById('viewer-body').innerHTML='<div class="loading">불러오는 중...</div>';document.getElementById('viewer').classList.add('show');let files=scoreCache[s.id]||await listScores(s.id);scoreCache[s.id]=files;if(!files.length){document.getElementById('viewer-body').innerHTML='<div class="loading">업로드된 악보가 없습니다</div>';return}document.getElementById('viewer-body').innerHTML=files.map(f=>`<img src="${scoreUrl(s.id+'/'+f.name)}" alt="악보">`).join('')}
 function closeViewer(){document.getElementById('viewer').classList.remove('show')}
 
-function renderSongCards(){const q=norm(document.getElementById('song-q')?.value||'');const f=document.getElementById('song-filter')?.value||'all';let list=songs.filter(s=>{if(q&&!norm(s.name).includes(q))return false;if(f==='ready')return s.status==='ready'||s.has_score;if(f==='no_score')return !s.has_score;if(f==='video')return !!s.music_url;if(f==='used')return s.status==='used';return true}).slice(0,90);document.getElementById('song-grid').innerHTML=list.map(s=>{const seas=s.seasons||[];const mainTags=[...(seas.filter(t=>!liturgy.includes(t)).slice(0,1)),...(seas.filter(t=>liturgy.includes(t)).slice(0,1))];return `<div class="song-card" onclick="selectSongFromDb('${s.id}')"><h4>${esc(s.name)}</h4><div class="meta">${esc(songMeta(s))}</div><div class="pill-row" style="margin-top:9px">${mainTags.map(t=>`<span class="pill">${esc(t)}</span>`).join('')}<span class="pill">${s.has_score?'악보 있음':'악보 없음'}</span>${s.music_url?'<span class="pill">영상 있음</span>':''}</div><div class="memo">${esc(s.memo||'등록된 메모 없음')}</div><div class="btn-row"><button class="mini-btn white" onclick="event.stopPropagation();addDbSongToConti('${s.id}')">콘티 추가</button><button class="mini-btn" onclick="event.stopPropagation();openDbYoutube('${s.id}')">유튜브</button><a class="mini-btn" onclick="event.stopPropagation()" href="index.html">수정</a></div></div>`}).join('')||'<div class="loading">검색 결과가 없습니다.</div>'}
+function renderSongCards(){const q=norm(document.getElementById('song-q')?.value||'');const f=document.getElementById('song-filter')?.value||'all';let list=songs.filter(s=>{if(q&&!norm(s.name).includes(q))return false;if(f==='ready')return s.status==='ready'||s.has_score;if(f==='no_score')return !s.has_score;if(f==='video')return !!s.music_url;if(f==='used')return s.status==='used';return true}).slice(0,90);document.getElementById('song-grid').innerHTML=list.map(s=>{const seas=s.seasons||[];const mainTags=[...(seas.filter(t=>!liturgy.includes(t)).slice(0,1)),...(seas.filter(t=>liturgy.includes(t)).slice(0,1))];return `<div class="song-card" onclick="selectSongFromDb('${s.id}')"><h4>${esc(s.name)}</h4><div class="meta">${esc(songMeta(s))}</div><div class="pill-row" style="margin-top:9px">${mainTags.map(t=>`<span class="pill">${esc(t)}</span>`).join('')}<span class="pill">${s.has_score?'악보 있음':'악보 없음'}</span>${s.music_url?'<span class="pill">영상 있음</span>':''}</div><div class="memo">${esc(s.memo||'등록된 메모 없음')}</div><div class="btn-row"><button class="mini-btn white" onclick="event.stopPropagation();addDbSongToConti('${s.id}')">콘티 추가</button><button class="mini-btn" onclick="event.stopPropagation();openDbYoutube('${s.id}')">유튜브</button><button class="mini-btn" onclick="event.stopPropagation();openSongEdit('${s.id}')">수정</button></div></div>`}).join('')||'<div class="loading">검색 결과가 없습니다.</div>'}
 function selectSongFromDb(id){const s=songs.find(x=>x.id===id);if(!s)return;contiSongs=[s,...contiSongs.filter(x=>x.id!==id)];showSection('home',document.querySelector('.nav button'));setActiveSong(0);toast('곡을 미리보기로 열었어요')}
 function addDbSongToConti(id){const s=songs.find(x=>x.id===id);if(!s)return;if(!contiSongs.find(x=>x.id===id))contiSongs.push(s);showSection('home',document.querySelector('.nav button'));setActiveSong(contiSongs.length-1);toast('현재 화면 콘티에 추가했어요')}
 function openDbYoutube(id){const s=songs.find(x=>x.id===id);if(s&&s.music_url)window.open(s.music_url,'_blank');else toast('유튜브 링크가 없어요')}
-function renderHistory(){const el=document.getElementById('history-grid');el.innerHTML=(history||[]).map(h=>{const d=new Date(h.worship_date);return `<div class="history-card"><div class="history-date">${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}</div><div class="history-title">주일예배</div><div class="pill-row" style="margin-top:10px">${(h.song_names||[]).map(n=>`<span class="pill">${esc(n)}</span>`).join('')}</div><div class="btn-row"><button class="mini-btn" onclick="loadHistoryAsConti('${h.id}')">이 콘티 보기</button><a class="mini-btn white" href="index.html">수정</a></div></div>`}).join('')||'<div class="loading">주일 기록이 없습니다.</div>'}
+function renderHistory(){const el=document.getElementById('history-grid');el.innerHTML=(history||[]).map(h=>{const d=new Date(h.worship_date);return `<div class="history-card"><div class="history-date">${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}</div><div class="history-title">주일예배</div><div class="pill-row" style="margin-top:10px">${(h.song_names||[]).map(n=>`<span class="pill">${esc(n)}</span>`).join('')}</div><div class="btn-row"><button class="mini-btn" onclick="loadHistoryAsConti('${h.id}')">이 콘티 보기</button><button class="mini-btn white" onclick="openMobileHistory('${h.id}')">수정</button></div></div>`}).join('')||'<div class="loading">주일 기록이 없습니다.</div>'}
 function loadHistoryAsConti(id){const h=history.find(x=>x.id===id);if(!h)return;currentConti=h;contiSongs=(h.song_names||[]).map((name,i)=>songs.find(s=>s.id===(h.song_ids||[])[i])||songs.find(s=>norm(s.name)===norm(name))||{name,status:'plan',count:0,seasons:[],key:'',bpm:0,music_url:'',has_score:false});showSection('home',document.querySelector('.nav button'));renderHome();toast('선택한 주일 기록을 열었어요')}
+
+
+let mobileSongId=null, mobileHistoryId=null, mobileSelectedSongs=[];
+function todayISO(){return new Date().toISOString().split('T')[0]}
+function openSongEdit(id){mobileSongId=id||null;const m=document.getElementById('song-modal');document.getElementById('song-modal-title').textContent=id?'찬양곡 수정':'찬양곡 추가';document.getElementById('m-song-delete').style.visibility=id?'visible':'hidden';const s=id?songs.find(x=>x.id===id):null;document.getElementById('m-song-name').value=s?.name||'';document.getElementById('m-song-status').value=s?.status||'used';document.getElementById('m-song-count').value=s?.count||0;document.getElementById('m-song-key').value=s?.key||'';document.getElementById('m-song-bpm').value=s?.bpm||0;document.getElementById('m-song-url').value=s?.music_url||'';document.getElementById('m-song-tags').value=(s?.seasons||[]).join(', ');document.getElementById('m-song-memo').value=s?.memo||'';m.classList.add('show')}
+function closeSongEdit(){document.getElementById('song-modal').classList.remove('show')}
+async function saveMobileSong(){const name=document.getElementById('m-song-name').value.replace(/\s+/g,' ').trim();if(!name){toast('곡명을 입력해주세요');return}const payload={name,status:document.getElementById('m-song-status').value,count:parseInt(document.getElementById('m-song-count').value)||0,key:document.getElementById('m-song-key').value.trim(),bpm:parseInt(document.getElementById('m-song-bpm').value)||0,music_url:document.getElementById('m-song-url').value.trim(),seasons:document.getElementById('m-song-tags').value.split(',').map(x=>x.trim()).filter(Boolean),memo:document.getElementById('m-song-memo').value.trim(),updated_at:new Date().toISOString()};try{if(mobileSongId){const updated=await api('PATCH',`songs?id=eq.${mobileSongId}`,payload);const i=songs.findIndex(x=>x.id===mobileSongId);if(i>=0&&updated?.[0])songs[i]=updated[0];toast('찬양곡을 수정했어요')}else{const created=await api('POST','songs',payload);if(created?.[0])songs.unshift(created[0]);toast('찬양곡을 추가했어요')}closeSongEdit();renderSongCards();pickCurrentConti();renderHome()}catch(e){toast('저장 실패: '+e.message)}}
+async function deleteMobileSong(){if(!mobileSongId)return;if(!confirm('이 찬양곡을 삭제할까요?'))return;try{await api('DELETE',`songs?id=eq.${mobileSongId}`);songs=songs.filter(x=>x.id!==mobileSongId);closeSongEdit();renderSongCards();pickCurrentConti();renderHome();toast('삭제했어요')}catch(e){toast('삭제 실패: '+e.message)}}
+function openMobileHistory(id){mobileHistoryId=id||null;const h=id?history.find(x=>x.id===id):null;document.getElementById('history-modal-title').textContent=id?'주일 기록 수정':'주일 기록 추가';document.getElementById('m-history-delete').style.visibility=id?'visible':'hidden';document.getElementById('m-history-date').value=h?.worship_date||todayISO();document.getElementById('m-history-note').value=h?.note||'';mobileSelectedSongs=h?(h.song_names||[]).map((name,i)=>({id:(h.song_ids||[])[i]||null,name})):[];renderMobileSelectedSongs();document.getElementById('m-history-q').value='';document.getElementById('m-history-results').style.display='none';document.getElementById('history-modal').classList.add('show')}
+function closeMobileHistory(){document.getElementById('history-modal').classList.remove('show')}
+function renderMobileSelectedSongs(){const el=document.getElementById('m-history-selected');el.innerHTML=mobileSelectedSongs.length?mobileSelectedSongs.map((s,i)=>`<div class="selected-item"><span>${i+1}. ${esc(s.name)}</span><span><button onclick="moveMobileSong(${i},-1)">↑</button> <button onclick="moveMobileSong(${i},1)">↓</button> <button onclick="removeMobileSelected(${i})">✕</button></span></div>`).join(''):'<div class="selected-item"><span>곡을 검색해서 추가하세요</span></div>'}
+function moveMobileSong(i,d){const j=i+d;if(j<0||j>=mobileSelectedSongs.length)return;[mobileSelectedSongs[i],mobileSelectedSongs[j]]=[mobileSelectedSongs[j],mobileSelectedSongs[i]];renderMobileSelectedSongs()}
+function removeMobileSelected(i){mobileSelectedSongs.splice(i,1);renderMobileSelectedSongs()}
+function searchMobileHistorySongs(){const q=norm(document.getElementById('m-history-q').value);const el=document.getElementById('m-history-results');if(!q){el.style.display='none';return}const found=songs.filter(s=>norm(s.name).includes(q)).slice(0,12);el.style.display='block';el.innerHTML=(found.map(s=>`<button onclick="addMobileHistorySong('${s.id}')">🎵 ${esc(s.name)}</button>`).join('')||'<button disabled>검색 결과 없음</button>')+`<button onclick="addMobileHistoryDirect()">➕ 입력한 이름 직접 추가</button>`}
+function addMobileHistorySong(id){const s=songs.find(x=>x.id===id);if(!s)return;if(mobileSelectedSongs.find(x=>x.name===s.name)){toast('이미 추가된 곡이에요');return}mobileSelectedSongs.push({id:s.id,name:s.name});document.getElementById('m-history-q').value='';document.getElementById('m-history-results').style.display='none';renderMobileSelectedSongs()}
+function addMobileHistoryDirect(){const name=document.getElementById('m-history-q').value.replace(/\s+/g,' ').trim();if(!name)return;mobileSelectedSongs.push({id:null,name});document.getElementById('m-history-q').value='';document.getElementById('m-history-results').style.display='none';renderMobileSelectedSongs()}
+async function saveMobileHistory(){const worship_date=document.getElementById('m-history-date').value;if(!worship_date){toast('날짜를 선택해주세요');return}const payload={worship_date,song_ids:mobileSelectedSongs.map(s=>s.id).filter(Boolean),song_names:mobileSelectedSongs.map(s=>s.name),note:document.getElementById('m-history-note').value.trim()};try{if(mobileHistoryId){const updated=await api('PATCH',`worship_history?id=eq.${mobileHistoryId}`,payload);const i=history.findIndex(x=>x.id===mobileHistoryId);if(i>=0&&updated?.[0])history[i]=updated[0];toast('주일 기록을 수정했어요')}else{const created=await api('POST','worship_history',payload);if(created?.[0])history.unshift(created[0]);toast('주일 기록을 추가했어요')}history.sort((a,b)=>String(b.worship_date).localeCompare(String(a.worship_date)));closeMobileHistory();renderHistory();pickCurrentConti();renderHome()}catch(e){toast('저장 실패: '+e.message)}}
+async function deleteMobileHistory(){if(!mobileHistoryId)return;if(!confirm('이 주일 기록을 삭제할까요?'))return;try{await api('DELETE',`worship_history?id=eq.${mobileHistoryId}`);history=history.filter(x=>x.id!==mobileHistoryId);closeMobileHistory();renderHistory();pickCurrentConti();renderHome();toast('삭제했어요')}catch(e){toast('삭제 실패: '+e.message)}}
+['song-modal','history-modal','full-score-modal'].forEach(id=>{setTimeout(()=>{const el=document.getElementById(id);if(el)el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('show')})},0)})
 
 document.addEventListener('DOMContentLoaded',init);
 </script>
