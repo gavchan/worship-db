@@ -125,6 +125,28 @@ function extFromContentType(contentType) {
   return 'jpg';
 }
 
+function normalizeSongEntry(song) {
+  return {
+    ...song,
+    published: song.published === true,
+    weekly: song.weekly === true,
+    archived: song.archived === true,
+  };
+}
+
+async function saveManifest(manifest) {
+  const normalized = manifest
+    .filter(Boolean)
+    .map(normalizeSongEntry)
+    .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'ko'));
+  await putR2Object(
+    'choir_songs.json',
+    Buffer.from(JSON.stringify(normalized, null, 2)),
+    'application/json; charset=utf-8',
+  );
+  return normalized;
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST' && req.method !== 'DELETE') {
     return json(res, 405, { ok: false, error: 'POST or DELETE only' });
@@ -148,12 +170,42 @@ module.exports = async function handler(req, res) {
         }
       }
       const nextManifest = manifest.filter((song) => song && song.id !== songId && song.name !== songName);
-      await putR2Object(
-        'choir_songs.json',
-        Buffer.from(JSON.stringify(nextManifest, null, 2)),
-        'application/json; charset=utf-8',
-      );
-      return json(res, 200, { ok: true, deleted: !!current, manifestCount: nextManifest.length });
+      const savedManifest = await saveManifest(nextManifest);
+      return json(res, 200, { ok: true, deleted: !!current, manifestCount: savedManifest.length });
+    }
+
+    if (payload.mode === 'metadata') {
+      if (!songId && !songName) return json(res, 400, { ok: false, error: 'songId or songName is required' });
+      const current = manifest.find((song) => song && (song.id === songId || song.name === songName));
+      if (!current) return json(res, 404, { ok: false, error: 'song not found' });
+      const nextEntry = {
+        ...current,
+        title: payload.title ? String(payload.title).trim() : (current.title || current.name),
+        name: payload.title ? String(payload.title).trim() : (current.name || current.title),
+        published: payload.published == null ? current.published === true : payload.published === true,
+        weekly: payload.weekly == null ? current.weekly === true : payload.weekly === true,
+        archived: payload.archived == null ? current.archived === true : payload.archived === true,
+        updated_at: new Date().toISOString(),
+      };
+      const savedManifest = await saveManifest([
+        nextEntry,
+        ...manifest.filter((song) => song && song.id !== current.id && song.name !== current.name),
+      ]);
+      return json(res, 200, { ok: true, song: nextEntry, manifestCount: savedManifest.length });
+    }
+
+    if (payload.mode === 'publish_set') {
+      const ids = Array.isArray(payload.songIds) ? payload.songIds.map(String) : [];
+      const names = Array.isArray(payload.songNames) ? payload.songNames.map(String) : [];
+      const idSet = new Set(ids);
+      const nameSet = new Set(names);
+      const savedManifest = await saveManifest(manifest.map((song) => ({
+        ...song,
+        published: idSet.has(String(song.id || '')) || nameSet.has(String(song.name || song.title || '')),
+        archived: !(idSet.has(String(song.id || '')) || nameSet.has(String(song.name || song.title || ''))),
+        updated_at: new Date().toISOString(),
+      })));
+      return json(res, 200, { ok: true, manifestCount: savedManifest.length });
     }
 
     if (payload.mode === 'page') {
@@ -186,19 +238,16 @@ module.exports = async function handler(req, res) {
         name: songName,
         pages: Math.max(pageCount, files.length),
         files,
+        published: payload.published === true || current?.published === true,
+        weekly: payload.weekly === true || current?.weekly === true,
+        archived: payload.archived === true ? true : current?.archived === true,
         updated_at: new Date().toISOString(),
       };
-      const nextManifest = [
+      const savedManifest = await saveManifest([
         nextEntry,
         ...manifest.filter((song) => song && song.id !== songId && song.name !== songName),
-      ].sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'ko'));
-
-      await putR2Object(
-        'choir_songs.json',
-        Buffer.from(JSON.stringify(nextManifest, null, 2)),
-        'application/json; charset=utf-8',
-      );
-      return json(res, 200, { ok: true, song: nextEntry, page: nextFile, manifestCount: nextManifest.length });
+      ]);
+      return json(res, 200, { ok: true, song: nextEntry, page: nextFile, manifestCount: savedManifest.length });
     }
 
     const pages = Array.isArray(payload.pages) ? payload.pages : [];
@@ -233,20 +282,17 @@ module.exports = async function handler(req, res) {
       name: songName,
       pages: files.length,
       files,
+      published: payload.published === true || existing?.published === true,
+      weekly: payload.weekly === true || existing?.weekly === true,
+      archived: payload.archived === true ? true : existing?.archived === true,
       updated_at: new Date().toISOString(),
     };
-    const nextManifest = [
+    const savedManifest = await saveManifest([
       nextEntry,
       ...manifest.filter((song) => song && song.id !== songId && song.name !== songName),
-    ].sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'ko'));
+    ]);
 
-    await putR2Object(
-      'choir_songs.json',
-      Buffer.from(JSON.stringify(nextManifest, null, 2)),
-      'application/json; charset=utf-8',
-    );
-
-    return json(res, 200, { ok: true, song: nextEntry, manifestCount: nextManifest.length });
+    return json(res, 200, { ok: true, song: nextEntry, manifestCount: savedManifest.length });
   } catch (error) {
     return json(res, 500, { ok: false, error: error.message });
   }
