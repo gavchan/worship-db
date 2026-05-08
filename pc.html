@@ -242,6 +242,32 @@ body.dark{--bg:#111315;--surface:#191c20;--surface2:#22262b;--border:#2e343b;--b
 .yt-player-note{padding:10px 14px;font-size:.72rem;color:var(--text2);line-height:1.55;background:var(--surface)}
 @media(max-width:700px){.yt-player-modal{padding:8px}.yt-player-box{width:100%;border-radius:14px}.yt-player-head{padding:10px}.yt-player-actions a,.yt-player-actions button{font-size:.68rem;padding:6px 8px}}
 
+
+/* Desktop library split view: compact list + bottom detail panel */
+.song-library-shell{max-width:1180px;margin:0 auto;padding:10px 16px 6rem;display:grid;gap:12px}
+.song-list-table{background:var(--surface);border:1px solid var(--border);border-radius:22px;box-shadow:var(--shadow-card);overflow:hidden}
+.song-list-head,.song-list-row{display:grid;grid-template-columns:minmax(220px,1.6fr) minmax(90px,.55fr) minmax(90px,.55fr) minmax(160px,1fr) minmax(110px,.6fr);gap:10px;align-items:center}
+.song-list-head{padding:10px 16px;background:var(--surface2);color:var(--text3);font-size:.68rem;font-weight:900;letter-spacing:.02em;border-bottom:1px solid var(--border)}
+.song-list-body{max-height:560px;overflow:auto}
+.song-list-row{min-height:52px;padding:9px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:.14s;background:var(--surface)}
+.song-list-row:last-child{border-bottom:none}
+.song-list-row:hover{background:var(--surface2)}
+.song-list-row.selected{background:linear-gradient(90deg,rgba(45,90,142,.14),transparent 72%);box-shadow:inset 4px 0 0 var(--accent)}
+.song-list-title{font-weight:900;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.015em}
+.song-list-cell{font-size:.78rem;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.song-list-tags{display:flex;gap:4px;flex-wrap:nowrap;overflow:hidden}
+.song-mini-tag{display:inline-flex;align-items:center;max-width:80px;padding:3px 7px;border-radius:999px;background:var(--surface2);border:1px solid var(--border);font-size:.66rem;font-weight:800;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.song-state-icons{display:flex;gap:5px;align-items:center;font-size:.72rem;color:var(--text2)}
+.song-state-icons span{display:inline-flex;align-items:center;gap:3px;padding:3px 7px;border-radius:999px;border:1px solid var(--border);background:var(--bg);font-weight:900}.song-state-icons .ok{color:var(--green);background:var(--green-bg)}.song-state-icons .vid{color:#cc0000;background:rgba(204,0,0,.09)}
+.song-detail-panel{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:14px;background:var(--surface);border:1px solid var(--border);border-radius:24px;box-shadow:var(--shadow-card);padding:16px;min-height:260px}
+.song-detail-empty{display:flex;align-items:center;justify-content:center;min-height:220px;color:var(--text3);font-size:.86rem;background:var(--surface);border:1px dashed var(--border);border-radius:22px}
+.song-detail-title{font-size:1.2rem;font-weight:950;color:var(--text1);letter-spacing:-.025em;margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.song-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:12px 0}
+.song-detail-box{border:1px solid var(--border);background:var(--surface2);border-radius:18px;padding:10px 12px;min-height:58px}.song-detail-label{font-size:.65rem;font-weight:900;color:var(--text3);margin-bottom:5px}.song-detail-value{font-size:.82rem;color:var(--text1);font-weight:800;line-height:1.5}
+.song-detail-tags{display:flex;gap:5px;flex-wrap:wrap}.song-detail-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.song-detail-actions .ab{border-radius:999px;padding:9px 14px;font-weight:900}.song-detail-actions .conti{background:var(--accent);color:#fff;border-color:var(--accent)}
+.current-setlist-strip{max-width:1180px;margin:8px auto 0;padding:0 16px;display:flex;gap:8px;align-items:center;justify-content:flex-end;color:var(--text2);font-size:.75rem}.current-setlist-strip select{border:1px solid var(--border2);border-radius:999px;background:var(--surface);color:var(--text1);padding:7px 12px;font-size:.75rem;outline:none}.tempo-filter{width:84px;border:1px solid var(--border2);border-radius:8px;background:var(--bg);color:var(--text1);padding:.45rem .5rem;font-size:.75rem;outline:none}
+@media(max-width:980px){.song-list-head,.song-list-row{grid-template-columns:minmax(150px,1.4fr) 70px 76px 1fr 86px}.song-detail-panel{grid-template-columns:1fr}.song-list-body{max-height:430px}.song-detail-grid{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -275,6 +301,14 @@ body.dark{--bg:#111315;--surface:#191c20;--surface2:#22262b;--border:#2e343b;--b
   <button class="tab" onclick="switchTab('history',this)"><span class="tab-ico">📅</span><span>주일기록</span></button>
   <button class="tab" onclick="switchTab('tools',this)"><span class="tab-ico">🛠</span><span>관리도구</span></button>
   <button class="tab" onclick="location.href='mobile.html'"><span class="tab-ico">📱</span><span>모바일보기</span></button>
+</div>
+
+<div class="current-setlist-strip">
+  <span>현재 콘티</span>
+  <select id="current-setlist" onchange="setCurrentSetlist(this.value)">
+    <option value="">콘티 선택 없음</option>
+  </select>
+  <button class="ab" onclick="openHistoryModal()" style="border-radius:999px;padding:7px 12px">새 콘티</button>
 </div>
 
 <div id="tab-songs">
@@ -322,6 +356,7 @@ body.dark{--bg:#111315;--surface:#191c20;--surface2:#22262b;--border:#2e343b;--b
       <option value="성령강림절">성령강림절</option>
       <option value="추수감사절">추수감사절</option>
     </select>
+    <input id="tempo-filter" class="tempo-filter" type="number" min="1" placeholder="BPM" oninput="render()" title="입력한 BPM이 범위 안에 들어가는 곡만 표시">
     <select id="sel-sort" onchange="ssDrop(this.value)" style="flex:1;padding:.45rem .4rem;border:1px solid var(--border2);border-radius:8px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.75rem;color:var(--text1);outline:none;min-width:0">
       <option value="name">가나다순</option>
       <option value="status">상태별</option>
@@ -621,6 +656,7 @@ const BASE_SEASONS = {"십자가 그 사랑":["사순절","위로"],"내 위해 
 // ── STATE ─────────────────────────────────────────────────
 let songs = [], filt = 'all', exp = null, editId = null, sortBy = 'name', sortDir = 1;
 let currentTab = 'songs', historyExp = null, selectedSongs = [];
+let selectedSongId = null, currentSetlistId = localStorage.getItem('wdb-current-setlist') || '', currentSetlistRows = [];
 
 // ── TAB ───────────────────────────────────────────────────
 function switchTab(tab, btn) {
@@ -750,11 +786,11 @@ function goToSong(name) {
   setTimeout(() => {
     const song = songs.find(s => s.name === name);
     if (song) {
-      exp = song.id;
+      selectedSongId = song.id;
       render();
       setTimeout(() => {
-        const cards = document.querySelectorAll('.card');
-        if (cards.length > 0) cards[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const panel = document.querySelector('.song-detail-panel');
+        if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }, 100);
     } else {
       // 곡이 없으면 추가 모달 띄우기
@@ -1015,11 +1051,13 @@ async function saveHistory() {
     // 찬양곡 데이터 새로 불러오기
     songs = await api('GET','songs?select=*&order=name');
     updateStats();
+    await loadCurrentSetlists();
     render();
     // 연도 목록 갱신 후 기록 다시 불러오기
     const sel = document.getElementById('h-year');
     sel.innerHTML = '<option value="">전체 연도</option>';
     await initYearSelect();
+    await loadCurrentSetlists();
     loadHistory();
   } catch(e){showToast('저장 실패: '+e.message);setSync('off','저장 실패');}
   btn.disabled=false;btn.textContent='저장';
@@ -1681,11 +1719,87 @@ function inlineVideoHtml(s){
   return `<div class="inline-video"><div class="inline-video-head"><span>${escHtml(s.name)} 영상</span><div class="inline-video-actions"><a href="${escHtml(s.music_url)}" target="_blank" rel="noopener noreferrer">유튜브</a><button onclick="closeInlineVideo()">닫기</button></div></div><div class="inline-video-frame"><iframe src="${youtubeEmbedUrl(id)}" title="${escHtml(s.name)} 영상보기" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div></div>`;
 }
 
+
+async function loadCurrentSetlists(){
+  const sel=document.getElementById('current-setlist'); if(!sel) return;
+  try{
+    const rows=await api('GET','worship_history?select=id,worship_date,note,song_names,song_ids&order=worship_date.desc&limit=80');
+    currentSetlistRows=rows||[];
+    sel.innerHTML='<option value="">콘티 선택 없음</option>'+currentSetlistRows.map(h=>{
+      const names=(h.song_names||[]).slice(0,2).join(' · ');
+      const label=`${weekLabel(h.worship_date)}${h.note?' · '+h.note:''}${names?' · '+names:''}`;
+      return `<option value="${escHtml(h.id)}">${escHtml(label)}</option>`;
+    }).join('');
+    if(currentSetlistId && currentSetlistRows.some(h=>h.id===currentSetlistId)) sel.value=currentSetlistId;
+    else { currentSetlistId=''; localStorage.removeItem('wdb-current-setlist'); }
+  }catch(e){ /* 콘티 목록 실패는 앱 흐름을 막지 않음 */ }
+}
+function setCurrentSetlist(id){currentSetlistId=id||''; if(id) localStorage.setItem('wdb-current-setlist',id); else localStorage.removeItem('wdb-current-setlist');}
+async function addSongToCurrentSetlist(songId){
+  const s=songs.find(x=>x.id===songId); if(!s) return;
+  if(!currentSetlistId){
+    showToast('콘티를 먼저 선택하거나 새 콘티를 만들어주세요');
+    const sel=document.getElementById('current-setlist'); if(sel) sel.focus();
+    return;
+  }
+  setSync('sync','콘티에 추가 중...');
+  try{
+    const rows=await api('GET',`worship_history?id=eq.${currentSetlistId}`);
+    if(!rows||!rows[0]) throw new Error('선택한 콘티를 찾을 수 없습니다');
+    const h=rows[0];
+    const song_names=Array.isArray(h.song_names)?[...h.song_names]:[];
+    const song_ids=Array.isArray(h.song_ids)?[...h.song_ids]:[];
+    if(song_names.includes(s.name)){showToast('이미 이 콘티에 들어간 곡이에요');setSync('on','자료 연결됨');return;}
+    song_names.push(s.name); song_ids.push(s.id);
+    await api('PATCH',`worship_history?id=eq.${currentSetlistId}`,{song_names,song_ids});
+    showToast(`"${s.name}" 콘티에 추가 ✓`);
+    await syncSongCounts(song_names, h.song_names||[]);
+    songs=await api('GET','songs?select=*&order=name');
+    await loadCurrentSetlists();
+    updateStats(); render(); setSync('on','자료 연결됨');
+  }catch(e){showToast('콘티 추가 실패: '+e.message);setSync('off','콘티 추가 실패');}
+}
+function compactTags(tags, max=2){
+  const arr=(tags||[]).filter(t=>!LITURGY_TAGS.includes(t));
+  if(!arr.length) return '<span style="color:var(--text3)">미지정</span>';
+  const shown=arr.slice(0,max).map(t=>`<span class="song-mini-tag">${escHtml(t)}</span>`).join('');
+  return shown + (arr.length>max?`<span class="song-mini-tag">+${arr.length-max}</span>`:'');
+}
+function selectSong(id){selectedSongId=id; activeInlineVideoId=null; render();}
+function selectedSongDetailHtml(song){
+  if(!song) return `<div class="song-detail-empty">위 목록에서 곡을 선택하면 이곳에 상세 정보와 영상 플레이어가 표시됩니다.</div>`;
+  const keys=songKeys(song), tempo=tempoText(song), seas=Array.isArray(song.seasons)?song.seasons:[];
+  const seasTags=seas.filter(t=>LITURGY_TAGS.includes(t));
+  const situTags=seas.filter(t=>!LITURGY_TAGS.includes(t));
+  const statusLabel=song.status==='used'?`사용 ${song.count||0}회`:song.status==='ready'?'악보 완료':'작업 예정';
+  return `<div class="song-detail-panel">
+    <div>
+      <div class="song-detail-title">${escHtml(song.name)} ${song.has_score?'<span class="song-pill score-ok">🎼 악보</span>':'<span class="song-pill score-no">🎼 준비중</span>'} ${song.music_url?'<span class="song-pill video-ok">▶ 영상</span>':''}</div>
+      <div class="song-detail-grid">
+        <div class="song-detail-box"><div class="song-detail-label">코드</div><div class="song-detail-value">${keys.length?keys.map(escHtml).join(' / '):'코드 미정'}</div></div>
+        <div class="song-detail-box"><div class="song-detail-label">BPM</div><div class="song-detail-value">${tempo?escHtml(tempo):'템포 미정'}</div></div>
+        <div class="song-detail-box"><div class="song-detail-label">상황별</div><div class="song-detail-tags">${situTags.length?situTags.map(t=>`<span class="tag-mini situ">${escHtml(t)}</span>`).join(''):'<span style="color:var(--text3)">미지정</span>'}</div></div>
+        <div class="song-detail-box"><div class="song-detail-label">절기별</div><div class="song-detail-tags">${seasTags.length?seasTags.map(t=>`<span class="tag-mini">${escHtml(t)}</span>`).join(''):'<span style="color:var(--text3)">미지정</span>'}</div></div>
+        <div class="song-detail-box"><div class="song-detail-label">상태</div><div class="song-detail-value">${escHtml(statusLabel)}</div></div>
+        <div class="song-detail-box"><div class="song-detail-label">자료</div><div class="song-detail-value">${song.has_score?'악보 연결됨':'악보 준비중'} · ${song.music_url?'영상 연결됨':'영상 없음'}</div></div>
+      </div>
+      <div class="song-detail-actions">
+        <button class="ab conti" onclick="addSongToCurrentSetlist('${jsStr(song.id)}')">➕ 콘티추가</button>
+        ${song.has_score?`<button class="ab primary-action" onclick="openViewer('${jsStr(song.id)}','${jsStr(song.name)}')">🎼 악보보기</button>`:`<button class="ab" style="color:var(--red)" onclick="openModal('${jsStr(song.id)}')">🎼 악보 올리기</button>`}
+        <button class="ab" onclick="changeStatus('${jsStr(song.id)}','plan')">작업예정</button>
+        <button class="ab" onclick="openModal('${jsStr(song.id)}')">✏️ 수정</button>
+        <button class="ab red" onclick="deleteSong('${jsStr(song.id)}')">🗑 삭제</button>
+      </div>
+    </div>
+    <div class="song-video-panel">${inlineVideoHtml(song)}</div>
+  </div>`;
+}
+
 // ── RENDER ────────────────────────────────────────────────
 function render() {
   const q = document.getElementById('q').value.normalize('NFC').toLowerCase().trim();
+  const bpmInput = parseInt(document.getElementById('tempo-filter')?.value || '', 10) || 0;
   const top10 = [...songs].filter(s=>s.count>0).sort((a,b)=>b.count-a.count).slice(0,10).map(s=>s.name);
-  const mx = Math.max(...songs.map(s=>s.count), 1);
 
   let list = songs.filter(s=>{
     const normQ = q.replace(/\s+/g,' ').trim();
@@ -1694,8 +1808,12 @@ function render() {
     const tagText = (s.seasons||[]).join(' ').toLowerCase();
     const mq = !q || normName.includes(normQ.toLowerCase()) || keyText.includes(normQ.toLowerCase()) || tagText.includes(normQ.toLowerCase());
     if (!mq) return false;
+    if (bpmInput) {
+      const {min,max}=tempoParts(s);
+      const lo=min||max, hi=max||min;
+      if(!lo || bpmInput < lo || bpmInput > hi) return false;
+    }
     const seas = s.seasons||[];
-    // 드롭다운 필터
     if (dropSitu && !seas.includes(dropSitu)) return false;
     if (dropSeas && !seas.includes(dropSeas)) return false;
     if (filt==='all') return true;
@@ -1708,7 +1826,6 @@ function render() {
     return seas.includes(filt);
   });
 
-  // 정렬
   const statusOrder = {used:0, ready:1, plan:2};
   list.sort((a,b)=>{
     let v = 0;
@@ -1720,54 +1837,36 @@ function render() {
     else if (sortBy==='created') v = new Date(b.created_at||0) - new Date(a.created_at||0);
     return sortBy==='count' ? v : v * sortDir;
   });
+
   document.getElementById('cnt').textContent = list.length+'곡 표시 중';
   const listEl = document.getElementById('list');
   if (!list.length) {
-    const q = document.getElementById('q').value.trim();
+    const rawQ = document.getElementById('q').value.trim();
     listEl.innerHTML = `<div class="nr"><span>🎵</span>검색 결과가 없습니다
-      ${q ? `<div style="margin-top:12px"><button class="btn-save" style="padding:8px 20px;border-radius:8px;font-size:.82rem" onclick="openModal();document.getElementById('f-name').value='${q.replace(/'/g,"\\'")}'">"${q}" 곡 추가하기 +</button></div>` : ''}
+      ${rawQ ? `<div style="margin-top:12px"><button class="btn-save" style="padding:8px 20px;border-radius:8px;font-size:.82rem" onclick="openModal();document.getElementById('f-name').value='${rawQ.replace(/'/g,"\\'")}'">"${escHtml(rawQ)}" 곡 추가하기 +</button></div>` : ''}
     </div>`;
     return;
   }
-
-  listEl.innerHTML = list.map(s=>{
-    const isTop = top10.includes(s.name);
-    const keys = songKeys(s);
-    const tempo = tempoText(s);
-    const mood = tempoMood(s);
-    const seas = Array.isArray(s.seasons)?s.seasons:[];
-    const seasTags = seas.filter(t=>LITURGY_TAGS.includes(t));
-    const situTags = seas.filter(t=>!LITURGY_TAGS.includes(t));
-    const statusLabel = s.status==='used'?`사용 ${s.count||0}회`:s.status==='ready'?'악보 완료':'작업 예정';
-    return `<div class="card">
-      <div class="song-card-grid">
-        <div class="song-info-panel">
-          <div class="song-title-row">
-            <div class="song-title">${escHtml(s.name)}</div>
-            ${isTop?`<span class="top-s">TOP ${top10.indexOf(s.name)+1}</span>`:''}
-          </div>
-          <div class="song-pill-row">
-            <span class="song-pill ${s.has_score?'score-ok':'score-no'}">🎼 ${s.has_score?'악보 있음':'악보 준비중'}</span>
-            <span class="song-pill ${s.music_url?'video-ok':''}">▶ ${s.music_url?'영상 있음':'영상 없음'}</span>
-            <span class="song-pill ${s.status==='used'?'status-used':s.status==='plan'?'status-plan':''}">${escHtml(statusLabel)}</span>
-          </div>
-          <div class="song-meta-block">
-            <div class="song-meta-line"><span class="song-meta-label">템포 / 코드</span><div class="song-meta-value">${tempo?escHtml(tempo):'템포 미정'}${keys.length?' · '+keys.map(escHtml).join(' / '):' · 코드 미정'}</div></div>
-            <div class="song-meta-line"><span class="song-meta-label">악보상태</span><div class="song-meta-value">${s.has_score?'악보 완료':'악보 준비중'}</div></div>
-            <div class="song-meta-line"><span class="song-meta-label">절기별</span><div class="song-tags song-meta-value">${seasTags.length?seasTags.map(t=>`<span class="tag-mini">${escHtml(t)}</span>`).join(''):'<span style="color:var(--text3)">미지정</span>'}</div></div>
-            <div class="song-meta-line"><span class="song-meta-label">상황별</span><div class="song-tags song-meta-value">${situTags.length?situTags.map(t=>`<span class="tag-mini situ">${escHtml(t)}</span>`).join(''):'<span style="color:var(--text3)">미지정</span>'}</div></div>
-          </div>
-          <div class="song-actions">
-            ${s.has_score?`<button class="ab primary-action" onclick="openViewer('${jsStr(s.id)}','${jsStr(s.name)}')">🎼 악보보기</button>`:`<button class="ab" style="color:var(--red)" onclick="openModal('${jsStr(s.id)}')">🎼 악보 올리기</button>`}
-            <button class="ab" onclick="changeStatus('${jsStr(s.id)}','plan')">작업예정</button>
-            <button class="ab" onclick="openModal('${jsStr(s.id)}')">✏️ 수정</button>
-            <button class="ab red" onclick="deleteSong('${jsStr(s.id)}')">🗑 삭제</button>
-          </div>
-        </div>
-        <div class="song-video-panel">${inlineVideoHtml(s)}</div>
+  if(!selectedSongId || !list.some(s=>s.id===selectedSongId)) selectedSongId = list[0]?.id || null;
+  const selected = songs.find(s=>s.id===selectedSongId);
+  listEl.innerHTML = `<div class="song-library-shell">
+    <div class="song-list-table">
+      <div class="song-list-head"><div>곡제목</div><div>코드</div><div>BPM</div><div>상황</div><div>악보·영상</div></div>
+      <div class="song-list-body">
+        ${list.map(s=>{
+          const keys=songKeys(s); const tempo=tempoText(s); const isSel=s.id===selectedSongId;
+          return `<div class="song-list-row ${isSel?'selected':''}" onclick="selectSong('${jsStr(s.id)}')">
+            <div class="song-list-title">${escHtml(s.name)}</div>
+            <div class="song-list-cell">${keys.length?keys.map(escHtml).join(' / '):'-'}</div>
+            <div class="song-list-cell">${tempo?escHtml(tempo).replace(' BPM',''):'-'}</div>
+            <div class="song-list-tags">${compactTags(s.seasons,2)}</div>
+            <div class="song-state-icons"><span class="${s.has_score?'ok':''}">🎼${s.has_score?'O':'-'}</span><span class="${s.music_url?'vid':''}">▶${s.music_url?'O':'-'}</span></div>
+          </div>`;
+        }).join('')}
       </div>
-    </div>`;
-  }).join('');
+    </div>
+    ${selectedSongDetailHtml(selected)}
+  </div>`;
 }
 
 init();
