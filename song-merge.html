@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>곡 병합 도구</title>
+<style>
+body{font-family:sans-serif;max-width:720px;margin:2rem auto;padding:1rem;background:#faf8f5}
+h1{font-size:1.3rem;margin-bottom:.3rem}
+.sub{font-size:.83rem;color:#6b6560;margin-bottom:1.2rem;line-height:1.6}
+.card{background:#fff;border:1px solid #e8e2d9;border-radius:10px;padding:1rem 1.2rem;margin-bottom:1rem}
+.card h3{font-size:.9rem;font-weight:600;margin-bottom:.6rem;color:#1a1714}
+input[type=text]{width:100%;padding:.5rem .75rem;border:1px solid #d4cec4;border-radius:6px;font-size:.83rem;font-family:sans-serif;outline:none;box-sizing:border-box}
+input[type=text]:focus{border-color:#2d5a8e}
+.results{max-height:180px;overflow-y:auto;border:1px solid #e8e2d9;border-radius:6px;margin-top:4px;display:none}
+.ri{padding:8px 10px;font-size:.8rem;cursor:pointer;border-bottom:1px solid #f4f1eb;transition:background .1s}
+.ri:last-child{border-bottom:none}
+.ri:hover{background:#eaf0f8;color:#2d5a8e}
+.selected-box{background:#f4f1eb;border-radius:6px;padding:8px 12px;margin-top:6px;font-size:.82rem;min-height:36px;color:#9e9891}
+.selected-box.filled{background:#eaf0f8;color:#1a1714;font-weight:500}
+.badge{font-size:.63rem;padding:2px 7px;border-radius:20px;font-weight:500;margin-left:5px}
+.b-used{background:#eaf0f8;color:#2d5a8e}
+.b-ready{background:#edf5f0;color:#3a7a52}
+.b-plan{background:#f4f1eb;color:#9e9891;border:1px solid #e8e2d9}
+.arrow{text-align:center;font-size:1.3rem;color:#9e9891;margin:.3rem 0}
+.preview{background:#fdf4e7;border:1px solid rgba(196,145,58,.3);border-radius:8px;padding:10px 14px;font-size:.82rem;line-height:1.8;display:none;margin-bottom:.75rem}
+.preview h4{font-size:.83rem;font-weight:600;margin-bottom:.3rem;color:#c4913a}
+.btn{padding:.6rem 1.1rem;border:none;border-radius:8px;font-size:.83rem;cursor:pointer;font-family:sans-serif;transition:all .15s}
+.btn-main{background:#2d5a8e;color:#fff}
+.btn-main:hover{background:#1e4a7a}
+.btn-main:disabled{opacity:.5;cursor:not-allowed}
+.btn-outline{background:transparent;border:1px solid #d4cec4;color:#6b6560}
+.btn-outline:hover{border-color:#2d5a8e;color:#2d5a8e}
+.btn-green{background:#3a7a52;color:#fff}
+.btn-green:hover{background:#2a5a3c}
+.btn-row{display:flex;gap:8px;margin-top:.75rem}
+#log{margin-top:1rem;padding:1rem;background:#f4f1eb;border-radius:8px;font-size:.78rem;line-height:1.8;white-space:pre-wrap;max-height:280px;overflow-y:auto;display:none}
+.ok{color:#3a7a52}.err{color:#b0281f}.info{color:#2d5a8e}.warn{color:#c4913a}
+.label{font-size:.72rem;color:#6b6560;margin-bottom:3px;font-weight:500}
+
+/* 유사곡 탐지 */
+.sim-group{background:#fff;border:1px solid #e8e2d9;border-radius:8px;margin-bottom:8px;overflow:hidden}
+.sim-head{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f4f1eb;font-size:.78rem;font-weight:600;color:#6b6560}
+.sim-items{display:flex;flex-direction:column;gap:0}
+.sim-item{display:flex;align-items:center;gap:8px;padding:7px 12px;border-top:1px solid #f4f1eb;font-size:.8rem}
+.sim-name{flex:1}
+.sim-use-btn{font-size:.68rem;padding:3px 8px;border:1px solid #d4cec4;border-radius:20px;background:transparent;cursor:pointer;color:#2d5a8e;border-color:#2d5a8e;white-space:nowrap}
+.sim-use-btn:hover{background:#eaf0f8}
+.sim-dismiss{font-size:.68rem;padding:3px 8px;border:1px solid #d4cec4;border-radius:20px;background:transparent;cursor:pointer;color:#9e9891;white-space:nowrap}
+.sim-dismiss:hover{background:#f4f1eb;color:#b0281f;border-color:#b0281f}
+.sim-group.ignored{opacity:.4;pointer-events:none;text-decoration:line-through}
+.no-sim{text-align:center;padding:1.5rem;color:#9e9891;font-size:.83rem}
+</style>
+</head>
+<body>
+<h1>🔀 곡 병합 도구</h1>
+<p class="sub">같은 곡인데 다른 이름으로 등록된 경우 하나로 합칩니다.<br>
+사용 횟수 합산 · 주일기록 곡명 통일 · 삭제할 곡 제거</p>
+
+<!-- 유사 곡 자동 탐지 -->
+<div class="card">
+  <h3>🔍 유사 곡명 자동 탐지</h3>
+  <p class="sub" style="margin-bottom:.6rem">공백 차이, 괄호 포함, 부분 일치 등으로 같은 곡일 수 있는 쌍을 찾아줍니다</p>
+  <button class="btn btn-green" id="scanBtn" onclick="scanSimilar()">탐지 시작</button>
+  <div id="sim-result" style="margin-top:.75rem"></div>
+</div>
+
+<!-- 직접 선택 병합 -->
+<div class="card">
+  <h3>✋ 직접 선택해서 병합</h3>
+  <div class="label">① 삭제할 곡</div>
+  <input type="text" id="q1" placeholder="없앨 곡명 검색..." oninput="search(1)">
+  <div class="results" id="r1"></div>
+  <div class="selected-box" id="sel1">선택된 곡 없음</div>
+
+  <div class="arrow">↓</div>
+
+  <div class="label">② 남길 곡 (기준)</div>
+  <input type="text" id="q2" placeholder="남길 곡명 검색..." oninput="search(2)">
+  <div class="results" id="r2"></div>
+  <div class="selected-box" id="sel2">선택된 곡 없음</div>
+
+  <div class="preview" id="preview"></div>
+
+  <div class="btn-row">
+    <button class="btn btn-outline" onclick="reset()">초기화</button>
+    <button class="btn btn-main" id="mergeBtn" onclick="doMerge()" disabled>🔀 병합 실행</button>
+  </div>
+</div>
+
+<div id="log"></div>
+
+<script>
+const SB_URL = 'https://rmtysrytveexshwzenxj.supabase.co';
+const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdHlzcnl0dmVleHNod3plbnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjQ3OTYsImV4cCI6MjA5MjEwMDc5Nn0.5FzzJ1rg-uRG4jAGZ75xVT3i3NH0m6J_tDeOS4GxyT8';
+const RH = {'apikey':KEY,'Authorization':'Bearer '+KEY};
+const JH = {'Content-Type':'application/json','apikey':KEY,'Authorization':'Bearer '+KEY,'Prefer':'return=minimal'};
+
+let songs = [];
+let sel1 = null, sel2 = null;
+let ignoredPairs = new Set(); // 무시할 쌍 저장
+
+async function init() {
+  const res = await fetch(`${SB_URL}/rest/v1/songs?select=id,name,status,count,has_score&limit=2000&order=name`, {headers:RH});
+  songs = await res.json();
+}
+init();
+
+// ── 정규화 ───────────────────────────────────────
+function norm(s) { return s.replace(/\s+/g,' ').trim().toLowerCase(); }
+
+// 괄호 안 내용 제거한 핵심 이름
+function core(s) {
+  return s.replace(/\([^)]*\)/g,'').replace(/\[[^\]]*\]/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+}
+
+// ── 유사 곡 탐지 ──────────────────────────────────
+function dismissPair(idx) {
+  const p = window._pairs[idx];
+  const key = [p.a.id, p.b.id].sort().join('_');
+  ignoredPairs.add(key);
+  const el = document.getElementById('sim-group-'+idx);
+  if (el) {
+    el.style.transition = 'opacity .3s';
+    el.style.opacity = '0';
+    setTimeout(() => el.remove(), 300);
+  }
+  // 남은 쌍 수 업데이트
+  const remaining = window._pairs.filter((p,i) => {
+    const k = [p.a.id,p.b.id].sort().join('_');
+    return !ignoredPairs.has(k);
+  }).length;
+  const countEl = document.getElementById('sim-count');
+  if (countEl) countEl.textContent = `${remaining}쌍`;
+}
+
+function scanSimilar() {
+  const btn = document.getElementById('scanBtn');
+  btn.disabled = true; btn.textContent = '탐지 중...';
+  const result = document.getElementById('sim-result');
+  result.innerHTML = '';
+
+  const pairs = [];
+  const seen = new Set();
+
+  for (let i = 0; i < songs.length; i++) {
+    for (let j = i+1; j < songs.length; j++) {
+      const a = songs[i], b = songs[j];
+      const key = [a.id,b.id].sort().join('_');
+      if (seen.has(key)) continue;
+
+      const na = norm(a.name), nb = norm(b.name);
+      const ca = core(a.name), cb = core(b.name);
+      let reason = '';
+
+      // 1. 공백만 다른 경우
+      if (na.replace(/\s/g,'') === nb.replace(/\s/g,'') && na !== nb) {
+        reason = '공백 차이';
+      }
+      // 2. 핵심 이름이 같은 경우 (괄호 제거 후)
+      else if (ca && cb && ca === cb && na !== nb) {
+        reason = '괄호 제거 후 동일';
+      }
+      // 3. 한쪽이 다른쪽을 포함하는 경우 (짧은 쪽이 3글자 이상)
+      else if (ca.length >= 4 && cb.length >= 4) {
+        if (na.includes(nb) || nb.includes(na)) {
+          reason = '이름 포함 관계';
+        } else if (ca.includes(cb) || cb.includes(ca)) {
+          reason = '핵심 이름 포함';
+        }
+      }
+
+      if (reason) {
+        pairs.push({a, b, reason});
+        seen.add(key);
+      }
+    }
+  }
+
+  // 이미 무시한 쌍 제외
+  const filteredPairs = pairs.filter(p => {
+    const key = [p.a.id,p.b.id].sort().join('_');
+    return !ignoredPairs.has(key);
+  });
+
+  if (!filteredPairs.length) {
+    result.innerHTML = '<div class="no-sim">🎉 유사한 곡명이 발견되지 않았어요!</div>';
+  } else {
+    result.innerHTML = `<div style="font-size:.78rem;color:#6b6560;margin-bottom:.5rem"><span id="sim-count">${filteredPairs.length}쌍</span>의 유사 곡명을 발견했어요. 다른 곡이면 "다른 곡" 버튼으로 무시하세요.</div>` +
+    filteredPairs.map((p,idx) => {
+      const ba = p.a.status==='used'?'b-used':p.a.status==='ready'?'b-ready':'b-plan';
+      const la = p.a.status==='used'?`${p.a.count}회`:p.a.status==='ready'?'악보완료':'예정';
+      const bb = p.b.status==='used'?'b-used':p.b.status==='ready'?'b-ready':'b-plan';
+      const lb = p.b.status==='used'?`${p.b.count}회`:p.b.status==='ready'?'악보완료':'예정';
+      const origIdx = pairs.indexOf(p);
+      return `<div class="sim-group" id="sim-group-${origIdx}">
+        <div class="sim-head">
+          <span>유사 ${idx+1} — ${p.reason}</span>
+          <button class="sim-dismiss" onclick="dismissPair(${origIdx})">🚫 다른 곡이에요</button>
+        </div>
+        <div class="sim-items">
+          <div class="sim-item">
+            <span class="sim-name">${p.a.name}<span class="badge ${ba}">${la}</span></span>
+            <button class="sim-use-btn" onclick="fillFrom(${origIdx},'del')">삭제할 곡</button>
+            <button class="sim-use-btn" onclick="fillFrom(${origIdx},'keep')">남길 곡</button>
+          </div>
+          <div class="sim-item">
+            <span class="sim-name">${p.b.name}<span class="badge ${bb}">${lb}</span></span>
+            <button class="sim-use-btn" onclick="fillFrom(${origIdx},'keep2')">남길 곡</button>
+            <button class="sim-use-btn" onclick="fillFrom(${origIdx},'del2')">삭제할 곡</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    window._pairs = pairs;
+  }
+
+  btn.disabled = false; btn.textContent = '다시 탐지';
+}
+
+function fillFrom(idx, role) {
+  const p = window._pairs[idx];
+  if (role==='del') { selectSong(1, p.a); selectSong(2, p.b); }
+  else if (role==='keep') { selectSong(1, p.b); selectSong(2, p.a); }
+  else if (role==='keep2') { selectSong(1, p.a); selectSong(2, p.b); }
+  else if (role==='del2') { selectSong(1, p.b); selectSong(2, p.a); }
+  // 병합 섹션으로 스크롤
+  document.querySelector('.card:nth-child(2)').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// ── 검색 / 선택 ───────────────────────────────────
+function search(num) {
+  const q = norm(document.getElementById('q'+num).value);
+  const res = document.getElementById('r'+num);
+  if (!q) { res.style.display='none'; return; }
+  const matches = songs.filter(s => norm(s.name).includes(q)).slice(0,10);
+  if (!matches.length) { res.style.display='none'; return; }
+  res.style.display = 'block';
+  res.innerHTML = matches.map(s => {
+    const bc = s.status==='used'?'b-used':s.status==='ready'?'b-ready':'b-plan';
+    const bl = s.status==='used'?`사용 ${s.count}회`:s.status==='ready'?'악보 완료':'작업 예정';
+    return `<div class="ri" onclick="select(${num},'${s.id}')">${s.name}<span class="badge ${bc}">${bl}</span></div>`;
+  }).join('');
+}
+
+function select(num, id) {
+  const song = songs.find(s=>s.id===id);
+  selectSong(num, song);
+  document.getElementById('r'+num).style.display='none';
+}
+
+function selectSong(num, song) {
+  if (num===1) { sel1=song; document.getElementById('q1').value=song.name; }
+  else { sel2=song; document.getElementById('q2').value=song.name; }
+  const bc=song.status==='used'?'b-used':song.status==='ready'?'b-ready':'b-plan';
+  const bl=song.status==='used'?`사용 ${song.count}회`:song.status==='ready'?'악보 완료':'작업 예정';
+  const box=document.getElementById('sel'+num);
+  box.className='selected-box filled';
+  box.innerHTML=`${song.name}<span class="badge ${bc}">${bl}</span>`;
+  document.getElementById('r'+num).style.display='none';
+  updatePreview();
+}
+
+function updatePreview() {
+  const preview=document.getElementById('preview');
+  const btn=document.getElementById('mergeBtn');
+  if (!sel1||!sel2){preview.style.display='none';btn.disabled=true;return;}
+  if (sel1.id===sel2.id){
+    preview.style.display='block';
+    preview.innerHTML='<h4>⚠️ 같은 곡을 선택했어요!</h4>';
+    btn.disabled=true; return;
+  }
+  const total=(sel1.count||0)+(sel2.count||0);
+  const st=total>0?`사용 ${total}회`:sel2.status==='ready'?'악보 완료':'작업 예정';
+  preview.style.display='block';
+  preview.innerHTML=`<h4>🔀 병합 미리보기</h4>
+    <b>"${sel1.name}"</b> (${sel1.count||0}회) + <b>"${sel2.name}"</b> (${sel2.count||0}회)<br>
+    → <b>"${sel2.name}"</b> 으로 통합 · 총 <b>${st}</b><br>
+    → 주일기록 <b>"${sel1.name}"</b> → <b>"${sel2.name}"</b> 일괄 변경<br>
+    → <b>"${sel1.name}"</b> 삭제`;
+  btn.disabled=false;
+}
+
+// ── 병합 실행 ─────────────────────────────────────
+function log(msg,cls=''){
+  const el=document.getElementById('log');
+  el.style.display='block';
+  el.innerHTML+=`<span class="${cls}">${msg}</span>\n`;
+  el.scrollTop=el.scrollHeight;
+}
+
+async function doMerge() {
+  if(!sel1||!sel2||sel1.id===sel2.id) return;
+  if(!confirm(`"${sel1.name}" 을 "${sel2.name}" 으로 병합할까요?\n되돌릴 수 없어요!`)) return;
+  const btn=document.getElementById('mergeBtn');
+  btn.disabled=true;
+  document.getElementById('log').innerHTML='';
+  try {
+    const total=(sel1.count||0)+(sel2.count||0);
+    const status=total>0?'used':sel2.status;
+    const has_score=sel1.has_score||sel2.has_score;
+
+    log(`🔄 "${sel2.name}" 업데이트 중...`,'info');
+    await fetch(`${SB_URL}/rest/v1/songs?id=eq.${sel2.id}`,{method:'PATCH',headers:JH,
+      body:JSON.stringify({count:total,status,has_score,updated_at:new Date().toISOString()})});
+    log(`✓ 사용 횟수 ${total}회로 업데이트`,'ok');
+
+    log(`🔄 주일기록 곡명 변경 중...`,'info');
+    const hr=await fetch(`${SB_URL}/rest/v1/worship_history?select=id,song_names,song_ids&limit=500`,{headers:RH});
+    const histories=await hr.json();
+    let hFixed=0;
+    for(const h of histories){
+      const names=h.song_names||[];
+      if(names.includes(sel1.name)){
+        const newNames=names.map(n=>n===sel1.name?sel2.name:n);
+        const newIds=(h.song_ids||[]).map((id,i)=>names[i]===sel1.name?sel2.id:id);
+        await fetch(`${SB_URL}/rest/v1/worship_history?id=eq.${h.id}`,{method:'PATCH',headers:JH,
+          body:JSON.stringify({song_names:newNames,song_ids:newIds})});
+        hFixed++;
+      }
+    }
+    log(`✓ 주일기록 ${hFixed}건 변경`,'ok');
+
+    log(`🗑 "${sel1.name}" 삭제 중...`,'info');
+    await fetch(`${SB_URL}/rest/v1/songs?id=eq.${sel1.id}`,{method:'DELETE',headers:JH});
+    log(`✓ 삭제 완료`,'ok');
+
+    songs=songs.filter(s=>s.id!==sel1.id);
+    const idx=songs.findIndex(s=>s.id===sel2.id);
+    if(idx>=0){songs[idx].count=total;songs[idx].status=status;}
+
+    log('');
+    log(`✅ 병합 완료! "${sel1.name}" → "${sel2.name}"`,'ok');
+    reset();
+    // 탐지 결과 새로고침
+    if(window._pairs) scanSimilar();
+  } catch(e){
+    log(`✗ 오류: ${e.message}`,'err');
+  }
+  btn.disabled=false;
+}
+
+function reset(){
+  sel1=null;sel2=null;
+  ['q1','q2'].forEach(id=>document.getElementById(id).value='');
+  ['r1','r2'].forEach(id=>{document.getElementById(id).style.display='none';});
+  ['sel1','sel2'].forEach(id=>{
+    document.getElementById(id).className='selected-box';
+    document.getElementById(id).textContent='선택된 곡 없음';
+  });
+  document.getElementById('preview').style.display='none';
+  document.getElementById('mergeBtn').disabled=true;
+}
+</script>
+</body>
+</html>

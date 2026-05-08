@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>악보 상태 동기화</title>
+<style>
+body{font-family:sans-serif;max-width:640px;margin:2rem auto;padding:1rem;background:#faf8f5}
+h1{font-size:1.3rem;margin-bottom:.5rem}
+p{font-size:.85rem;color:#6b6560;margin-bottom:1rem;line-height:1.6}
+.btn{padding:.7rem 1.5rem;background:#2d5a8e;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;width:100%;margin-bottom:.5rem}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+#log{margin-top:1rem;padding:1rem;background:#f4f1eb;border-radius:8px;font-size:.78rem;line-height:1.8;white-space:pre-wrap;max-height:500px;overflow-y:auto}
+.ok{color:#3a7a52}.err{color:#b0281f}.info{color:#2d5a8e}.warn{color:#c4913a}
+#summary{background:#eaf0f8;border-radius:8px;padding:10px 14px;font-size:.82rem;margin-bottom:1rem;display:none;line-height:1.8}
+</style>
+</head>
+<body>
+<h1>🎼 악보 상태 동기화</h1>
+<p>Storage 실제 파일 기준으로 <code>has_score</code> 업데이트 + <br>
+<b>악보 완료인데 파일 없는 곡 → 작업 예정으로 자동 변경</b>합니다.</p>
+<button class="btn" id="btn" onclick="syncScores()">🔄 동기화 시작</button>
+<div id="summary"></div>
+<div id="log">버튼을 눌러 시작하세요</div>
+<script>
+const SB_URL = 'https://rmtysrytveexshwzenxj.supabase.co';
+const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdHlzcnl0dmVleHNod3plbnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjQ3OTYsImV4cCI6MjA5MjEwMDc5Nn0.5FzzJ1rg-uRG4jAGZ75xVT3i3NH0m6J_tDeOS4GxyT8';
+const RH = {'apikey':KEY,'Authorization':'Bearer '+KEY};
+const JH = {'Content-Type':'application/json','apikey':KEY,'Authorization':'Bearer '+KEY,'Prefer':'return=minimal'};
+
+function log(msg, cls='') {
+  const el = document.getElementById('log');
+  el.innerHTML += `<span class="${cls}">${msg}</span>\n`;
+  el.scrollTop = el.scrollHeight;
+}
+
+async function listScores(songId) {
+  const res = await fetch(`${SB_URL}/storage/v1/object/list/scores`, {
+    method:'POST',
+    headers:{...RH,'Content-Type':'application/json'},
+    body: JSON.stringify({prefix: songId+'/', limit:10})
+  });
+  if (!res.ok) return [];
+  const data = await res.json();
+  return Array.isArray(data) ? data.filter(f => f.name && !f.name.endsWith('/')) : [];
+}
+
+async function patch(id, body) {
+  await fetch(`${SB_URL}/rest/v1/songs?id=eq.${id}`, {
+    method:'PATCH', headers: JH,
+    body: JSON.stringify({...body, updated_at: new Date().toISOString()})
+  });
+}
+
+async function syncScores() {
+  const btn = document.getElementById('btn');
+  btn.disabled = true;
+  document.getElementById('log').innerHTML = '';
+
+  log('📋 전체 곡 불러오는 중...', 'info');
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/songs?select=id,name,status,has_score&limit=2000`, {headers: RH});
+    const songs = await res.json();
+    log(`✓ 총 ${songs.length}곡\n`, 'ok');
+
+    let cntHas=0, cntNo=0, cntFixed=0, cntStatusFixed=0, cntOk=0;
+
+    for (let i = 0; i < songs.length; i++) {
+      const s = songs[i];
+      const files = await listScores(s.id);
+      const actualHasScore = files.length > 0;
+
+      let updates = {};
+      let changed = false;
+
+      // 1. has_score 불일치 수정
+      if (actualHasScore !== !!s.has_score) {
+        updates.has_score = actualHasScore;
+        changed = true;
+      }
+
+      // 2. 악보 완료인데 파일 없음 → 작업 예정으로
+      if (!actualHasScore && s.status === 'ready') {
+        updates.status = 'plan';
+        changed = true;
+        log(`🔄 "${s.name}" — 악보 완료 → 작업 예정 (파일 없음)`, 'warn');
+        cntStatusFixed++;
+      }
+
+      // 3. 파일 있는데 작업 예정 → 악보 완료로
+      if (actualHasScore && s.status === 'plan') {
+        updates.status = 'ready';
+        updates.has_score = true;
+        changed = true;
+        log(`✓ "${s.name}" — 작업 예정 → 악보 완료 (파일 있음)`, 'ok');
+        cntStatusFixed++;
+      }
+
+      if (changed) {
+        await patch(s.id, updates);
+        if (!updates.status) log(`✓ has_score 수정: "${s.name}"`, 'ok');
+        cntFixed++;
+      } else {
+        cntOk++;
+      }
+
+      if (actualHasScore) cntHas++; else cntNo++;
+
+      if ((i+1) % 20 === 0) {
+        log(`... ${i+1}/${songs.length}곡 처리 중`, 'info');
+      }
+    }
+
+    log('');
+    log(`✅ 동기화 완료!`, 'ok');
+    log(`악보 있음: ${cntHas}곡`, 'ok');
+    log(`악보 없음: ${cntNo}곡`, 'warn');
+    log(`has_score 수정: ${cntFixed}곡`, cntFixed>0?'ok':'info');
+    log(`상태 변경: ${cntStatusFixed}곡`, cntStatusFixed>0?'warn':'info');
+    log(`이미 정확: ${cntOk}곡`, 'info');
+
+    const sum = document.getElementById('summary');
+    sum.style.display = 'block';
+    sum.innerHTML = `✅ 동기화 완료<br>
+악보 있음 <b>${cntHas}곡</b> · 악보 없음 <b>${cntNo}곡</b><br>
+has_score 수정 <b>${cntFixed}곡</b> · 상태 변경 <b>${cntStatusFixed}곡</b>`;
+
+  } catch(e) {
+    log(`✗ 오류: ${e.message}`, 'err');
+  }
+  btn.disabled = false;
+  btn.textContent = '다시 실행';
+}
+</script>
+</body>
+</html>
