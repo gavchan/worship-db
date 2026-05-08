@@ -625,6 +625,7 @@ async function openSongViewer(){
   const v=document.getElementById('viewer');
   v.dataset.mode='song';
   v.classList.add('show');
+  await enterPerformanceFullscreen();
   await requestWakeLock();
   await buildViewerFlatPages(activeIdx);
   preloadViewerPages(viewerFlatIndex);
@@ -726,12 +727,19 @@ function renderPerformanceBodyOnly(){
   const nextLabel=nextItem?pageLabel(nextItem):'마지막';
   body.innerHTML=`<div class="viewer-stage ${mode===2?'two':'one'}">${pages.join('')}<div class="viewer-bottom light-text"><div class="v-cell v-prev"><small>이전</small>${esc(prevLabel)}</div><div class="v-cell v-current"><small>현재</small>${item.songIndex+1}. ${esc(item.song.name)} · ${esc(pageInfo)}</div><div class="v-cell v-next"><small>다음</small>${esc(nextLabel)}</div></div></div>`;
 }
+
+async function enterPerformanceFullscreen(){
+  const v=document.getElementById('viewer');
+  try{ if(v?.requestFullscreen && !document.fullscreenElement) await v.requestFullscreen(); }catch(e){}
+}
+function exitPerformanceFullscreen(){try{ if(document.fullscreenElement) document.exitFullscreen(); }catch(e){} }
+
 async function requestWakeLock(){
   try{ if('wakeLock' in navigator){ wakeLock=await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release',()=>{wakeLock=null}); } }
   catch(e){ wakeLock=null; toast('화면 유지가 지원되지 않으면 기기 자동잠금을 꺼주세요'); }
 }
 async function releaseWakeLock(){ try{ if(wakeLock){ await wakeLock.release(); wakeLock=null; } }catch(e){} }
-function closeViewer(){document.getElementById('viewer').classList.remove('show');releaseWakeLock();if(singleViewerBackup){contiSongs=singleViewerBackup.contiSongs;activeIdx=singleViewerBackup.activeIdx;currentConti=singleViewerBackup.currentConti;singleViewerBackup=null;renderHome();}}
+function closeViewer(){document.getElementById('viewer').classList.remove('show');exitPerformanceFullscreen();releaseWakeLock();if(singleViewerBackup){contiSongs=singleViewerBackup.contiSongs;activeIdx=singleViewerBackup.activeIdx;currentConti=singleViewerBackup.currentConti;singleViewerBackup=null;renderHome();}}
 
 function renderSongCards(){const q=norm(document.getElementById('song-q')?.value||'');const f=document.getElementById('song-filter')?.value||'all';let list=songs.filter(s=>{if(q&&!norm(s.name).includes(q))return false;if(f==='ready')return s.status==='ready'||s.has_score;if(f==='no_score')return !s.has_score;if(f==='video')return !!s.music_url;if(f==='used')return s.status==='used';return true}).slice(0,90);document.getElementById('song-grid').innerHTML=list.map(s=>{const seas=s.seasons||[];const mainTags=[...(seas.filter(t=>!liturgy.includes(t)).slice(0,1)),...(seas.filter(t=>liturgy.includes(t)).slice(0,1))];return `<div class="song-card" onclick="openSongDetail('${s.id}')"><h4>${esc(s.name)}</h4><div class="meta">${esc(songMeta(s))}</div><div class="pill-row" style="margin-top:9px">${mainTags.map(t=>`<span class="pill">${esc(t)}</span>`).join('')}<span class="pill">${s.has_score?'악보 있음':'악보 없음'}</span>${s.music_url?'<span class="pill">영상 있음</span>':''}</div><div class="memo">${esc(s.memo||'등록된 메모 없음')}</div><div class="btn-row"><button class="mini-btn white" onclick="event.stopPropagation();addDbSongToConti('${s.id}')">콘티 추가</button><button class="mini-btn" onclick="event.stopPropagation();openDbYoutube('${s.id}')">영상보기</button><button class="mini-btn" onclick="event.stopPropagation();openSongEdit('${s.id}')">수정</button></div></div>`}).join('')||'<div class="loading">검색 결과가 없습니다.</div>'}
 

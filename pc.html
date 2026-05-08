@@ -268,19 +268,32 @@ body.dark{--bg:#111315;--surface:#191c20;--surface2:#22262b;--border:#2e343b;--b
 .current-setlist-strip{max-width:1180px;margin:8px auto 0;padding:0 16px;display:flex;gap:8px;align-items:center;justify-content:flex-end;color:var(--text2);font-size:.75rem}.current-setlist-strip select{border:1px solid var(--border2);border-radius:999px;background:var(--surface);color:var(--text1);padding:7px 12px;font-size:.75rem;outline:none}.tempo-filter{width:84px;border:1px solid var(--border2);border-radius:8px;background:var(--bg);color:var(--text1);padding:.45rem .5rem;font-size:.75rem;outline:none}
 @media(max-width:980px){.song-list-head,.song-list-row{grid-template-columns:minmax(150px,1.4fr) 70px 76px 1fr 86px}.song-detail-panel{grid-template-columns:1fr}.song-list-body{max-height:430px}.song-detail-grid{grid-template-columns:1fr}}
 
+
+
+/* 2026 desktop compact workflow refresh */
+.compact-header{padding:10px 16px!important;position:sticky;top:0;z-index:60;background:linear-gradient(135deg,#17345c,#10213b)!important;box-shadow:0 10px 28px rgba(0,0,0,.14)}
+.compact-topbar{max-width:1180px;margin:0 auto;display:grid!important;grid-template-columns:auto minmax(280px,1fr) auto;align-items:center!important;gap:14px!important}.brand-mini h1{font-size:1.08rem!important;margin:0!important;white-space:nowrap;letter-spacing:-.03em}.brand-mini p{display:none!important}.compact-stats{display:flex!important;justify-content:center;align-items:center;gap:6px!important;padding:0!important;background:transparent!important;border:0!important}.compact-stats .si{all:unset;box-sizing:border-box;display:inline-flex!important;align-items:center;gap:4px;min-height:0!important;border:1px solid rgba(255,255,255,.16)!important;border-radius:999px!important;background:rgba(255,255,255,.08)!important;color:white!important;padding:5px 8px!important;cursor:pointer;backdrop-filter:blur(10px);font-weight:900;transition:.16s}.compact-stats .si::before{content:attr(data-icon);display:inline-flex!important;width:auto!important;height:auto!important;margin:0!important;background:transparent!important;color:inherit!important;font-size:.78rem!important}.compact-stats .si::after{display:none!important}.compact-stats .sn{font-size:.78rem!important;color:white!important;line-height:1}.compact-stats .sl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.compact-stats .si:hover,.compact-stats .si.active{background:white!important;color:#10213b!important;transform:translateY(-1px)}.compact-stats .si.active .sn,.compact-stats .si:hover .sn{color:#10213b!important}.top-actions{margin:0!important}.theme-toggle{width:32px!important;height:32px!important;font-size:.85rem!important}.sync-status.led-only{height:32px!important;padding:0 9px!important;gap:7px}.sync-status.led-only #sync-txt{font-size:.66rem!important;max-width:72px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tabs{max-width:1180px;margin:8px auto 0!important;padding:0 16px!important;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px!important}.tabs .tab{border-radius:999px!important;padding:9px 12px!important;min-height:38px!important;box-shadow:none!important}.tabs .tab-ico{width:22px!important;height:22px!important;font-size:.82rem!important}.tools-tab{position:relative;overflow:hidden}.hold-ring{position:absolute;left:0;bottom:0;height:3px;width:0;background:linear-gradient(90deg,#f59e0b,#22c55e);transition:width .05s linear}.tools-tab.holding .hold-ring{width:100%;transition:width 4s linear}.current-setlist-strip{max-width:1180px!important;margin:8px auto 0!important;padding:0 16px!important;justify-content:flex-start!important}.current-setlist-strip select{min-width:260px}.desktop-controls{max-width:1180px;margin:8px auto 0!important;padding:0 16px!important;background:transparent!important;border:0!important;box-shadow:none!important}.desktop-search-row{display:grid;grid-template-columns:minmax(260px,1fr) auto auto;align-items:center;gap:8px}.search-wide{margin:0!important}.filter-toggle{border:1px solid var(--border2);background:var(--surface);color:var(--text1);border-radius:999px;padding:9px 13px;font-size:.75rem;font-weight:900;cursor:pointer}.filter-toggle.on{background:var(--accent);border-color:var(--accent);color:white}.filter-panel{display:none;margin-top:8px;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}.filter-panel.show{display:grid}.filter-panel select,.filter-panel input{width:100%;padding:.48rem .55rem;border:1px solid var(--border2);border-radius:10px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.74rem;color:var(--text1);outline:none}.song-library-shell{padding-top:8px!important}.song-list-body{max-height:520px!important}.song-list-row{min-height:44px!important;padding:7px 14px!important}.song-detail-empty{min-height:210px!important}.song-detail-actions{display:grid!important;grid-template-columns:1fr auto;gap:8px!important;align-items:start}.song-action-lines{display:grid;gap:7px}.song-action-line{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.song-action-line .ab{justify-content:center}.song-delete-icon{width:36px!important;height:36px!important;padding:0!important;border-radius:999px!important;display:flex!important;align-items:center;justify-content:center!important;color:var(--red)!important;background:var(--red-bg)!important;border-color:rgba(176,40,31,.18)!important}.history-card{position:relative}.history-delete-mini{position:absolute;right:7px;top:7px;width:25px;height:25px;border:0;border-radius:999px;background:var(--red-bg);color:var(--red);font-size:.75rem;cursor:pointer;opacity:.55;z-index:2}.history-delete-mini:hover{opacity:1}.fake-pass-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:900;align-items:center;justify-content:center;padding:16px}.fake-pass-modal.show{display:flex}.fake-pass-box{width:min(340px,94vw);border-radius:22px;background:var(--surface);border:1px solid var(--border);box-shadow:0 24px 80px rgba(0,0,0,.25);padding:18px}.fake-pass-box h3{margin:0 0 8px;color:var(--text1)}.fake-pass-box p{font-size:.8rem;color:var(--text2);line-height:1.5}.fake-pass-box input{width:100%;box-sizing:border-box;border:1px solid var(--border2);border-radius:12px;background:var(--bg);color:var(--text1);padding:11px;margin:10px 0}.fake-pass-actions{display:flex;gap:8px;justify-content:flex-end}.fake-pass-actions button{border:1px solid var(--border);background:var(--surface2);color:var(--text1);border-radius:999px;padding:8px 12px;cursor:pointer}.fake-pass-actions .deny{background:var(--accent);color:white;border-color:var(--accent)}
+@media(max-width:900px){.compact-topbar{grid-template-columns:1fr auto}.compact-stats{grid-column:1/-1;justify-content:flex-start;overflow:auto}.tabs{grid-template-columns:repeat(2,1fr)}.desktop-search-row{grid-template-columns:1fr auto}.desktop-search-row .cb{grid-column:1/-1}.filter-panel{grid-template-columns:repeat(2,1fr)}.current-setlist-strip{flex-wrap:wrap}.song-detail-actions{grid-template-columns:1fr}.song-delete-icon{width:100%!important}.song-action-line{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="topbar">
-    <div>
+<div class="header compact-header">
+  <div class="topbar compact-topbar">
+    <div class="brand-mini">
       <h1>드림찬양단 Worship DB</h1>
-      <p>데스크탑 버전 · 예배 준비와 기록을 한곳에서</p>
+    </div>
+    <div class="stats compact-stats" aria-label="빠른 상태 필터">
+      <button class="si stat-filter all" data-icon="♪" data-filter="all" onclick="statFilter('all')" title="전체곡"><span class="sn" id="st-total">-</span><span class="sl">전체곡</span></button>
+      <button class="si stat-filter ready" data-icon="✓" data-filter="ready" onclick="statFilter('ready')" title="악보완료"><span class="sn" id="st-ready">-</span><span class="sl">악보완료</span></button>
+      <button class="si stat-filter plan" data-icon="…" data-filter="no_score" onclick="statFilter('no_score')" title="악보준비중"><span class="sn" id="st-plan">-</span><span class="sl">준비중</span></button>
+      <button class="si stat-filter video" data-icon="▶" data-filter="video" onclick="statFilter('video')" title="영상있음"><span class="sn" id="st-video">-</span><span class="sl">영상</span></button>
+      <button class="si stat-filter used" data-icon="↺" data-filter="used" onclick="statFilter('used')" title="사용이력"><span class="sn" id="st-used">-</span><span class="sl">사용</span></button>
     </div>
     <div class="top-actions">
-      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="화면 모드 전환">☀️</button>
-      <div class="sync-status" title="자료 연결 상태">
+      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="주간/야간 모드 전환">☀️</button>
+      <div class="sync-status led-only" title="자료 연결 상태">
         <span class="dot" id="dot"></span>
         <span id="sync-txt">자료 확인 중...</span>
       </div>
@@ -288,18 +301,10 @@ body.dark{--bg:#111315;--surface:#191c20;--surface2:#22262b;--border:#2e343b;--b
   </div>
 </div>
 
-<div class="stats">
-  <div class="si stat-filter used" data-icon="↺" data-filter="used" onclick="statFilter('used')"><span class="sn" id="st-used">-</span><div class="sl">사용 이력</div></div>
-  <div class="si stat-filter ready" data-icon="✓" data-filter="ready" onclick="statFilter('ready')"><span class="sn" id="st-ready">-</span><div class="sl">악보 완료</div></div>
-  <div class="si stat-filter all" data-icon="♪" data-filter="all" onclick="statFilter('all')"><span class="sn" id="st-total">-</span><div class="sl">전체 곡</div></div>
-  <div class="si stat-filter plan" data-icon="…" data-filter="no_score" onclick="statFilter('no_score')"><span class="sn" id="st-plan">-</span><div class="sl">악보 준비중</div></div>
-  <div class="si stat-filter video" data-icon="▶" data-filter="video" onclick="statFilter('video')"><span class="sn" id="st-video">-</span><div class="sl">영상 있음</div></div>
-</div>
-
 <div class="tabs">
   <button class="tab on" onclick="switchTab('songs',this)"><span class="tab-ico">🎵</span><span>찬양곡</span></button>
   <button class="tab" onclick="switchTab('history',this)"><span class="tab-ico">📅</span><span>주일기록</span></button>
-  <button class="tab" onclick="switchTab('tools',this)"><span class="tab-ico">🛠</span><span>관리도구</span></button>
+  <button class="tab tools-tab" id="tools-tab" onclick="guardToolsClick(event,this)" onpointerdown="startToolsHold(event,this)" onpointerup="cancelToolsHold()" onpointerleave="cancelToolsHold()"><span class="tab-ico">🛠</span><span>관리도구</span><i class="hold-ring"></i></button>
   <button class="tab" onclick="location.href='mobile.html'"><span class="tab-ico">📱</span><span>모바일보기</span></button>
 </div>
 
@@ -312,22 +317,26 @@ body.dark{--bg:#111315;--surface:#191c20;--surface2:#22262b;--border:#2e343b;--b
 </div>
 
 <div id="tab-songs">
-<div class="controls">
-  <div class="sw">
-    <span class="si-icon">🔍</span>
-    <input type="text" id="q" placeholder="곡명으로 검색..." oninput="render()">
+<div class="controls desktop-controls">
+  <div class="desktop-search-row">
+    <div class="sw search-wide">
+      <span class="si-icon">🔍</span>
+      <input type="text" id="q" placeholder="곡명 검색..." oninput="render()">
+    </div>
+    <button class="filter-toggle" id="filter-toggle" onclick="toggleFilterPanel()">검색필터</button>
+    <div class="cb" id="cnt"></div>
   </div>
-  <div style="display:flex;gap:6px;margin-top:.4rem;flex-wrap:nowrap">
-    <select id="sel-filt" onchange="sfSel(this.value)" style="flex:1;padding:.45rem .4rem;border:1px solid var(--border2);border-radius:8px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.75rem;color:var(--text1);outline:none;min-width:0">
-      <option value="all">상태 필터</option>
+  <div class="filter-panel" id="filter-panel">
+    <select id="sel-filt" onchange="sfSel(this.value)">
+      <option value="all">상태 전체</option>
       <option value="used">사용 이력</option>
       <option value="ready">악보 완료</option>
-      <option value="no_score">악보 없음</option>
+      <option value="no_score">악보 준비중</option>
       <option value="plan">작업 예정</option>
       <option value="top">⭐ TOP 10</option>
     </select>
-    <select id="sel-situ" onchange="sfDrop(this.value,'situ')" style="flex:1;padding:.45rem .4rem;border:1px solid var(--border2);border-radius:8px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.75rem;color:var(--text1);outline:none;min-width:0">
-      <option value="">🏷 상황별</option>
+    <select id="sel-situ" onchange="sfDrop(this.value,'situ')">
+      <option value="">상황별</option>
       <option value="경배·예배">경배·예배</option>
       <option value="감사·은혜">감사·은혜</option>
       <option value="회개·정결">회개·정결</option>
@@ -345,19 +354,23 @@ body.dark{--bg:#111315;--surface:#191c20;--surface2:#22262b;--border:#2e343b;--b
       <option value="가족·교제·나눔">가족·교제</option>
       <option value="평강·평안">평강·평안</option>
     </select>
-    <select id="sel-seas" onchange="sfDrop(this.value,'seas')" style="flex:1;padding:.45rem .4rem;border:1px solid var(--border2);border-radius:8px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.75rem;color:var(--text1);outline:none;min-width:0">
-      <option value="">📅 절기별</option>
+    <select id="sel-seas" onchange="sfDrop(this.value,'seas')">
+      <option value="">절기별</option>
       <option value="대림절">대림절</option>
       <option value="성탄절">성탄절</option>
       <option value="주현절">주현절</option>
       <option value="사순절">사순절</option>
       <option value="고난주간">고난주간</option>
+      <option value="종려주일">종려주일</option>
+      <option value="성금요일">성금요일</option>
       <option value="부활절">부활절</option>
       <option value="성령강림절">성령강림절</option>
+      <option value="맥추감사절">맥추감사절</option>
       <option value="추수감사절">추수감사절</option>
+      <option value="송구영신">송구영신</option>
+      <option value="신년">신년</option>
     </select>
-    <input id="tempo-filter" class="tempo-filter" type="number" min="1" placeholder="BPM" oninput="render()" title="입력한 BPM이 범위 안에 들어가는 곡만 표시">
-    <select id="sel-sort" onchange="ssDrop(this.value)" style="flex:1;padding:.45rem .4rem;border:1px solid var(--border2);border-radius:8px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.75rem;color:var(--text1);outline:none;min-width:0">
+    <select id="sel-sort" onchange="ssDrop(this.value)">
       <option value="name">가나다순</option>
       <option value="status">상태별</option>
       <option value="count">사용 많은순</option>
@@ -365,8 +378,8 @@ body.dark{--bg:#111315;--surface:#191c20;--surface2:#22262b;--border:#2e343b;--b
       <option value="bpm">템포순</option>
       <option value="created">추가된순</option>
     </select>
+    <input id="tempo-filter" class="tempo-filter" type="number" min="1" placeholder="BPM" oninput="render()" title="입력한 BPM이 범위 안에 들어가는 곡만 표시">
   </div>
-  <div class="cb" id="cnt"></div>
 </div>
   <div class="list" id="list"><div class="loading"><span class="loading-spin">⟳</span>데이터 불러오는 중...</div></div>
 </div>
@@ -620,6 +633,18 @@ body.dark{--bg:#111315;--surface:#191c20;--surface2:#22262b;--border:#2e343b;--b
   </div>
 </div>
 
+<div class="fake-pass-modal" id="fake-pass-modal">
+  <div class="fake-pass-box">
+    <h3>관리도구 접근</h3>
+    <p>권한 확인이 필요합니다.</p>
+    <input type="password" id="fake-pass-input" placeholder="암호 입력">
+    <div class="fake-pass-actions">
+      <button onclick="closeFakePass()">취소</button>
+      <button class="deny" onclick="fakePassFail()">확인</button>
+    </div>
+  </div>
+</div>
+
 <!-- 악보 뷰어 -->
 <div class="viewer-bg" id="viewer">
   <div class="viewer-top">
@@ -669,6 +694,42 @@ function switchTab(tab, btn) {
   document.getElementById('fab').style.display = tab==='songs' ? 'flex' : 'none';
   if (tab==='history') { initYearSelect(); loadHistory(); }
 }
+
+let toolsHoldTimer=null, toolsHoldOK=false;
+function guardToolsClick(e, btn){
+  e.preventDefault();
+  if(toolsHoldOK){ toolsHoldOK=false; switchTab('tools', btn); return; }
+  showFakePass();
+}
+function startToolsHold(e, btn){
+  toolsHoldOK=false;
+  btn.classList.add('holding');
+  clearTimeout(toolsHoldTimer);
+  toolsHoldTimer=setTimeout(()=>{
+    toolsHoldOK=true;
+    btn.classList.remove('holding');
+    switchTab('tools', btn);
+  },4000);
+}
+function cancelToolsHold(){
+  clearTimeout(toolsHoldTimer);
+  document.querySelectorAll('.tools-tab').forEach(b=>b.classList.remove('holding'));
+}
+function showFakePass(){
+  const m=document.getElementById('fake-pass-modal');
+  const i=document.getElementById('fake-pass-input');
+  if(m){m.classList.add('show'); setTimeout(()=>i&&i.focus(),30);} 
+}
+function closeFakePass(){document.getElementById('fake-pass-modal')?.classList.remove('show');}
+function fakePassFail(){showToast('암호가 올바르지 않습니다'); closeFakePass();}
+function toggleFilterPanel(){
+  const p=document.getElementById('filter-panel'), b=document.getElementById('filter-toggle');
+  p?.classList.toggle('show'); b?.classList.toggle('on', p?.classList.contains('show'));
+}
+async function enterFullscreen(el){
+  try{ if(el?.requestFullscreen && !document.fullscreenElement) await el.requestFullscreen(); }catch(e){}
+}
+function exitFullscreenSafe(){try{ if(document.fullscreenElement) document.exitFullscreen(); }catch(e){} }
 
 function openEmbeddedTool(url, title) {
   const modal = document.getElementById('tool-frame-modal');
@@ -748,6 +809,7 @@ async function loadHistory() {
       const isOpen = historyExp===h.id;
       const names = h.song_names||[];
       return `<div class="history-card ${isOpen?'open':''}">
+        <button class="history-delete-mini" title="삭제" onclick="event.stopPropagation();deleteHistory('${h.id}')">🗑</button>
         <div class="history-head" onclick="toggleHistory('${h.id}')">
           <div style="flex-shrink:0">
             <div class="history-week">${weekLabel(h.worship_date)}</div>
@@ -1309,6 +1371,7 @@ async function openViewer(id, name) {
   document.getElementById('viewer-title').textContent = name + ' — 악보';
   document.getElementById('viewer-body').innerHTML = '<div class="viewer-empty"><span>⟳</span>불러오는 중...</div>';
   document.getElementById('viewer').classList.add('show');
+  enterFullscreen(document.getElementById('viewer'));
   try {
     const files = await listScores(id);
     if (!files || files.length===0) {
@@ -1321,7 +1384,7 @@ async function openViewer(id, name) {
     document.getElementById('viewer-body').innerHTML = '<div class="viewer-empty"><span>⚠️</span>불러오기 실패</div>';
   }
 }
-function closeViewer() { document.getElementById('viewer').classList.remove('show'); }
+function closeViewer() { document.getElementById('viewer').classList.remove('show'); exitFullscreenSafe(); }
 async function api(method, path, body) {
   const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
     method, headers: HEADERS, body: body ? JSON.stringify(body) : undefined
@@ -1666,7 +1729,7 @@ function showToast(msg) {
 
 let activeInlineVideoId = null;
 let formKeys = [];
-const LITURGY_TAGS = ['대림절','성탄절','주현절','사순절','고난주간','부활절','성령강림절','추수감사절'];
+const LITURGY_TAGS = ['대림절','성탄절','주현절','사순절','고난주간','종려주일','성금요일','부활절','성령강림절','맥추감사절','추수감사절','송구영신','신년','어린이주일','어버이주일','창립기념','세례식','성찬식'];
 function escHtml(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function jsStr(v){return String(v??'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,' ');}
 function splitKeys(raw){
@@ -1784,11 +1847,17 @@ function selectedSongDetailHtml(song){
         <div class="song-detail-box"><div class="song-detail-label">자료</div><div class="song-detail-value">${song.has_score?'악보 연결됨':'악보 준비중'} · ${song.music_url?'영상 연결됨':'영상 없음'}</div></div>
       </div>
       <div class="song-detail-actions">
-        <button class="ab conti" onclick="addSongToCurrentSetlist('${jsStr(song.id)}')">➕ 콘티추가</button>
-        ${song.has_score?`<button class="ab primary-action" onclick="openViewer('${jsStr(song.id)}','${jsStr(song.name)}')">🎼 악보보기</button>`:`<button class="ab" style="color:var(--red)" onclick="openModal('${jsStr(song.id)}')">🎼 악보 올리기</button>`}
-        <button class="ab" onclick="changeStatus('${jsStr(song.id)}','plan')">작업예정</button>
-        <button class="ab" onclick="openModal('${jsStr(song.id)}')">✏️ 수정</button>
-        <button class="ab red" onclick="deleteSong('${jsStr(song.id)}')">🗑 삭제</button>
+        <div class="song-action-lines">
+          <div class="song-action-line">
+            <button class="ab conti" onclick="addSongToCurrentSetlist('${jsStr(song.id)}')">➕ 콘티추가</button>
+            <button class="ab primary-action" onclick="openModal('${jsStr(song.id)}')">✏️ 수정</button>
+          </div>
+          <div class="song-action-line">
+            ${song.has_score?`<button class="ab" onclick="openViewer('${jsStr(song.id)}','${jsStr(song.name)}')">🎼 악보보기</button>`:`<button class="ab" style="color:var(--red)" onclick="openModal('${jsStr(song.id)}')">⬆ 악보올리기</button>`}
+            <button class="ab" onclick="changeStatus('${jsStr(song.id)}','plan')">작업예정</button>
+          </div>
+        </div>
+        <button class="ab song-delete-icon" title="삭제" onclick="deleteSong('${jsStr(song.id)}')">🗑</button>
       </div>
     </div>
     <div class="song-video-panel">${inlineVideoHtml(song)}</div>
@@ -1847,8 +1916,8 @@ function render() {
     </div>`;
     return;
   }
-  if(!selectedSongId || !list.some(s=>s.id===selectedSongId)) selectedSongId = list[0]?.id || null;
-  const selected = songs.find(s=>s.id===selectedSongId);
+  if(selectedSongId && !list.some(s=>s.id===selectedSongId)) selectedSongId = null;
+  const selected = selectedSongId ? songs.find(s=>s.id===selectedSongId) : null;
   listEl.innerHTML = `<div class="song-library-shell">
     <div class="song-list-table">
       <div class="song-list-head"><div>곡제목</div><div>코드</div><div>BPM</div><div>상황</div><div>악보·영상</div></div>
