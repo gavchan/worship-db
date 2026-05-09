@@ -429,23 +429,54 @@ async function actuallyOpenSongViewer(){
 }
 
 async function goViewerSong(i){
+  await goViewerSongPage(i,0);
+}
+async function goViewerSongPage(i,page='first'){
   activeIdx=Math.max(0,Math.min(i,contiSongs.length-1));
-  viewerPage=0;
   renderFlow();
   await setActiveSong(activeIdx);
-  await renderPerformanceViewer();
+  const song=contiSongs[activeIdx];
+  viewerFiles=[];
+  if(song?.id){
+    viewerFiles=scoreCache[song.id]||await listScores(song.id);
+    scoreCache[song.id]=viewerFiles;
+  }
+  const max=Math.max(0,(viewerFiles?.length||1)-1);
+  if(page==='last'){
+    const spread=(window.PERFORMANCE_LAYOUT==='landscape'&&viewerPageMode===2)?2:1;
+    viewerPage=Math.max(0,max-(spread-1));
+  }else if(typeof page==='number'){
+    viewerPage=Math.max(0,Math.min(max,page));
+  }else{
+    viewerPage=0;
+  }
+  renderPerformanceBodyOnly();
 }
-async function viewerNext(){if(activeIdx<contiSongs.length-1)await goViewerSong(activeIdx+1)}
-async function viewerPrev(){if(activeIdx>0)await goViewerSong(activeIdx-1)}
-function viewerPageStep(delta){
+async function viewerNext(){if(activeIdx<contiSongs.length-1)await goViewerSongPage(activeIdx+1,0)}
+async function viewerPrev(){if(activeIdx>0)await goViewerSongPage(activeIdx-1,'last')}
+async function viewerPageStep(delta){
   const max=Math.max(0,(viewerFiles?.length||1)-1);
   const step=(window.PERFORMANCE_LAYOUT==='landscape'&&viewerPageMode===2)?2:1;
-  const nextPage=Math.max(0,Math.min(max,viewerPage+(delta*step)));
-  if(nextPage===viewerPage){
-    toast(delta>0?'마지막 페이지입니다':'첫 페이지입니다');
+  const rawNext=viewerPage+(delta*step);
+  if(rawNext>max){
+    if(activeIdx<contiSongs.length-1){
+      await goViewerSongPage(activeIdx+1,0);
+      toast('다음 곡으로 이동했어요');
+      return true;
+    }
+    toast('마지막 곡의 마지막 페이지입니다');
     return false;
   }
-  viewerPage=nextPage;
+  if(rawNext<0){
+    if(activeIdx>0){
+      await goViewerSongPage(activeIdx-1,'last');
+      toast('이전 곡으로 이동했어요');
+      return true;
+    }
+    toast('첫 곡의 첫 페이지입니다');
+    return false;
+  }
+  viewerPage=rawNext;
   renderPerformanceBodyOnly();
   return true;
 }
@@ -661,7 +692,7 @@ function endViewerSwipe(x,y){
     dx<0 ? viewerPageStep(1) : viewerPageStep(-1);
   }
 }
-// 연주모드 기본 제스처: 좌우 스와이프 = 현재 곡의 악보 페이지 이동
+// 연주모드 기본 제스처: 좌우 스와이프 = 악보 페이지 이동, 끝에서는 이전/다음 곡 이동
 // 버튼/하단바/미니콘티바 위에서는 스와이프를 무시해서 오작동을 막는다.
 document.addEventListener('pointerdown',e=>beginViewerSwipe(e.clientX,e.clientY,e.target),{passive:true});
 document.addEventListener('pointerup',e=>endViewerSwipe(e.clientX,e.clientY),{passive:true});
