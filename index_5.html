@@ -23,7 +23,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .dot.sync{background:#f59e0b;animation:pulse .8s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
-.stats{display:grid;grid-template-columns:repeat(5,1fr);background:var(--surface);border-bottom:1px solid var(--border)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border-bottom:1px solid var(--border)}
 .si{padding:.85rem .4rem;text-align:center;border-right:1px solid var(--border)}
 .si:last-child{border-right:none}
 .sn{font-family:'Noto Serif KR',serif;font-size:1.5rem;font-weight:700;color:var(--accent);display:block}
@@ -99,6 +99,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .ab.amber{border-color:rgba(196,145,58,.4);color:var(--accent2);background:var(--amber-bg)}
 .ab.amber:hover{background:#f5e0b0}
 
+/* 악보 뷰어 모달 */
 .viewer-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:500;flex-direction:column}
 .viewer-bg.show{display:flex}
 .viewer-top{display:flex;align-items:center;justify-content:space-between;padding:.8rem 1rem;flex-shrink:0}
@@ -122,10 +123,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .score-del{font-size:.65rem;color:var(--red);background:var(--red-bg);border:1px solid rgba(176,40,31,.2);border-radius:4px;padding:3px 8px;cursor:pointer;transition:all .15s}
 .score-del:hover{background:var(--red);color:#fff}
 
-.card-info{display:flex;gap:6px;flex-wrap:wrap;padding:4px 12px 8px;align-items:center}
-.ci{font-size:.65rem;color:var(--text3);display:flex;align-items:center;gap:3px;white-space:nowrap}
-.ci span{color:var(--text2)}
-.ci-div{width:1px;height:10px;background:var(--border);flex-shrink:0}
+.loading{text-align:center;padding:3rem 1rem;color:var(--text3)}
 .loading-spin{font-size:1.5rem;display:block;margin-bottom:.5rem;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .nr{text-align:center;padding:3rem 1rem;color:var(--text3);font-size:.85rem}
@@ -172,20 +170,6 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .sel-song{display:flex;align-items:center;gap:6px;background:var(--blue-bg);border-radius:6px;padding:5px 8px}
 .sel-song span{flex:1;font-size:.78rem;color:var(--accent)}
 .sel-song button{font-size:.65rem;color:var(--red);background:none;border:none;cursor:pointer;padding:2px 4px}
-.stat-filter{cursor:pointer;transition:.15s}
-.stat-filter:hover{transform:translateY(-2px);border-color:var(--accent)!important}
-.stat-filter.active{box-shadow:0 0 0 2px var(--accent) inset;background:var(--blue-bg)!important}
-
-.tool-frame-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.52);z-index:260;align-items:center;justify-content:center;padding:12px}
-.tool-frame-modal.show{display:flex}
-.tool-frame-box{width:min(1180px,96vw);height:min(860px,92vh);background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 24px 80px rgba(0,0,0,.28);display:flex;flex-direction:column;overflow:hidden}
-.tool-frame-head{height:48px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 14px;border-bottom:1px solid var(--border);background:var(--surface2)}
-.tool-frame-head strong{font-size:.9rem;color:var(--text1)}
-.tool-frame-actions{display:flex;gap:8px;align-items:center}
-.tool-frame-actions button,.tool-frame-actions a{border:1px solid var(--border2);background:var(--surface);color:var(--text2);border-radius:8px;padding:6px 10px;font-size:.74rem;text-decoration:none;cursor:pointer;font-family:'Noto Sans KR',sans-serif}
-.tool-frame-actions button:hover,.tool-frame-actions a:hover{border-color:var(--accent);color:var(--accent)}
-.tool-frame-box iframe{flex:1;width:100%;border:0;background:#fff}
-
 </style>
 </head>
 <body>
@@ -200,18 +184,16 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 </div>
 
 <div class="stats">
-  <div class="si stat-filter" data-filter="used" onclick="statFilter('used')"><span class="sn" id="st-used">-</span><div class="sl">사용 이력</div></div>
-  <div class="si stat-filter" data-filter="ready" onclick="statFilter('ready')"><span class="sn" id="st-ready">-</span><div class="sl">악보 완료</div></div>
-  <div class="si stat-filter" data-filter="all" onclick="statFilter('all')"><span class="sn" id="st-total">-</span><div class="sl">전체</div></div>
-  <div class="si stat-filter" data-filter="no_score" onclick="statFilter('no_score')"><span class="sn" id="st-plan">-</span><div class="sl">작업예정·악보없음</div></div>
-  <div class="si stat-filter" data-filter="video" onclick="statFilter('video')"><span class="sn" id="st-video">-</span><div class="sl">영상 있음</div></div>
+  <div class="si"><span class="sn" id="st-used">-</span><div class="sl">사용 이력</div></div>
+  <div class="si"><span class="sn" id="st-ready">-</span><div class="sl">악보 완료</div></div>
+  <div class="si"><span class="sn" id="st-total">-</span><div class="sl">전체</div></div>
+  <div class="si"><span class="sn" id="st-plan">-</span><div class="sl">작업예정·악보없음</div></div>
 </div>
 
 <div class="tabs">
   <button class="tab on" onclick="switchTab('songs',this)">🎵 찬양곡</button>
   <button class="tab" onclick="switchTab('history',this)">📅 주일기록</button>
   <button class="tab" onclick="switchTab('tools',this)">🛠 관리도구</button>
-  <button class="tab" onclick="location.href='mobile-portrait.html'">📱 세로 연주</button><button class="tab" onclick="location.href='mobile-landscape.html'">📲 가로 2페이지</button>
 </div>
 
 <div id="tab-songs">
@@ -220,53 +202,45 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     <span class="si-icon">🔍</span>
     <input type="text" id="q" placeholder="곡명으로 검색..." oninput="render()">
   </div>
-  <div style="display:flex;gap:6px;margin-top:.4rem;flex-wrap:nowrap">
-    <select id="sel-filt" onchange="sfSel(this.value)" style="flex:1;padding:.45rem .4rem;border:1px solid var(--border2);border-radius:8px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.75rem;color:var(--text1);outline:none;min-width:0">
-      <option value="all">📋 전체</option>
-      <option value="used">사용 이력</option>
-      <option value="ready">악보 완료</option>
-      <option value="no_score">악보 없음</option>
-      <option value="plan">작업 예정</option>
-      <option value="top">⭐ TOP 10</option>
-    </select>
-    <select id="sel-situ" onchange="sfDrop(this.value,'situ')" style="flex:1;padding:.45rem .4rem;border:1px solid var(--border2);border-radius:8px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.75rem;color:var(--text1);outline:none;min-width:0">
-      <option value="">🏷 상황별</option>
-      <option value="경배·예배">경배·예배</option>
-      <option value="감사·은혜">감사·은혜</option>
-      <option value="회개·정결">회개·정결</option>
-      <option value="십자가·보혈·구원">십자가·보혈</option>
-      <option value="부활·승리">부활·승리</option>
-      <option value="성령·충만">성령·충만</option>
-      <option value="소망·위로">소망·위로</option>
-      <option value="기도·간구">기도·간구</option>
-      <option value="전도·선교·복음">전도·선교</option>
-      <option value="치유·회복">치유·회복</option>
-      <option value="주와동행·신앙생활">주와동행</option>
-      <option value="기쁨·찬양">기쁨·찬양</option>
-      <option value="고난·시련극복">고난·시련</option>
-      <option value="헌신·부르심">헌신·부르심</option>
-      <option value="가족·교제·나눔">가족·교제</option>
-      <option value="평강·평안">평강·평안</option>
-    </select>
-    <select id="sel-seas" onchange="sfDrop(this.value,'seas')" style="flex:1;padding:.45rem .4rem;border:1px solid var(--border2);border-radius:8px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.75rem;color:var(--text1);outline:none;min-width:0">
-      <option value="">📅 절기별</option>
-      <option value="대림절">대림절</option>
-      <option value="성탄절">성탄절</option>
-      <option value="주현절">주현절</option>
-      <option value="사순절">사순절</option>
-      <option value="고난주간">고난주간</option>
-      <option value="부활절">부활절</option>
-      <option value="성령강림절">성령강림절</option>
-      <option value="추수감사절">추수감사절</option>
-    </select>
-    <select id="sel-sort" onchange="ssDrop(this.value)" style="flex:1;padding:.45rem .4rem;border:1px solid var(--border2);border-radius:8px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.75rem;color:var(--text1);outline:none;min-width:0">
-      <option value="name">가나다순</option>
-      <option value="status">상태별</option>
-      <option value="count">사용 많은순</option>
-      <option value="key">키(코드)별</option>
-      <option value="bpm">템포순</option>
-      <option value="created">추가된순</option>
-    </select>
+  <div class="fr">
+    <button class="fb on" onclick="sf('all',this)">전체</button>
+    <button class="fb" onclick="sf('used',this)">사용 이력</button>
+    <button class="fb" onclick="sf('ready',this)">악보 완료</button>
+    <button class="fb" onclick="sf('no_score',this)">악보 없음</button>
+    <button class="fb" onclick="sf('plan',this)">작업 예정</button>
+    <button class="fb" onclick="sf('top',this)">⭐ TOP 10</button>
+  </div>
+  <div style="font-size:.65rem;color:var(--text3);margin-top:.5rem;margin-bottom:.2rem;font-weight:500;letter-spacing:.05em">상황별</div>
+  <div class="fr">
+    <button class="fb" onclick="sf('경배·예배',this)">경배·예배</button>
+    <button class="fb" onclick="sf('감사',this)">감사</button>
+    <button class="fb" onclick="sf('위로·치유',this)">위로·치유</button>
+    <button class="fb" onclick="sf('회복·소망',this)">회복·소망</button>
+    <button class="fb" onclick="sf('평안·신뢰',this)">평안·신뢰</button>
+    <button class="fb" onclick="sf('기쁨·찬양',this)">기쁨·찬양</button>
+    <button class="fb" onclick="sf('은혜·십자가',this)">은혜·십자가</button>
+    <button class="fb" onclick="sf('강함·승리',this)">강함·승리</button>
+    <button class="fb" onclick="sf('사랑·헌신',this)">사랑·헌신</button>
+    <button class="fb" onclick="sf('기도·간구',this)">기도·간구</button>
+  </div>
+  <div style="font-size:.65rem;color:var(--text3);margin-top:.5rem;margin-bottom:.2rem;font-weight:500;letter-spacing:.05em">절기별</div>
+  <div class="fr">
+    <button class="fb" onclick="sf('대림절',this)">대림절 <span style="opacity:.6;font-size:.6rem">기다림</span></button>
+    <button class="fb" onclick="sf('성탄절',this)">성탄절 <span style="opacity:.6;font-size:.6rem">기쁨</span></button>
+    <button class="fb" onclick="sf('주현절',this)">주현절 <span style="opacity:.6;font-size:.6rem">나타남</span></button>
+    <button class="fb" onclick="sf('사순절',this)">사순절 <span style="opacity:.6;font-size:.6rem">회개</span></button>
+    <button class="fb" onclick="sf('고난주간',this)">고난주간 <span style="opacity:.6;font-size:.6rem">수난</span></button>
+    <button class="fb" onclick="sf('부활절',this)">부활절 <span style="opacity:.6;font-size:.6rem">승리</span></button>
+    <button class="fb" onclick="sf('성령강림절',this)">성령강림절 <span style="opacity:.6;font-size:.6rem">성령</span></button>
+    <button class="fb" onclick="sf('추수감사절',this)">추수감사절 <span style="opacity:.6;font-size:.6rem">감사</span></button>
+  </div>
+  <div class="sort-row">
+    <span class="sort-label">정렬:</span>
+    <button class="sb on" onclick="ss('name',this)">가나다 ↕</button>
+    <button class="sb" onclick="ss('status',this)">상태별</button>
+    <button class="sb" onclick="ss('count',this)">사용 많은 순</button>
+    <button class="sb" onclick="ss('key',this)">키(코드)별</button>
+    <button class="sb" onclick="ss('bpm',this)">템포순</button>
   </div>
   <div class="cb" id="cnt"></div>
 </div>
@@ -276,71 +250,73 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 <!-- 관리도구 탭 -->
 <div id="tab-tools" style="display:none">
   <div style="padding:1rem;max-width:700px;margin:0 auto">
-    <p style="font-size:.75rem;color:var(--text3);margin-bottom:1rem">각 도구를 클릭하면 이 화면 안에서 열려요.</p>
-    <button onclick="openEmbeddedTool('score-version-manager.html','악보 버전 관리')" style="width:100%;margin-bottom:12px;padding:14px;border:2px solid var(--green);border-radius:12px;background:var(--green-bg);color:var(--green);font-weight:800;font-family:'Noto Sans KR',sans-serif;cursor:pointer">🎚️ 악보 버전 관리 바로 열기</button>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+    <p style="font-size:.78rem;color:var(--text3);margin-bottom:1rem">각 도구를 클릭하면 새 탭에서 열려요. GitHub에 함께 업로드된 파일들이에요.</p>
 
+    <div style="display:flex;flex-direction:column;gap:10px">
 
-      <a href="#" onclick="openEmbeddedTool('score-version-manager.html','악보 버전 관리');return false;" style="text-decoration:none">
-        <div style="background:var(--surface);border:2px solid var(--green);border-radius:12px;padding:18px 10px;text-align:center;transition:all .15s;cursor:pointer;box-shadow:0 0 0 3px var(--green-bg)" onmouseover="this.style.background='var(--green-bg)'" onmouseout="this.style.background='var(--surface)'">
-          <div style="font-size:2rem;margin-bottom:8px">🎚️</div>
-          <div style="font-size:.78rem;font-weight:700;color:var(--text1);margin-bottom:4px">악보 버전 관리</div>
-          <div style="font-size:.65rem;color:var(--text3);line-height:1.4">다중 Key·대표악보<br>페이지 관리</div>
-        </div>
-      </a>
-      <a href="#" onclick="openEmbeddedTool('score-upload.html','악보 일괄등록기');return false;" style="text-decoration:none">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 10px;text-align:center;transition:all .15s;cursor:pointer" onmouseover="this.style.borderColor='var(--green)';this.style.background='var(--green-bg)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
-          <div style="font-size:2rem;margin-bottom:8px">🎼</div>
-          <div style="font-size:.78rem;font-weight:600;color:var(--text1);margin-bottom:4px">악보 일괄등록기</div>
-          <div style="font-size:.65rem;color:var(--text3);line-height:1.4">내 파일의 악보를<br>일괄 등록합니다</div>
+      <a href="tag-update.html" target="_blank" style="text-decoration:none">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <span style="font-size:1.3rem">🏷️</span>
+            <span style="font-size:.9rem;font-weight:600;color:var(--text1)">태그 일괄 업데이트</span>
+            <span style="margin-left:auto;font-size:.68rem;padding:2px 8px;border-radius:20px;background:var(--blue-bg);color:var(--accent)">tag-update.html</span>
+          </div>
+          <p style="font-size:.78rem;color:var(--text2);line-height:1.6;margin-left:2.2rem">AI가 분석한 248곡의 상황별·절기별 태그를 DB에 한 번에 반영합니다. 경배·예배, 위로·치유, 부활절, 성탄절 등 18개 카테고리로 분류해요.</p>
         </div>
       </a>
 
-      <a href="#" onclick="openEmbeddedTool('score-sync.html','악보 동기화');return false;" style="text-decoration:none">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 10px;text-align:center;transition:all .15s;cursor:pointer" onmouseover="this.style.borderColor='var(--accent2)';this.style.background='var(--blue-bg)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
-          <div style="font-size:2rem;margin-bottom:8px">🔄</div>
-          <div style="font-size:.78rem;font-weight:600;color:var(--text1);margin-bottom:4px">악보 동기화</div>
-          <div style="font-size:.65rem;color:var(--text3);line-height:1.4">DB와 실제 파일값<br>비교 후 업데이트</div>
+      <a href="score-upload.html" target="_blank" style="text-decoration:none">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <span style="font-size:1.3rem">🎼</span>
+            <span style="font-size:.9rem;font-weight:600;color:var(--text1)">악보 일괄 업로드</span>
+            <span style="margin-left:auto;font-size:.68rem;padding:2px 8px;border-radius:20px;background:var(--green-bg);color:var(--green)">score-upload.html</span>
+          </div>
+          <p style="font-size:.78rem;color:var(--text2);line-height:1.6;margin-left:2.2rem">원드라이브 폴더에서 악보 이미지를 선택하면 파일명으로 곡명을 자동 매칭해서 Supabase Storage에 업로드해요. Mac NFD 자모 분리 문제도 자동 처리돼요.</p>
         </div>
       </a>
 
-      <a href="#" onclick="openEmbeddedTool('r2-sync.html','R2 배포 동기화');return false;" style="text-decoration:none">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 10px;text-align:center;transition:all .15s;cursor:pointer" onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--amber-bg)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
-          <div style="font-size:2rem;margin-bottom:8px">☁️</div>
-          <div style="font-size:.78rem;font-weight:600;color:var(--text1);margin-bottom:4px">R2 배포 동기화</div>
-          <div style="font-size:.65rem;color:var(--text3);line-height:1.4">앱에서 볼 악보를<br>R2 서버에 반영</div>
+      <a href="score-sync.html" target="_blank" style="text-decoration:none">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <span style="font-size:1.3rem">🔄</span>
+            <span style="font-size:.9rem;font-weight:600;color:var(--text1)">악보 상태 동기화</span>
+            <span style="margin-left:auto;font-size:.68rem;padding:2px 8px;border-radius:20px;background:var(--green-bg);color:var(--green)">score-sync.html</span>
+          </div>
+          <p style="font-size:.78rem;color:var(--text2);line-height:1.6;margin-left:2.2rem">Supabase Storage에 실제 파일이 있는지 확인해서 has_score 값을 정확하게 업데이트해요. 악보 완료인데 파일 없는 곡은 작업 예정으로 자동 변경해요.</p>
         </div>
       </a>
 
-      <a href="#" onclick="openEmbeddedTool('song-merge.html','곡 병합');return false;" style="text-decoration:none">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 10px;text-align:center;transition:all .15s;cursor:pointer" onmouseover="this.style.borderColor='var(--accent2)';this.style.background='var(--blue-bg)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
-          <div style="font-size:2rem;margin-bottom:8px">🔀</div>
-          <div style="font-size:.78rem;font-weight:600;color:var(--text1);margin-bottom:4px">곡 병합</div>
-          <div style="font-size:.65rem;color:var(--text3);line-height:1.4">중복·유사 곡명<br>탐지 및 병합</div>
+      <a href="song-merge.html" target="_blank" style="text-decoration:none">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent2)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <span style="font-size:1.3rem">🔀</span>
+            <span style="font-size:.9rem;font-weight:600;color:var(--text1)">곡 병합 도구</span>
+            <span style="margin-left:auto;font-size:.68rem;padding:2px 8px;border-radius:20px;background:var(--amber-bg);color:var(--accent2)">song-merge.html</span>
+          </div>
+          <p style="font-size:.78rem;color:var(--text2);line-height:1.6;margin-left:2.2rem">같은 곡인데 다른 이름으로 등록된 경우 하나로 합칩니다. 유사 곡명 자동 탐지 기능으로 비슷한 곡명을 찾아주고, 사용 횟수 합산·주일기록 통일·삭제까지 한 번에 처리해요.</p>
         </div>
       </a>
 
-      <a href="#" onclick="openEmbeddedTool('name-cleanup.html','공백 정리');return false;" style="text-decoration:none">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 10px;text-align:center;transition:all .15s;cursor:pointer" onmouseover="this.style.borderColor='var(--text2)';this.style.background='var(--surface2)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
-          <div style="font-size:2rem;margin-bottom:8px">✂️</div>
-          <div style="font-size:.78rem;font-weight:600;color:var(--text1);margin-bottom:4px">공백 정리</div>
-          <div style="font-size:.65rem;color:var(--text3);line-height:1.4">곡명 특수공백·<br>중복공백 정규화</div>
+      <a href="name-cleanup.html" target="_blank" style="text-decoration:none">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--text2)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <span style="font-size:1.3rem">✂️</span>
+            <span style="font-size:.9rem;font-weight:600;color:var(--text1)">곡명 공백 정리</span>
+            <span style="margin-left:auto;font-size:.68rem;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--text2)">name-cleanup.html</span>
+          </div>
+          <p style="font-size:.78rem;color:var(--text2);line-height:1.6;margin-left:2.2rem">곡명에 특수 공백·중복 공백이 섞여 있으면 검색이나 매칭이 안 될 수 있어요. 전체 곡명을 분석해서 공백을 정규화하고, 주일기록 곡명도 함께 정리해요.</p>
         </div>
       </a>
 
-      <a href="#" onclick="openEmbeddedTool('song-editor.html','순차 편집기');return false;" style="text-decoration:none">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 10px;text-align:center;transition:all .15s;cursor:pointer" onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--amber-bg)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
-          <div style="font-size:2rem;margin-bottom:8px">✏️</div>
-          <div style="font-size:.78rem;font-weight:600;color:var(--text1);margin-bottom:4px">순차 편집기</div>
-          <div style="font-size:.65rem;color:var(--text3);line-height:1.4">각 곡을 순차적으로<br>확인·정리하는 도구</div>
-        </div>
-      </a>
-
-      <a href="#" onclick="openEmbeddedTool('db-export.html','DB 내보내기');return false;" style="text-decoration:none">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 10px;text-align:center;transition:all .15s;cursor:pointer" onmouseover="this.style.borderColor='var(--accent2)';this.style.background='var(--blue-bg)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
-          <div style="font-size:2rem;margin-bottom:8px">📦</div>
-          <div style="font-size:.78rem;font-weight:600;color:var(--text1);margin-bottom:4px">DB 내보내기</div>
-          <div style="font-size:.65rem;color:var(--text3);line-height:1.4">전체 곡 데이터를<br>JSON·CSV로 다운로드</div>
+      <a href="status-update.html" target="_blank" style="text-decoration:none">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--text2)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <span style="font-size:1.3rem">📊</span>
+            <span style="font-size:.9rem;font-weight:600;color:var(--text1)">사용 횟수 업데이트</span>
+            <span style="margin-left:auto;font-size:.68rem;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--text2)">status-update.html</span>
+          </div>
+          <p style="font-size:.78rem;color:var(--text2);line-height:1.6;margin-left:2.2rem">엑셀 파일 기준으로 곡별 사용 횟수와 상태를 일괄 업데이트해요. DB에 없는 곡은 자동으로 추가하고, 유사 이름 매칭으로 공백 차이도 처리해요.</p>
         </div>
       </a>
 
@@ -373,10 +349,6 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   <div class="fn">Supabase 클라우드 동기화 · 모든 기기에서 실시간 반영<br>2003–2026년 예배 사용 이력 기반</div>
 </div>
 
-<button class="add-fab" onclick="window.open('https://youtube.com/playlist?list=PL_PTDB_rnKMJ3auZsgilJUx_C_S_o1dsL&si=WUvRehXMU7_CWvNu','_blank')" title="이번주 찬양콘티" style="bottom:5.5rem;background:#cc0000;font-size:.55rem;flex-direction:column;gap:1px;width:52px;height:52px">
-  <span style="font-size:1rem">▶</span>
-  <span style="font-size:.5rem;line-height:1.2;text-align:center">이번주<br>콘티</span>
-</button>
 <button class="add-fab" id="fab" onclick="openModal()" title="곡 추가">＋</button>
 
 <!-- 주일기록 모달 -->
@@ -385,36 +357,16 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     <h2 id="hmodal-title">주일 기록 추가</h2>
     <div class="form-group">
       <label>날짜 *</label>
-      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-        <select id="h-year-input" style="flex:1.2;padding:.55rem .5rem;border:1px solid var(--border2);border-radius:6px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.83rem;color:var(--text1);outline:none" onchange="updateDaySel();renderCalendar()"></select>
-        <select id="h-month-input" style="flex:1;padding:.55rem .5rem;border:1px solid var(--border2);border-radius:6px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.83rem;color:var(--text1);outline:none" onchange="updateDaySel();renderCalendar()">
+      <div style="display:flex;gap:6px">
+        <select id="h-year-input" style="flex:1.2;padding:.55rem .5rem;border:1px solid var(--border2);border-radius:6px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.83rem;color:var(--text1);outline:none"></select>
+        <select id="h-month-input" style="flex:1;padding:.55rem .5rem;border:1px solid var(--border2);border-radius:6px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.83rem;color:var(--text1);outline:none">
           <option value="01">1월</option><option value="02">2월</option><option value="03">3월</option>
           <option value="04">4월</option><option value="05">5월</option><option value="06">6월</option>
           <option value="07">7월</option><option value="08">8월</option><option value="09">9월</option>
           <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
         </select>
-        <select id="h-day-input" style="flex:1;padding:.55rem .5rem;border:1px solid var(--border2);border-radius:6px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.83rem;color:var(--text1);outline:none" onchange="syncCalendarFromSelectors()">
+        <select id="h-day-input" style="flex:1;padding:.55rem .5rem;border:1px solid var(--border2);border-radius:6px;background:var(--bg);font-family:'Noto Sans KR',sans-serif;font-size:.83rem;color:var(--text1);outline:none">
         </select>
-        <button type="button" onclick="toggleCalendar()" style="padding:.5rem .6rem;border:1px solid var(--border2);border-radius:6px;background:var(--bg);cursor:pointer;font-size:.9rem;flex-shrink:0">🗓</button>
-      </div>
-      <div id="h-date-preview" style="margin-top:6px;font-size:.78rem;color:var(--accent);font-weight:500;min-height:1.2em"></div>
-      <!-- 달력 팝업 -->
-      <div id="h-calendar" style="display:none;margin-top:6px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);padding:8px;user-select:none">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <button type="button" onclick="moveCalMonth(-1)" style="border:none;background:none;cursor:pointer;font-size:1rem;color:var(--text2);padding:2px 6px">‹</button>
-          <span id="cal-title" style="font-size:.82rem;font-weight:600;color:var(--text1)"></span>
-          <button type="button" onclick="moveCalMonth(1)" style="border:none;background:none;cursor:pointer;font-size:1rem;color:var(--text2);padding:2px 6px">›</button>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center">
-          <div style="font-size:.65rem;color:var(--red);font-weight:500;padding:2px">일</div>
-          <div style="font-size:.65rem;color:var(--text3);font-weight:500;padding:2px">월</div>
-          <div style="font-size:.65rem;color:var(--text3);font-weight:500;padding:2px">화</div>
-          <div style="font-size:.65rem;color:var(--text3);font-weight:500;padding:2px">수</div>
-          <div style="font-size:.65rem;color:var(--text3);font-weight:500;padding:2px">목</div>
-          <div style="font-size:.65rem;color:var(--text3);font-weight:500;padding:2px">금</div>
-          <div style="font-size:.65rem;color:var(--accent2);font-weight:500;padding:2px">토</div>
-        </div>
-        <div id="cal-days" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center"></div>
       </div>
     </div>
     <div class="form-group">
@@ -480,21 +432,15 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
       <div style="font-size:.68rem;color:var(--text3);margin-bottom:4px;font-weight:500">상황별</div>
       <div class="check-group" style="margin-bottom:8px">
         <label><input type="checkbox" value="경배·예배"> 경배·예배</label>
-        <label><input type="checkbox" value="감사·은혜"> 감사·은혜</label>
-        <label><input type="checkbox" value="회개·정결"> 회개·정결</label>
-        <label><input type="checkbox" value="십자가·보혈·구원"> 십자가·보혈</label>
-        <label><input type="checkbox" value="부활·승리"> 부활·승리</label>
-        <label><input type="checkbox" value="성령·충만"> 성령·충만</label>
-        <label><input type="checkbox" value="소망·위로"> 소망·위로</label>
-        <label><input type="checkbox" value="기도·간구"> 기도·간구</label>
-        <label><input type="checkbox" value="전도·선교·복음"> 전도·선교</label>
-        <label><input type="checkbox" value="치유·회복"> 치유·회복</label>
-        <label><input type="checkbox" value="주와동행·신앙생활"> 주와동행</label>
+        <label><input type="checkbox" value="감사"> 감사</label>
+        <label><input type="checkbox" value="위로·치유"> 위로·치유</label>
+        <label><input type="checkbox" value="회복·소망"> 회복·소망</label>
+        <label><input type="checkbox" value="평안·신뢰"> 평안·신뢰</label>
         <label><input type="checkbox" value="기쁨·찬양"> 기쁨·찬양</label>
-        <label><input type="checkbox" value="고난·시련극복"> 고난·시련</label>
-        <label><input type="checkbox" value="헌신·부르심"> 헌신·부르심</label>
-        <label><input type="checkbox" value="가족·교제·나눔"> 가족·교제</label>
-        <label><input type="checkbox" value="평강·평안"> 평강·평안</label>
+        <label><input type="checkbox" value="은혜·십자가"> 은혜·십자가</label>
+        <label><input type="checkbox" value="강함·승리"> 강함·승리</label>
+        <label><input type="checkbox" value="사랑·헌신"> 사랑·헌신</label>
+        <label><input type="checkbox" value="기도·간구"> 기도·간구</label>
       </div>
       <div style="font-size:.68rem;color:var(--text3);margin-bottom:4px;font-weight:500">절기별</div>
       <div class="check-group">
@@ -528,39 +474,21 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 
 <div class="toast" id="toast"></div>
 
-
-<!-- 같은 화면 안에서 여는 관리 도구 프레임 -->
-<div class="tool-frame-modal" id="tool-frame-modal">
-  <div class="tool-frame-box">
-    <div class="tool-frame-head">
-      <strong id="tool-frame-title">관리 도구</strong>
-      <div class="tool-frame-actions">
-        <a id="tool-frame-newtab" href="#" target="_blank">새 탭으로 열기</a>
-        <button onclick="closeEmbeddedTool()">닫기</button>
-      </div>
-    </div>
-    <iframe id="tool-frame" title="관리 도구"></iframe>
-  </div>
-</div>
-
 <!-- 관리 도구 모달 -->
 <div class="modal-bg" id="tools-modal">
   <div class="modal" style="max-width:360px">
     <h2 style="margin-bottom:1rem">🛠 관리 도구</h2>
     <div style="display:flex;flex-direction:column;gap:8px">
-      <a href="#" onclick="openEmbeddedTool('tag-update.html','태그 일괄 업데이트');return false;" style="display:block;padding:.65rem 1rem;background:var(--blue-bg);color:var(--accent);border-radius:8px;text-decoration:none;font-size:.83rem;font-weight:500">🏷️ 태그 일괄 업데이트<span style="display:block;font-size:.7rem;color:var(--text3);font-weight:400;margin-top:2px">AI가 분석한 상황별·절기별 태그 반영</span></a>
-
-      <a href="#" onclick="openEmbeddedTool('score-version-manager.html','악보 버전 관리');return false;" style="display:block;padding:.65rem 1rem;background:var(--green-bg);color:var(--green);border-radius:8px;text-decoration:none;font-size:.83rem;font-weight:500">🎚️ 악보 버전 관리<span style="display:block;font-size:.7rem;color:var(--text3);font-weight:400;margin-top:2px">다중 Key·대표악보·페이지 관리</span></a>
-      <a href="#" onclick="openEmbeddedTool('score-upload.html','악보 일괄등록기');return false;" style="display:block;padding:.65rem 1rem;background:var(--green-bg);color:var(--green);border-radius:8px;text-decoration:none;font-size:.83rem;font-weight:500">🎼 악보 일괄 업로드<span style="display:block;font-size:.7rem;color:var(--text3);font-weight:400;margin-top:2px">파일명 자동 매칭 후 Supabase 업로드</span></a>
-      <a href="#" onclick="openEmbeddedTool('score-sync.html','악보 동기화');return false;" style="display:block;padding:.65rem 1rem;background:var(--green-bg);color:var(--green);border-radius:8px;text-decoration:none;font-size:.83rem;font-weight:500">🔄 악보 상태 동기화<span style="display:block;font-size:.7rem;color:var(--text3);font-weight:400;margin-top:2px">Storage 실제 파일 기준으로 상태 정리</span></a>
-      <a href="#" onclick="openEmbeddedTool('song-merge.html','곡 병합');return false;" style="display:block;padding:.65rem 1rem;background:var(--amber-bg);color:var(--accent2);border-radius:8px;text-decoration:none;font-size:.83rem;font-weight:500">🔀 곡 병합 도구<span style="display:block;font-size:.7rem;color:var(--text3);font-weight:400;margin-top:2px">중복·유사 곡명 자동 탐지 및 병합</span></a>
-      <a href="#" onclick="openEmbeddedTool('name-cleanup.html','공백 정리');return false;" style="display:block;padding:.65rem 1rem;background:var(--surface2);color:var(--text2);border-radius:8px;text-decoration:none;font-size:.83rem;font-weight:500">✂️ 곡명 공백 정리<span style="display:block;font-size:.7rem;color:var(--text3);font-weight:400;margin-top:2px">특수 공백·중복 공백 일괄 정규화</span></a>
-      <a href="#" onclick="openEmbeddedTool('status-update.html','사용 횟수 업데이트');return false;" style="display:block;padding:.65rem 1rem;background:var(--surface2);color:var(--text2);border-radius:8px;text-decoration:none;font-size:.83rem;font-weight:500">📊 사용 횟수 업데이트<span style="display:block;font-size:.7rem;color:var(--text3);font-weight:400;margin-top:2px">엑셀 기준 사용 횟수 일괄 반영</span></a>
+      <a href="tag-update.html" target="_blank" style="display:block;padding:.65rem 1rem;background:var(--blue-bg);color:var(--accent);border-radius:8px;text-decoration:none;font-size:.83rem;font-weight:500">🏷️ 태그 일괄 업데이트<span style="display:block;font-size:.7rem;color:var(--text3);font-weight:400;margin-top:2px">AI가 분석한 상황별·절기별 태그 반영</span></a>
+      <a href="score-upload.html" target="_blank" style="display:block;padding:.65rem 1rem;background:var(--green-bg);color:var(--green);border-radius:8px;text-decoration:none;font-size:.83rem;font-weight:500">🎼 악보 일괄 업로드<span style="display:block;font-size:.7rem;color:var(--text3);font-weight:400;margin-top:2px">파일명 자동 매칭 후 Supabase 업로드</span></a>
+      <a href="score-sync.html" target="_blank" style="display:block;padding:.65rem 1rem;background:var(--green-bg);color:var(--green);border-radius:8px;text-decoration:none;font-size:.83rem;font-weight:500">🔄 악보 상태 동기화<span style="display:block;font-size:.7rem;color:var(--text3);font-weight:400;margin-top:2px">Storage 실제 파일 기준으로 상태 정리</span></a>
+      <a href="song-merge.html" target="_blank" style="display:block;padding:.65rem 1rem;background:var(--amber-bg);color:var(--accent2);border-radius:8px;text-decoration:none;font-size:.83rem;font-weight:500">🔀 곡 병합 도구<span style="display:block;font-size:.7rem;color:var(--text3);font-weight:400;margin-top:2px">중복·유사 곡명 자동 탐지 및 병합</span></a>
+      <a href="name-cleanup.html" target="_blank" style="display:block;padding:.65rem 1rem;background:var(--surface2);color:var(--text2);border-radius:8px;text-decoration:none;font-size:.83rem;font-weight:500">✂️ 곡명 공백 정리<span style="display:block;font-size:.7rem;color:var(--text3);font-weight:400;margin-top:2px">특수 공백·중복 공백 일괄 정규화</span></a>
+      <a href="status-update.html" target="_blank" style="display:block;padding:.65rem 1rem;background:var(--surface2);color:var(--text2);border-radius:8px;text-decoration:none;font-size:.83rem;font-weight:500">📊 사용 횟수 업데이트<span style="display:block;font-size:.7rem;color:var(--text3);font-weight:400;margin-top:2px">엑셀 기준 사용 횟수 일괄 반영</span></a>
     </div>
     <button class="btn-cancel" onclick="document.getElementById('tools-modal').classList.remove('show')" style="width:100%;margin-top:1rem;padding:.6rem;border:1px solid var(--border2);border-radius:6px;background:transparent;font-family:'Noto Sans KR',sans-serif;font-size:.8rem;cursor:pointer">닫기</button>
   </div>
 </div>
-
 
 <!-- 악보 뷰어 -->
 <div class="viewer-bg" id="viewer">
@@ -597,21 +525,6 @@ function switchTab(tab, btn) {
   document.getElementById('tab-tools').style.display = tab==='tools' ? '' : 'none';
   document.getElementById('fab').style.display = tab==='songs' ? 'flex' : 'none';
   if (tab==='history') { initYearSelect(); loadHistory(); }
-}
-
-function openEmbeddedTool(url, title) {
-  const modal = document.getElementById('tool-frame-modal');
-  const frame = document.getElementById('tool-frame');
-  document.getElementById('tool-frame-title').textContent = title || '관리 도구';
-  document.getElementById('tool-frame-newtab').href = url;
-  frame.src = url;
-  modal.classList.add('show');
-}
-function closeEmbeddedTool() {
-  const modal = document.getElementById('tool-frame-modal');
-  const frame = document.getElementById('tool-frame');
-  modal.classList.remove('show');
-  frame.src = 'about:blank';
 }
 
 // ── HISTORY ───────────────────────────────────────────────
@@ -732,87 +645,6 @@ function goToSong(name) {
   }, 100);
 }
 
-// ── 달력 ──────────────────────────────────────────────────
-let calYear, calMonth;
-
-function toggleCalendar() {
-  const cal = document.getElementById('h-calendar');
-  if (cal.style.display === 'none') {
-    calYear = parseInt(document.getElementById('h-year-input').value);
-    calMonth = parseInt(document.getElementById('h-month-input').value) - 1;
-    renderCalendar();
-    cal.style.display = 'block';
-  } else {
-    cal.style.display = 'none';
-  }
-}
-
-function moveCalMonth(dir) {
-  calMonth += dir;
-  if (calMonth > 11) { calMonth = 0; calYear++; }
-  if (calMonth < 0) { calMonth = 11; calYear--; }
-  renderCalendar();
-}
-
-function renderCalendar() {
-  if (!calYear) calYear = parseInt(document.getElementById('h-year-input').value);
-  if (calMonth === undefined) calMonth = parseInt(document.getElementById('h-month-input').value) - 1;
-  const selDay = parseInt(document.getElementById('h-day-input').value) || 0;
-  const selY = parseInt(document.getElementById('h-year-input').value);
-  const selM = parseInt(document.getElementById('h-month-input').value) - 1;
-  document.getElementById('cal-title').textContent = `${calYear}년 ${calMonth+1}월`;
-  const firstDay = new Date(calYear, calMonth, 1).getDay();
-  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
-  let html = '';
-  for (let i = 0; i < firstDay; i++) html += '<div></div>';
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dow = (firstDay + d - 1) % 7;
-    const isSelected = (d === selDay && calYear === selY && calMonth === selM);
-    const isToday = (d === new Date().getDate() && calYear === new Date().getFullYear() && calMonth === new Date().getMonth());
-    const color = isSelected ? '#fff' : dow===0 ? 'var(--red)' : dow===6 ? 'var(--accent2)' : 'var(--text1)';
-    const bg = isSelected ? 'var(--accent)' : isToday ? 'var(--blue-bg)' : 'transparent';
-    html += `<div onclick="pickCalDay(${d})" style="cursor:pointer;font-size:.75rem;padding:4px 2px;border-radius:4px;color:${color};background:${bg};font-weight:${isSelected||isToday?'600':'400'}">${d}</div>`;
-  }
-  document.getElementById('cal-days').innerHTML = html;
-}
-
-function pickCalDay(d) {
-  document.getElementById('h-year-input').value = String(calYear);
-  document.getElementById('h-month-input').value = String(calMonth+1).padStart(2,'0');
-  updateDaySel();
-  document.getElementById('h-day-input').value = String(d).padStart(2,'0');
-  renderCalendar();
-  updateDatePreview();
-  // 일요일이면 달력 닫기
-  if (new Date(calYear, calMonth, d).getDay() === 0) {
-    document.getElementById('h-calendar').style.display = 'none';
-  }
-}
-
-function updateDatePreview() {
-  const date = getSelectedDate();
-  if (!date || date.includes('NaN')) {
-    document.getElementById('h-date-preview').textContent = '';
-    return;
-  }
-  const d = new Date(date);
-  const dayNames = ['일','월','화','수','목','금','토'];
-  const weekLabels = ['','첫째','둘째','셋째','넷째','다섯째'];
-  const week = getWeekOfMonth(date);
-  const dow = d.getDay();
-  const isSun = dow === 0;
-  document.getElementById('h-date-preview').innerHTML =
-    `📅 ${d.getFullYear()}년 ${d.getMonth()+1}월 ${weekLabels[week]||week} 주 (${dayNames[dow]}요일)` +
-    (isSun ? ' <span style="color:var(--green);font-size:.72rem">✓ 주일</span>' : ' <span style="color:var(--accent2);font-size:.72rem">⚠️ 주일이 아니에요</span>');
-}
-
-function syncCalendarFromSelectors() {
-  calYear = parseInt(document.getElementById('h-year-input').value);
-  calMonth = parseInt(document.getElementById('h-month-input').value) - 1;
-  if (document.getElementById('h-calendar').style.display !== 'none') renderCalendar();
-  updateDatePreview();
-}
-
 function initDateSelectors() {
   // 연도 셀렉터 (2020 ~ 현재+2)
   const yearSel = document.getElementById('h-year-input');
@@ -854,10 +686,7 @@ function setSelectedDate(dateStr) {
   document.getElementById('h-month-input').value = m;
   updateDaySel();
   document.getElementById('h-day-input').value = d;
-  updateDatePreview();
 }
-
-function toggleHistory(id) {
   historyExp = historyExp===id ? null : id;
   // 카드 직접 토글 (loadHistory 재호출 없이)
   document.querySelectorAll('.history-card').forEach(card => {
@@ -978,7 +807,7 @@ async function saveHistory() {
     setSync('on','클라우드 연결됨');
     closeHistoryModal();
     // 찬양곡 데이터 새로 불러오기
-    songs = await api('GET','songs?select=*&order=name');
+    songs = await api('GET','songs?order=name');
     updateStats();
     render();
     // 연도 목록 갱신 후 기록 다시 불러오기
@@ -1029,7 +858,7 @@ async function deleteHistory(id) {
     await api('DELETE',`worship_history?id=eq.${id}`);
     // 사용 횟수 -1
     await syncSongCounts([], prevNames);
-    songs = await api('GET','songs?select=*&order=name');
+    songs = await api('GET','songs?order=name');
     updateStats();
     render();
     showToast('삭제되었습니다');
@@ -1037,16 +866,7 @@ async function deleteHistory(id) {
   } catch(e){showToast('삭제 실패: '+e.message);}
 }
 
-// ── YOUTUBE PLAYER ────────────────────────────────────────
-function openYT(url, name) {
-  const a = document.createElement('a');
-  a.href = url;
-  a.target = '_blank';
-  a.rel = 'noopener noreferrer';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-}
+// ── STORAGE API ───────────────────────────────────────────
 const STORAGE_URL = SUPABASE_URL + '/storage/v1';
 const STOR_HEADERS = {'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY};
 
@@ -1061,26 +881,6 @@ async function listScores(songId) {
 
 function scoreUrl(path) {
   return `${STORAGE_URL}/object/public/scores/${path}`;
-}
-
-async function syncR2Praise(songId) {
-  try {
-    setSync('sync', 'R2 반영 중...');
-    const res = await fetch('/api/r2-praise-sync', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({songIds: songId ? [songId] : [], force: true})
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data.ok) throw new Error(data.error || 'R2 반영 실패');
-    setSync('on', 'R2 반영 완료');
-    return true;
-  } catch(e) {
-    console.warn('R2 sync failed', e);
-    setSync('off', 'R2 반영 실패');
-    showToast('저장은 됐지만 R2 반영은 실패했어요');
-    return false;
-  }
 }
 
 async function uploadScore(songId, file, idx, total) {
@@ -1216,11 +1016,11 @@ async function api(method, path, body) {
 async function init() {
   setSync('sync', '불러오는 중...');
   try {
-    let data = await api('GET', 'songs?select=*&order=name');
+    let data = await api('GET', 'songs?order=name');
     if (!data || data.length === 0) {
       setSync('sync', '초기 데이터 업로드 중...');
       await uploadBaseData();
-      data = await api('GET', 'songs?select=*&order=name');
+      data = await api('GET', 'songs?order=name');
     }
     songs = data;
     // 먼저 화면에 바로 렌더링 (빠른 로딩감)
@@ -1270,66 +1070,29 @@ function setSync(state, txt) {
 // ── STATS ─────────────────────────────────────────────────
 function updateStats() {
   document.getElementById('st-used').textContent = songs.filter(s=>s.status==='used').length;
+  // 악보 완료 = status가 ready인 것 + status가 used이면서 has_score인 것
   document.getElementById('st-ready').textContent = songs.filter(s=>s.status==='ready' || (s.status==='used' && s.has_score)).length;
   document.getElementById('st-total').textContent = songs.length;
+  // 작업 예정 = status가 plan인 것 + 악보 없는 것 (중복 제거)
   document.getElementById('st-plan').textContent = songs.filter(s=>s.status==='plan' || !s.has_score).length;
-  document.getElementById('st-video').textContent = songs.filter(s=>!!s.music_url).length;
 }
 
 // ── FILTER ────────────────────────────────────────────────
-let dropSitu = '', dropSeas = '';
-
-function statFilter(f) {
-  switchTab('songs', document.querySelector('.tabs .tab'));
-  sf(f, null);
-  document.querySelectorAll('.stat-filter').forEach(el=>el.classList.toggle('active', el.dataset.filter===f));
-  const labels={all:'전체 곡',used:'사용 이력 있는 곡',ready:'악보 완료 곡',no_score:'악보 없는 곡',video:'영상 있는 곡'};
-  showToast((labels[f]||'선택한 항목')+'을 표시합니다');
-  document.getElementById('tab-songs')?.scrollIntoView({behavior:'smooth',block:'start'});
-}
-
-function sfSel(val) {
-  filt = val;
-  dropSitu = ''; dropSeas = '';
-  document.getElementById('sel-situ').value = '';
-  document.getElementById('sel-seas').value = '';
-  render();
-}
-
-function sfDrop(val, type) {
-  if (type === 'situ') dropSitu = val;
-  if (type === 'seas') dropSeas = val;
-  filt = 'all';
-  document.getElementById('sel-filt').value = 'all';
-  render();
-}
-
-function ssDrop(val) {
-  sortBy = val;
-  sortDir = val === 'count' ? -1 : 1;
-  render();
-}
-
 function sf(f, btn) {
   filt = f;
-  document.querySelectorAll('.stat-filter').forEach(el=>el.classList.toggle('active', el.dataset.filter===f));
-  dropSitu = ''; dropSeas = '';
-  const sf2 = document.getElementById('sel-filt');
-  const ss2 = document.getElementById('sel-situ');
-  const se = document.getElementById('sel-seas');
-  if (sf2) sf2.value = f;
-  if (ss2) ss2.value = '';
-  if (se) se.value = '';
+  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
   render();
 }
 function ss(by, btn) {
   if (sortBy === by) { sortDir *= -1; }
   else { sortBy = by; sortDir = 1; }
-  const sd = document.getElementById('sel-sort');
-  if (sd) sd.value = by;
+  document.querySelectorAll('.sb').forEach(b=>{ b.classList.remove('on'); b.textContent = b.textContent.replace(' ▲','').replace(' ▼',''); });
+  btn.classList.add('on');
+  btn.textContent = btn.textContent + (sortDir===1?' ▲':' ▼');
   render();
 }
-async function toggle(id) {
+function toggle(id) {
   exp = exp===id ? null : id;
   render();
   if (exp === id) loadThumb(id);
@@ -1447,9 +1210,6 @@ async function saveSong() {
       showToast('악보 업로드 완료 ✓');
       setSync('on', '클라우드 연결됨');
     }
-    if (uploadTargetId) {
-      await syncR2Praise(uploadTargetId);
-    }
     closeModal();
     updateStats();
     render();
@@ -1522,17 +1282,13 @@ function render() {
     const normName = s.name.normalize('NFC').replace(/\s+/g,' ').trim().toLowerCase();
     const mq = !q || normName.includes(normQ.toLowerCase());
     if (!mq) return false;
-    const seas = s.seasons||[];
-    // 드롭다운 필터
-    if (dropSitu && !seas.includes(dropSitu)) return false;
-    if (dropSeas && !seas.includes(dropSeas)) return false;
     if (filt==='all') return true;
     if (filt==='used') return s.status==='used';
-    if (filt==='ready') return s.status==='ready' || (s.status==='used' && s.has_score) || s.has_score;
+    if (filt==='ready') return s.status==='ready';
     if (filt==='plan') return s.status==='plan';
     if (filt==='no_score') return !s.has_score;
-    if (filt==='video') return !!s.music_url;
     if (filt==='top') return top10.includes(s.name);
+    const seas = s.seasons||[];
     return seas.includes(filt);
   });
 
@@ -1545,7 +1301,6 @@ function render() {
     else if (sortBy==='count') v = (b.count||0) - (a.count||0);
     else if (sortBy==='key') v = (a.key||'zzz').localeCompare(b.key||'zzz');
     else if (sortBy==='bpm') v = (a.bpm||0) - (b.bpm||0);
-    else if (sortBy==='created') v = new Date(b.created_at||0) - new Date(a.created_at||0);
     return sortBy==='count' ? v : v * sortDir;
   });
   document.getElementById('cnt').textContent = list.length+'곡 표시 중';
@@ -1566,28 +1321,8 @@ function render() {
     const scoreBadge = s.has_score
       ? `<span style="font-size:.6rem;padding:2px 7px;border-radius:20px;background:var(--green-bg);color:var(--green);border:1px solid rgba(58,122,82,.25);flex-shrink:0">악보 있음</span>`
       : `<span style="font-size:.6rem;padding:2px 7px;border-radius:20px;background:var(--red-bg);color:var(--red);border:1px solid rgba(176,40,31,.2);flex-shrink:0">악보 없음</span>`;
-    const videoBadge = s.music_url
-      ? `<span onclick="event.stopPropagation();openYT('${s.music_url.replace(/'/g,"\\'")}','${s.name.replace(/'/g,"\\'")}');" style="font-size:.6rem;padding:2px 7px;border-radius:20px;background:#ff000015;color:#cc0000;border:1px solid rgba(204,0,0,.25);flex-shrink:0;cursor:pointer" title="클릭해서 재생">▶ 영상</span>`
-      : `<span style="font-size:.6rem;padding:2px 7px;border-radius:20px;background:var(--surface2);color:var(--text3);border:1px solid var(--border);flex-shrink:0">영상 없음</span>`;
     const barPct = s.count>0?Math.round((s.count/mx)*100):0;
     const seas = s.seasons||[];
-    // 템포 구분
-    const tempoLabel = !s.bpm||s.bpm===0?'':s.bpm>=120?'빠름':s.bpm>=76?'중간':'느림';
-    const tempoColor = tempoLabel==='빠름'?'var(--accent2)':tempoLabel==='중간'?'var(--green)':'var(--accent)';
-    // 절기/상황 분리
-    const liturgy = ['대림절','성탄절','주현절','사순절','고난주간','부활절','성령강림절','추수감사절'];
-    const seasTags = seas.filter(t=>liturgy.includes(t));
-    const situTags = seas.filter(t=>!liturgy.includes(t));
-    // 정보 바 (카드 헤더 아래)
-    const infoBar = `<div class="card-info">
-      ${s.key?`<div class="ci">🎵 <span>${s.key}</span></div><div class="ci-div"></div>`:''}
-      ${tempoLabel?`<div class="ci">⏱ <span style="color:${tempoColor}">${tempoLabel}</span></div><div class="ci-div"></div>`:''}
-      ${seasTags.length?`<div class="ci">📅 <span>${seasTags.join('·')}</span></div><div class="ci-div"></div>`:''}
-      ${situTags.length?`<div class="ci">🏷 <span>${situTags.slice(0,2).join('·')}${situTags.length>2?` +${situTags.length-2}`:''}</span></div><div class="ci-div"></div>`:''}
-      ${s.status==='used'?`<div class="ci">📊 <span>${s.count}회</span></div><div class="ci-div"></div>`:''}
-      <div class="ci">${s.has_score?'🎼 <span style="color:var(--green)">악보있음</span>':'🎼 <span style="color:var(--red)">악보없음</span>'}</div>
-      ${s.music_url?`<div class="ci-div"></div><div class="ci" style="cursor:pointer" onclick="event.stopPropagation();openYT('${s.music_url.replace(/'/g,"\\'")}','${s.name.replace(/'/g,"\\'")}')">▶ <span style="color:#cc0000">영상</span></div>`:''}
-    </div>`;
     let actionBtns = '<div class="ar">';
     if (s.status==='plan') {
       actionBtns += `<button class="ab green" onclick="changeStatus('${s.id}','ready')">악보 완료 ✓</button>`;
@@ -1601,6 +1336,10 @@ function render() {
     }
     actionBtns += '</div>';
     actionBtns += `<div class="ar" style="margin-top:5px">`;
+    if (s.music_url) {
+      actionBtns += `<button class="ab amber" onclick="window.open('${s.music_url}','_blank')">♪ 음악 듣기</button>`;
+    }
+    actionBtns += `<button class="ab" style="background:var(--green-bg);color:var(--green);border-color:rgba(58,122,82,.3)" onclick="openViewer('${s.id}','${s.name.replace(/'/g,"\\'")}')">🎼 악보 보기</button>`;
     if (!s.has_score) {
       actionBtns += `<button class="ab" style="background:var(--red-bg);color:var(--red);border-color:rgba(176,40,31,.2)" onclick="openModal('${s.id}')">🎼 악보 올리기</button>`;
     }
@@ -1610,63 +1349,22 @@ function render() {
 
     return `<div class="card ${isOpen?'open':''}">
 <div class="ch" onclick="toggle('${s.id}')">
-  <div style="display:flex;flex-direction:column;flex:1;gap:4px;min-width:0">
-    <div style="display:flex;align-items:center;gap:6px">
-      <span class="sn2" style="font-size:.95rem">${s.name}</span>
-      ${isTop?`<span class="top-s">TOP ${top10.indexOf(s.name)+1}</span>`:''}
-    </div>
-    <div style="display:flex;align-items:center;gap:0">
-      <!-- 왼쪽: 악보·영상 -->
-      <div style="display:flex;gap:5px;align-items:center;flex:1">
-        ${s.has_score
-          ? `<span onclick="event.stopPropagation();openViewer('${s.id}','${s.name.replace(/'/g,"\\'")}');" style="font-size:.72rem;padding:2px 8px;border-radius:20px;background:var(--blue-bg);color:var(--accent);border:1px solid rgba(45,90,142,.2);font-weight:500;cursor:pointer">🎼 악보</span>`
-          : `<span style="font-size:.72rem;padding:2px 8px;border-radius:20px;background:var(--red-bg);color:var(--red);border:1px solid rgba(176,40,31,.2);font-weight:500">🎼 없음</span>`}
-        ${s.music_url
-          ? `<span onclick="event.stopPropagation();openYT('${s.music_url.replace(/'/g,"\\'")}','${s.name.replace(/'/g,"\\'")}');" style="font-size:.72rem;padding:2px 8px;border-radius:20px;background:#ffeaea;color:#cc0000;border:1px solid rgba(204,0,0,.2);font-weight:500;cursor:pointer">▶ 영상</span>`
-          : `<span style="font-size:.72rem;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--text3);border:1px solid var(--border)">▶ 없음</span>`}
-      </div>
-      <!-- 가운데: 템포 + 코드 -->
-      <div style="text-align:center;flex-shrink:0;padding:0 8px;display:flex;gap:4px;align-items:center">
-        ${tempoLabel
-          ? `<span style="font-size:.72rem;padding:2px 10px;border-radius:20px;font-weight:600;background:${tempoLabel==='빠름'?'var(--amber-bg)':tempoLabel==='중간'?'var(--green-bg)':'var(--blue-bg)'};color:${tempoColor};border:1px solid ${tempoLabel==='빠름'?'rgba(196,145,58,.3)':tempoLabel==='중간'?'rgba(58,122,82,.3)':'rgba(45,90,142,.3)'}">${tempoLabel} <span style="opacity:.7;font-weight:400">${s.bpm}</span></span>`
-          : `<span style="font-size:.72rem;color:var(--border2)">—</span>`}
-        ${s.key ? `<span style="font-size:.72rem;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--text2);border:1px solid var(--border);font-weight:600">${s.key}</span>` : ''}
-      </div>
-      <!-- 오른쪽: 상황·절기 -->
-      <div style="display:flex;gap:4px;align-items:center;flex:1;justify-content:flex-end;flex-wrap:nowrap;overflow:hidden">
-        ${situTags.slice(0,1).map(t=>`<span style="font-size:.72rem;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--text2);border:1px solid var(--border);white-space:nowrap">${t}</span>`).join('')}
-        ${seasTags.slice(0,1).map(t=>`<span style="font-size:.72rem;padding:2px 8px;border-radius:20px;background:var(--amber-bg);color:var(--accent2);border:1px solid rgba(196,145,58,.2);white-space:nowrap">${t}</span>`).join('')}
-      </div>
-    </div>
-  </div>
-  <span class="chev" style="flex-shrink:0;margin-left:8px">${isOpen?'▲':'▼'}</span>
+  <span class="badge ${bc}">${bl}</span>
+  ${scoreBadge}
+  <span class="sn2">${s.name}</span>
+  ${s.music_url ? `<span style="font-size:.6rem;padding:2px 6px;border-radius:20px;background:var(--amber-bg);color:var(--accent2);border:1px solid rgba(196,145,58,.2);flex-shrink:0">♪ 음악</span>` : ''}
+  ${isTop?`<span class="top-s">TOP ${top10.indexOf(s.name)+1}</span>`:''}
+  <img id="thumb-${s.id}" src="" alt="악보" style="display:none;width:36px;height:36px;object-fit:cover;border-radius:4px;border:1px solid var(--border);flex-shrink:0" onerror="this.style.display='none'">
+  <span class="chev">${isOpen?'▲':'▼'}</span>
 </div>
 <div class="cd"><div class="di">
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;align-items:center">
-    <span class="badge ${bc}">${bl}</span>
-    ${s.key?`<span class="stag" style="background:var(--blue-bg);color:var(--accent);border-color:rgba(45,90,142,.2)">🎵 ${s.key}</span>`:''}
-    ${s.bpm?`<span class="stag" style="background:var(--green-bg);color:var(--green);border-color:rgba(58,122,82,.2)">♩ ${s.bpm} BPM</span>`:''}
-    ${s.count>0?`<span class="stag">📊 ${s.count}회 사용</span>`:''}
+  <div class="ib">
+    <div class="il">사용 현황</div>
+    <div class="it">${s.status==='used'?`총 ${s.count}회 사용`:s.status==='ready'?'악보 작업 완료':'악보 작업 예정 중'}</div>
+    ${s.count>0?`<div class="bt"><div class="bt-track"><div class="bt-fill" style="width:${barPct}%"></div></div><span class="bt-num">${s.count}/${mx}회</span></div>`:''}
   </div>
-  ${seas.length?`<div class="stags" style="margin-bottom:10px">${seas.map(t=>`<span class="stag">${t}</span>`).join('')}</div>`:''}
-
-  ${s.music_url?`
-  <div style="margin-bottom:10px">
-    <button onclick="openYT('${s.music_url.replace(/'/g,"\\'")}','${s.name.replace(/'/g,"\\'")}');" style="width:100%;padding:.6rem;background:#cc0000;color:#fff;border:none;border-radius:8px;font-size:.85rem;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
-      ▶ 영상 보기
-    </button>
-  </div>`:''}
-
-  ${s.has_score?`
-  <div style="margin-bottom:10px">
-    <button onclick="openViewer('${s.id}','${s.name.replace(/'/g,"\\'")}');" style="width:100%;padding:.6rem;background:var(--blue-bg);color:var(--accent);border:1px solid rgba(45,90,142,.2);border-radius:8px;font-size:.85rem;font-weight:500;cursor:pointer">
-      🎼 악보 보기
-    </button>
-  </div>`:`
-  <div style="margin-bottom:10px;padding:10px;background:var(--red-bg);border-radius:8px;font-size:.78rem;color:var(--red);text-align:center">
-    🎼 악보 없음 — 아래 버튼으로 업로드해주세요
-  </div>`}
-
+  ${(s.key||s.bpm)?`<div style="display:flex;gap:6px;flex-wrap:wrap">${s.key?`<span class="stag" style="background:var(--blue-bg);color:var(--accent);border-color:rgba(45,90,142,.2)">🎵 키: ${s.key}</span>`:''}${s.bpm?`<span class="stag" style="background:var(--green-bg);color:var(--green);border-color:rgba(58,122,82,.2)">♩ ${s.bpm} BPM · ${s.bpm<65?'느리게':s.bpm<85?'보통':s.bpm<110?'빠르게':'매우 빠르게'}</span>`:''}</div>`:''}
+  ${seas.length?`<div class="stags">${seas.map(t=>`<span class="stag">${t}</span>`).join('')}</div>`:''}
   ${actionBtns}
 </div></div></div>`;
   }).join('');

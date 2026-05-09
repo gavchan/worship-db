@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>찬양곡 태그 자동 추천</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Apple SD Gothic Neo',sans-serif;background:#faf8f5;color:#1a1714;min-height:100vh}
+.header{background:#1a1714;color:#fff;padding:1.2rem 1.5rem}
+.header h1{font-size:1.2rem;font-weight:700;margin-bottom:.2rem}
+.header p{font-size:.75rem;color:rgba(255,255,255,.5)}
+.controls{background:#fff;border-bottom:1px solid #e8e2d9;padding:.9rem 1rem;position:sticky;top:0;z-index:10;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{padding:.5rem 1rem;border:none;border-radius:6px;font-size:.8rem;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
+.btn-blue{background:#2d5a8e;color:#fff}.btn-blue:hover{background:#1e4a7a}
+.btn-blue:disabled{opacity:.5;cursor:not-allowed}
+.btn-green{background:#3a7a52;color:#fff}.btn-green:hover{background:#2a5a3c}
+.btn-green:disabled{opacity:.5;cursor:not-allowed}
+.btn-outline{background:transparent;border:1px solid #d4cec4;color:#6b6560}.btn-outline:hover{border-color:#2d5a8e;color:#2d5a8e}
+.progress-bar{height:4px;background:#e8e2d9;border-radius:2px;margin:.5rem 0;overflow:hidden;display:none}
+.progress-fill{height:100%;background:#2d5a8e;border-radius:2px;transition:width .3s}
+.stat{font-size:.75rem;color:#6b6560;white-space:nowrap}
+
+.list{padding:.75rem;display:flex;flex-direction:column;gap:6px;max-width:900px;margin:0 auto}
+.song-row{background:#fff;border:1px solid #e8e2d9;border-radius:8px;padding:10px 14px}
+.song-row.changed{border-color:#3a7a52;background:#f0f9f4}
+.song-row.ignored{opacity:.5}
+.row-top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.song-name{font-size:.88rem;font-weight:500;flex:1}
+.status-badge{font-size:.62rem;padding:2px 7px;border-radius:20px;white-space:nowrap}
+.b-used{background:#eaf0f8;color:#2d5a8e}
+.b-ready{background:#edf5f0;color:#3a7a52}
+.b-plan{background:#f4f1eb;color:#9e9891;border:1px solid #e8e2d9}
+.ai-badge{font-size:.62rem;padding:2px 7px;border-radius:20px;background:#fdf4e7;color:#c4913a;border:1px solid rgba(196,145,58,.25)}
+.tags-area{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.tag-btn{font-size:.68rem;padding:3px 10px;border-radius:20px;border:1px solid #d4cec4;background:transparent;cursor:pointer;transition:all .15s;color:#6b6560}
+.tag-btn:hover{border-color:#2d5a8e;color:#2d5a8e}
+.tag-btn.on{background:#2d5a8e;color:#fff;border-color:#2d5a8e}
+.tag-btn.on.절기{background:#c4913a;border-color:#c4913a}
+.tag-section{font-size:.65rem;color:#9e9891;margin-right:3px}
+.row-actions{display:flex;gap:5px;margin-top:8px}
+.ab{font-size:.68rem;padding:4px 10px;border:1px solid #d4cec4;border-radius:6px;background:transparent;cursor:pointer;color:#6b6560;transition:all .15s}
+.ab:hover{background:#eaf0f8;color:#2d5a8e;border-color:#2d5a8e}
+.ab.red:hover{background:#fdeaea;color:#b0281f;border-color:#b0281f}
+.loading-row{display:flex;align-items:center;gap:6px;font-size:.75rem;color:#9e9891;margin-top:4px}
+.spin{animation:spin .8s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:3rem;color:#9e9891;font-size:.85rem}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1714;color:#fff;padding:.55rem 1.2rem;border-radius:20px;font-size:.78rem;opacity:0;transition:all .3s;z-index:300;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🤖 찬양곡 태그 자동 추천</h1>
+  <p>AI가 곡명을 분석해서 상황별·절기별 태그를 추천합니다</p>
+</div>
+
+<div class="controls">
+  <button class="btn btn-blue" id="btnAnalyze" onclick="startAnalyze()">🤖 AI 태그 추천 시작</button>
+  <button class="btn btn-green" id="btnSaveAll" onclick="saveAll()" disabled>💾 변경된 곡 전체 저장</button>
+  <button class="btn btn-outline" onclick="filterChanged()">변경된 곡만 보기</button>
+  <button class="btn btn-outline" onclick="filterAll()">전체 보기</button>
+  <span class="stat" id="statTxt"></span>
+</div>
+<div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+
+<div class="list" id="list"><div class="empty">위 버튼을 눌러 시작하세요</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SB_URL = 'https://rmtysrytveexshwzenxj.supabase.co';
+const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdHlzcnl0dmVleHNod3plbnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjQ3OTYsImV4cCI6MjA5MjEwMDc5Nn0.5FzzJ1rg-uRG4jAGZ75xVT3i3NH0m6J_tDeOS4GxyT8';
+const RH = {'apikey':KEY,'Authorization':'Bearer '+KEY};
+const JH = {'Content-Type':'application/json','apikey':KEY,'Authorization':'Bearer '+KEY,'Prefer':'return=minimal'};
+
+const SITUATION = ['경배·예배','감사','위로·치유','회복·소망','평안·신뢰','기쁨·찬양','은혜·십자가','강함·승리','사랑·헌신','기도·간구'];
+const LITURGY = ['대림절','성탄절','주현절','사순절','고난주간','부활절','성령강림절','추수감사절'];
+const ALL_TAGS = [...SITUATION, ...LITURGY];
+
+let songs = [], songStates = {}, showAll = true;
+
+async function apiSB(method, path, body) {
+  const res = await fetch(SB_URL+'/rest/v1/'+path, {
+    method, headers: method==='GET'?RH:JH, body: body?JSON.stringify(body):undefined
+  });
+  if(!res.ok) throw new Error(await res.text());
+  const t = await res.text(); return t?JSON.parse(t):null;
+}
+
+async function askClaude(names) {
+  const prompt = `다음은 한국 CCM(기독교 현대 음악) 및 찬양곡 목록입니다.
+각 곡명을 보고 아래 카테고리 중 해당하는 태그를 JSON으로 반환하세요.
+
+상황별 태그: ${SITUATION.join(', ')}
+절기별 태그: ${LITURGY.join(', ')}
+
+규칙:
+- 곡명에서 유추 가능한 태그만 선택 (확실한 것만)
+- 한 곡에 여러 태그 가능 (보통 1~3개)
+- 해당 없으면 빈 배열
+
+곡 목록:
+${names.map((n,i)=>`${i+1}. ${n}`).join('\n')}
+
+JSON 형식으로만 응답하세요 (다른 텍스트 없이):
+{"results": [{"name": "곡명", "tags": ["태그1", "태그2"]}, ...]}`;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 2000,
+      system: '당신은 한국 기독교 찬양곡 전문가입니다. 곡명만으로 태그를 정확하게 분류합니다. 반드시 JSON만 응답하세요.',
+      messages: [{role:'user', content: prompt}]
+    })
+  });
+  const data = await res.json();
+  const text = data.content?.[0]?.text || '{}';
+  const clean = text.replace(/```json|```/g,'').trim();
+  return JSON.parse(clean);
+}
+
+async function startAnalyze() {
+  const btn = document.getElementById('btnAnalyze');
+  btn.disabled = true; btn.textContent = '불러오는 중...';
+
+  songs = await apiSB('GET', 'songs?select=id,name,status,count,seasons&limit=2000&order=name');
+  songs.forEach(s => {
+    songStates[s.id] = { original: [...(s.seasons||[])], current: [...(s.seasons||[])], aiTags: [], analyzed: false, ignored: false };
+  });
+
+  const bar = document.getElementById('progressBar');
+  bar.style.display = 'block';
+  renderList();
+  updateStat();
+
+  // 10개씩 묶어서 AI 분석
+  const batchSize = 10;
+  let done = 0;
+  btn.textContent = '🤖 AI 분석 중...';
+
+  for (let i = 0; i < songs.length; i += batchSize) {
+    const batch = songs.slice(i, i+batchSize);
+    const names = batch.map(s => s.name);
+
+    // 로딩 표시
+    batch.forEach(s => {
+      const el = document.getElementById('loading-'+s.id);
+      if(el) el.style.display = 'flex';
+    });
+
+    try {
+      const result = await askClaude(names);
+      const results = result.results || [];
+      results.forEach(r => {
+        const song = batch.find(s => s.name === r.name);
+        if (!song) return;
+        const state = songStates[song.id];
+        state.aiTags = (r.tags||[]).filter(t => ALL_TAGS.includes(t));
+        state.analyzed = true;
+        // AI 추천 태그를 현재 태그에 병합 (기존 유지 + AI 추가)
+        r.tags.forEach(t => {
+          if (ALL_TAGS.includes(t) && !state.current.includes(t)) {
+            state.current.push(t);
+          }
+        });
+      });
+    } catch(e) {
+      console.error('AI 오류:', e);
+    }
+
+    batch.forEach(s => {
+      const el = document.getElementById('loading-'+s.id);
+      if(el) el.style.display = 'none';
+      renderSongRow(s.id);
+    });
+
+    done += batch.length;
+    const pct = Math.round((done/songs.length)*100);
+    document.getElementById('progressFill').style.width = pct+'%';
+    document.getElementById('statTxt').textContent = `${done}/${songs.length}곡 분석 완료`;
+  }
+
+  btn.disabled = false; btn.textContent = '🔄 다시 분석';
+  document.getElementById('btnSaveAll').disabled = false;
+  updateStat();
+}
+
+function renderList() {
+  const list = document.getElementById('list');
+  list.innerHTML = songs.map(s => {
+    const st = songStates[s.id];
+    const bc = s.status==='used'?'b-used':s.status==='ready'?'b-ready':'b-plan';
+    const bl = s.status==='used'?`사용 ${s.count}회`:s.status==='ready'?'악보완료':'예정';
+    return `<div class="song-row" id="row-${s.id}">
+      <div class="row-top">
+        <span class="song-name">${s.name}</span>
+        <span class="status-badge ${bc}">${bl}</span>
+        <span class="ai-badge" id="ai-badge-${s.id}" style="display:none">🤖 AI 추천</span>
+      </div>
+      <div id="loading-${s.id}" class="loading-row" style="display:none"><span class="spin">⟳</span> AI 분석 중...</div>
+      <div class="tags-area" id="tags-${s.id}"></div>
+      <div class="row-actions">
+        <button class="ab" onclick="resetTags('${s.id}')">원래대로</button>
+        <button class="ab" onclick="clearTags('${s.id}')">태그 모두 제거</button>
+        <button class="ab red" onclick="ignoreSong('${s.id}')">이 곡 건너뛰기</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderSongRow(id) {
+  const s = songs.find(x=>x.id===id);
+  const st = songStates[id];
+  if(!s||!st) return;
+
+  const row = document.getElementById('row-'+id);
+  if(!row) return;
+
+  const changed = JSON.stringify([...st.current].sort()) !== JSON.stringify([...st.original].sort());
+  row.className = 'song-row' + (changed?' changed':'') + (st.ignored?' ignored':'');
+
+  const aiBadge = document.getElementById('ai-badge-'+id);
+  if(aiBadge) aiBadge.style.display = st.aiTags.length ? 'inline' : 'none';
+
+  const tagsEl = document.getElementById('tags-'+id);
+  if(!tagsEl) return;
+
+  tagsEl.innerHTML =
+    `<span class="tag-section">상황:</span>` +
+    SITUATION.map(t => {
+      const on = st.current.includes(t);
+      const isAI = st.aiTags.includes(t) && !st.original.includes(t);
+      return `<button class="tag-btn ${on?'on':''}" data-id="${id}" data-tag="${t}">${t}${isAI&&on?' ✨':''}</button>`;
+    }).join('') +
+    `<span class="tag-section" style="margin-left:6px">절기:</span>` +
+    LITURGY.map(t => {
+      const on = st.current.includes(t);
+      const isAI = st.aiTags.includes(t) && !st.original.includes(t);
+      return `<button class="tag-btn ${on?'on 절기':''}" data-id="${id}" data-tag="${t}">${t}${isAI&&on?' ✨':''}</button>`;
+    }).join('');
+
+  updateStat();
+}
+
+// 이벤트 위임 — 태그 버튼 클릭 처리
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('[data-tag]');
+  if(!btn) return;
+  const id = btn.dataset.id;
+  const tag = btn.dataset.tag;
+  if(!id||!tag) return;
+  const st = songStates[id];
+  if(!st||st.ignored) return;
+  if(st.current.includes(tag)) st.current = st.current.filter(t=>t!==tag);
+  else st.current.push(tag);
+  renderSongRow(id);
+});
+function resetTags(id) {
+  songStates[id].current = [...songStates[id].original];
+  renderSongRow(id);
+}
+function clearTags(id) {
+  songStates[id].current = [];
+  renderSongRow(id);
+}
+function ignoreSong(id) {
+  songStates[id].ignored = !songStates[id].ignored;
+  renderSongRow(id);
+}
+
+function updateStat() {
+  const changed = songs.filter(s => {
+    const st = songStates[s.id];
+    if(!st||st.ignored) return false;
+    return JSON.stringify([...st.current].sort()) !== JSON.stringify([...st.original].sort());
+  }).length;
+  document.getElementById('statTxt').textContent = changed > 0 ? `변경된 곡: ${changed}개` : '';
+}
+
+function filterChanged() {
+  songs.forEach(s => {
+    const st = songStates[s.id];
+    if(!st) return;
+    const changed = JSON.stringify([...st.current].sort()) !== JSON.stringify([...st.original].sort());
+    const row = document.getElementById('row-'+s.id);
+    if(row) row.style.display = changed ? '' : 'none';
+  });
+}
+function filterAll() {
+  songs.forEach(s => {
+    const row = document.getElementById('row-'+s.id);
+    if(row) row.style.display = '';
+  });
+}
+
+async function saveAll() {
+  const toSave = songs.filter(s => {
+    const st = songStates[s.id];
+    if(!st||st.ignored) return false;
+    return JSON.stringify([...st.current].sort()) !== JSON.stringify([...st.original].sort());
+  });
+  if(!toSave.length) { showToast('변경된 곡이 없어요'); return; }
+  if(!confirm(`${toSave.length}곡의 태그를 저장할까요?`)) return;
+
+  const btn = document.getElementById('btnSaveAll');
+  btn.disabled=true; btn.textContent='저장 중...';
+
+  let ok=0, fail=0;
+  for(const s of toSave) {
+    try {
+      await apiSB('PATCH', `songs?id=eq.${s.id}`, { seasons: songStates[s.id].current, updated_at: new Date().toISOString() });
+      songStates[s.id].original = [...songStates[s.id].current];
+      renderSongRow(s.id);
+      ok++;
+    } catch(e) { fail++; }
+  }
+  showToast(`✓ ${ok}곡 저장 완료${fail?` (실패 ${fail}곡)`:''}`);
+  btn.disabled=false; btn.textContent='💾 변경된 곡 전체 저장';
+  updateStat();
+}
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>

@@ -83,39 +83,3 @@ exception when duplicate_object then null; end $$;
 do $$ begin
   create policy "anon write app settings" on public.app_settings for all to anon using (true) with check (true);
 exception when duplicate_object then null; end $$;
--- STEP8 안정화 참고: score_group / 연주 엔진 권장 구조
--- 현재 앱은 파일명 기반으로 score_group을 자동 계산합니다.
--- 향후 DB에 영구 저장하고 싶을 때 아래 테이블을 추가로 사용할 수 있습니다.
-
-create table if not exists public.score_groups (
-  id uuid primary key default gen_random_uuid(),
-  song_id uuid references public.songs(id) on delete cascade,
-  score_key text,
-  version_name text default '대표',
-  is_primary boolean default false,
-  page_count integer default 0,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
-);
-
-create table if not exists public.score_group_pages (
-  id uuid primary key default gen_random_uuid(),
-  score_group_id uuid references public.score_groups(id) on delete cascade,
-  page_no integer not null default 1,
-  storage_path text not null,
-  created_at timestamptz default now(),
-  unique(score_group_id, page_no)
-);
-
-create table if not exists public.setlist_snapshots (
-  id uuid primary key default gen_random_uuid(),
-  title text not null,
-  worship_date date,
-  source_history_id uuid,
-  song_ids uuid[] default '{}',
-  song_names text[] default '{}',
-  score_group_ids uuid[] default '{}',
-  note text,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
-);

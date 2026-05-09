@@ -1,0 +1,23 @@
+드림찬양단 분기형 적용 안내
+
+업로드/교체할 파일
+1) index.html  -> 새 화면 선택 페이지
+2) pc.html     -> 기존 PC용 화면
+3) mobile.html -> 모바일/태블릿 통합 화면
+
+사용 주소
+- 화면 선택: https://worship-db-sable.vercel.app/
+- PC용: https://worship-db-sable.vercel.app/pc.html
+- 모바일/태블릿용: https://worship-db-sable.vercel.app/mobile.html
+
+이번 버전 포함 사항
+- 기존 index.html을 pc.html로 보존
+- 새 index.html에서 PC/모바일 분기
+- 모바일 화면에서 찬양곡 추가/수정/삭제
+- 모바일 화면에서 주일 기록 추가/수정/삭제
+- 이번 주 전체악보 JPG/PNG 업로드·보기·삭제
+- 곡별 악보 보기 유지
+
+주의
+- 전체악보는 Supabase Storage의 scores 버킷 안 _full_scores/콘티ID/ 경로에 저장됩니다.
+- 업로드가 안 되면 Supabase Storage 정책에서 scores 버킷 업로드 권한을 확인해야 합니다.
