@@ -27,7 +27,8 @@
 body.performance-portrait .viewer.performance{display:none}body.performance-portrait .viewer.performance.show{display:grid;grid-template-rows:52px 1fr}body.performance-portrait .viewer.performance .viewer-top{position:relative;min-height:52px;height:52px;padding:6px 10px;display:grid;grid-template-columns:1fr auto;align-items:center;border-bottom:1px solid rgba(255,255,255,.1);background:rgba(11,16,32,.96);z-index:10}body.performance-portrait .viewer-stage{height:calc(100vh - 52px);padding:8px 8px 72px}body.performance-portrait .viewer-stage.one .viewer-page,body.performance-portrait .viewer-stage.portrait .viewer-page{width:100%;height:100%}body.performance-portrait .viewer-bottom{min-height:56px}.portrait-mini-track{position:absolute;left:8px;right:8px;bottom:68px;display:flex;gap:6px;overflow-x:auto;z-index:7;scrollbar-width:none}.portrait-mini-track::-webkit-scrollbar{display:none}.portrait-mini-track button{border:1px solid rgba(255,255,255,.12);background:rgba(11,16,32,.72);backdrop-filter:blur(12px);color:white;border-radius:999px;padding:6px 9px;font-size:10.5px;white-space:nowrap}.portrait-mini-track button.on{background:white;color:#050816;border-color:white;font-weight:800}
 body.performance-landscape .viewer.performance{display:none}body.performance-landscape .viewer.performance.show{display:flex}body.performance-landscape .viewer.performance .viewer-top{position:absolute;right:10px;top:10px;z-index:10;background:transparent;border:0;padding:0;min-height:0;display:flex;justify-content:flex-end}body.performance-landscape .viewer.performance .viewer-title-wrap{display:none}body.performance-landscape .viewer.performance .close{background:rgba(0,0,0,.48);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.14)}body.performance-landscape .viewer-stage{height:100vh;padding:10px 10px 58px}body.performance-landscape .viewer-stage.one .viewer-page{width:100%;max-width:980px}body.performance-landscape .viewer-stage.two .viewer-page{width:50%}body.performance-landscape .viewer-stage.two{gap:8px}body.performance-landscape .viewer-bottom{min-height:42px}.landscape-label{position:absolute;left:10px;top:10px;z-index:5;border:1px solid rgba(255,255,255,.12);background:rgba(11,16,32,.58);backdrop-filter:blur(12px);border-radius:999px;padding:6px 10px;font-size:11px;color:#d7dded}
 .helper-box{border:1px solid var(--line);background:rgba(255,255,255,.04);border-radius:14px;padding:12px;margin-top:8px}.helper-box code{display:block;white-space:pre-wrap;color:#dce4ff;font-size:12px;line-height:1.6}.tool-frame-sheet{width:min(1180px,98vw);height:90vh;max-height:90vh;display:flex;flex-direction:column}.tool-frame-sheet iframe{flex:1}.danger{background:rgba(255,80,80,.14)!important;color:#ffd0d0!important;border-color:rgba(255,80,80,.25)!important}
-.orientation-sheet{width:min(560px,100%)}.orientation-help{color:var(--muted);font-size:13px;line-height:1.65;margin:4px 0 14px}.orientation-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.orientation-actions button{border:1px solid var(--line);background:rgba(255,255,255,.06);color:#fff;text-align:left;border-radius:18px;padding:16px;cursor:pointer;transition:.15s}.orientation-actions button:hover{background:#fff;color:#050816;border-color:#fff;transform:translateY(-1px)}.orientation-actions b{display:block;font-size:17px}.orientation-actions span{display:block;font-size:12px;opacity:.72;margin-top:7px;line-height:1.45}.orientation-note{margin-top:12px;border:1px solid rgba(233,194,118,.28);background:rgba(233,194,118,.08);color:#f5dfad;border-radius:14px;padding:10px 12px;font-size:12px;line-height:1.55}@media(max-width:640px){.orientation-actions{grid-template-columns:1fr}}</style>
+.orientation-sheet{width:min(560px,100%)}.orientation-help{color:var(--muted);font-size:13px;line-height:1.65;margin:4px 0 14px}.orientation-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.orientation-actions button{border:1px solid var(--line);background:rgba(255,255,255,.06);color:#fff;text-align:left;border-radius:18px;padding:16px;cursor:pointer;transition:.15s}.orientation-actions button:hover{background:#fff;color:#050816;border-color:#fff;transform:translateY(-1px)}.orientation-actions b{display:block;font-size:17px}.orientation-actions span{display:block;font-size:12px;opacity:.72;margin-top:7px;line-height:1.45}.orientation-note{margin-top:12px;border:1px solid rgba(233,194,118,.28);background:rgba(233,194,118,.08);color:#f5dfad;border-radius:14px;padding:10px 12px;font-size:12px;line-height:1.55}@media(max-width:640px){.orientation-actions{grid-template-columns:1fr}}.viewer-stage,.viewer-page{user-select:none;-webkit-user-select:none}.viewer-stage{touch-action:pan-y}
+</style>
 </head>
 <body class='performance-landscape'><script>window.PERFORMANCE_LAYOUT='landscape'</script>
 <div class="bg"></div>
@@ -439,8 +440,14 @@ async function viewerPrev(){if(activeIdx>0)await goViewerSong(activeIdx-1)}
 function viewerPageStep(delta){
   const max=Math.max(0,(viewerFiles?.length||1)-1);
   const step=(window.PERFORMANCE_LAYOUT==='landscape'&&viewerPageMode===2)?2:1;
-  viewerPage=Math.max(0,Math.min(max,viewerPage+(delta*step)));
+  const nextPage=Math.max(0,Math.min(max,viewerPage+(delta*step)));
+  if(nextPage===viewerPage){
+    toast(delta>0?'마지막 페이지입니다':'첫 페이지입니다');
+    return false;
+  }
+  viewerPage=nextPage;
   renderPerformanceBodyOnly();
+  return true;
 }
 function togglePageMode(){
   viewerPageMode=viewerPageMode===2?1:2;
@@ -632,8 +639,34 @@ function openMobileToolNewTab(){if(mobileToolFrameUrl) window.open(mobileToolFra
 
 
 let viewerTouchX=0, viewerTouchY=0;
-document.addEventListener('touchstart',e=>{const v=document.getElementById('viewer');if(!v?.classList.contains('show')||v.dataset.mode!=='song')return;const t=e.changedTouches[0];viewerTouchX=t.clientX;viewerTouchY=t.clientY;},{passive:true});
-document.addEventListener('touchend',e=>{const v=document.getElementById('viewer');if(!v?.classList.contains('show')||v.dataset.mode!=='song')return;const t=e.changedTouches[0];const dx=t.clientX-viewerTouchX;const dy=t.clientY-viewerTouchY;if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.2){dx<0?viewerPageStep(1):viewerPageStep(-1);}},{passive:true});
+function isSwipeIgnoredTarget(target){
+  return !!target.closest('button,a,input,select,textarea,.viewer-bottom,.portrait-mini-track,.close');
+}
+let swipeStartX=0, swipeStartY=0, swipeStartTime=0, swipeTracking=false;
+function beginViewerSwipe(x,y,target){
+  const v=document.getElementById('viewer');
+  if(!v?.classList.contains('show')||v.dataset.mode!=='song')return;
+  if(isSwipeIgnoredTarget(target))return;
+  swipeStartX=x; swipeStartY=y; swipeStartTime=Date.now(); swipeTracking=true;
+}
+function endViewerSwipe(x,y){
+  const v=document.getElementById('viewer');
+  if(!swipeTracking||!v?.classList.contains('show')||v.dataset.mode!=='song')return;
+  swipeTracking=false;
+  const dx=x-swipeStartX;
+  const dy=y-swipeStartY;
+  const dt=Date.now()-swipeStartTime;
+  const horizontal=Math.abs(dx)>55 && Math.abs(dx)>Math.abs(dy)*1.25;
+  if(horizontal && dt<900){
+    dx<0 ? viewerPageStep(1) : viewerPageStep(-1);
+  }
+}
+// 연주모드 기본 제스처: 좌우 스와이프 = 현재 곡의 악보 페이지 이동
+// 버튼/하단바/미니콘티바 위에서는 스와이프를 무시해서 오작동을 막는다.
+document.addEventListener('pointerdown',e=>beginViewerSwipe(e.clientX,e.clientY,e.target),{passive:true});
+document.addEventListener('pointerup',e=>endViewerSwipe(e.clientX,e.clientY),{passive:true});
+document.addEventListener('touchstart',e=>{const t=e.changedTouches[0];beginViewerSwipe(t.clientX,t.clientY,e.target)},{passive:true});
+document.addEventListener('touchend',e=>{const t=e.changedTouches[0];endViewerSwipe(t.clientX,t.clientY)},{passive:true});
 document.addEventListener('keydown',e=>{const v=document.getElementById('viewer');if(!v?.classList.contains('show'))return;if(v.dataset.mode==='song'&&e.key==='ArrowRight')viewerPageStep(1);if(v.dataset.mode==='song'&&e.key==='ArrowLeft')viewerPageStep(-1);if(e.key==='Escape')closeViewer();});
 
 document.addEventListener('DOMContentLoaded',init);
