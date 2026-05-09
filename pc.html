@@ -882,7 +882,8 @@ async function loadHistory() {
             ${names.map(n=>`<div class="history-song-item"><span class="history-song-name" style="cursor:pointer;color:var(--accent);text-decoration:underline" onclick="goToSong('${n.replace(/'/g,"\\'")}')">🎵 ${n}</span></div>`).join('')}
             ${h.note?`<div style="margin-top:6px;font-size:.72rem;color:var(--text3)">메모: ${h.note}</div>`:''}
           </div>
-          <div style="display:flex;gap:5px;margin-top:10px">
+          <div style="display:flex;gap:5px;margin-top:10px;flex-wrap:wrap">
+            <button class="ab" onclick="shareHistory('${h.id}')">💬 공유</button>
             <button class="ab" onclick="openHistoryModal('${h.id}')">✏️ 수정</button>
             <button class="ab red" onclick="deleteHistory('${h.id}')">🗑 삭제</button>
           </div>
@@ -1773,6 +1774,26 @@ async function deleteSong(id) {
     setSync('on', '자료 연결됨');
     updateStats(); render();
   } catch(e) { showToast('실패: '+e.message); setSync('off','삭제 실패'); }
+}
+
+
+function shareUrlForHistory(id){
+  const url=new URL('share.html', location.href);
+  if(id) url.searchParams.set('id',id);
+  return url.toString();
+}
+async function shareHistory(id){
+  const url=shareUrlForHistory(id);
+  let text='이번주 콘티';
+  try{
+    const row=await api('GET',`worship_history?id=eq.${id}&select=worship_date,song_names`);
+    if(row?.[0]) text=`${row[0].worship_date} 주일예배 콘티`;
+  }catch(e){}
+  try{
+    if(navigator.share){await navigator.share({title:'이번주 콘티',text,url});showToast('공유창을 열었습니다');return;}
+  }catch(e){}
+  try{await navigator.clipboard.writeText(url);showToast('공유 링크를 복사했습니다');}
+  catch(e){window.open(url,'_blank','noopener');}
 }
 
 // ── TOAST ─────────────────────────────────────────────────

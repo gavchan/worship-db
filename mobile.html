@@ -99,6 +99,16 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
 .single-score-page{font-size:12px;color:#dce3f5;font-weight:900;padding:7px 10px;border:1px solid rgba(255,255,255,.12);border-radius:999px;background:rgba(255,255,255,.06)}
 @media(max-width:640px){.song-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important}.song-card{min-height:105px!important;padding:8px!important}.song-card h4{font-size:11.5px!important}.song-card .meta{font-size:9.5px!important}.expanded-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.song-card.expanded{min-height:248px!important}}
 
+
+/* Phase 5: conti-specific edit + unified fullscreen buttons */
+.conti-edit-mini{padding:4px 7px!important;font-size:10px!important;border-radius:999px!important}
+.score-mode-tabs{display:flex;gap:5px;flex-wrap:wrap;margin-left:4px}.score-mode-tabs button{border:1px solid var(--line);background:rgba(255,255,255,.06);color:white;border-radius:999px;padding:5px 8px;font-size:11px;cursor:pointer}.score-mode-tabs button.on{background:white;color:#050816;border-color:white;font-weight:800}
+.expanded-song-deck{display:grid;grid-template-columns:1fr 1.1fr;gap:10px;align-items:stretch;margin-top:10px}
+.expanded-song-viewer{border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.18);border-radius:14px;min-height:150px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted);font-size:12px;padding:10px}
+.expanded-song-viewer b{color:white;display:block;margin-bottom:4px}
+.expanded-actions{grid-column:1 / -1}
+@media(max-width:760px){.expanded-song-deck{grid-template-columns:1fr}.conti-edit-mini{min-width:auto!important}}
+
 </style>
 </head>
 <body>
@@ -115,7 +125,6 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
       <button onclick="showSection('songs',this)">🎼 찬양곡</button>
       <button onclick="showSection('history',this)">📖 주일 기록</button>
       <button onclick="guardMobileTools(event,this)">⚙ 관리도구</button>
-      <a href="https://pub-a62ecaff5aa54055be3c5d01d98ed78f.r2.dev/releases/app-release.apk" download>📱 앱다운로드</a>
     </nav>
   </header>
 
@@ -130,18 +139,19 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
         <div class="actions">
           <button class="action primary" onclick="openCurrentYoutube()"><b>🎧 유튜브 보기</b><span>지정된 찬양콘티 플레이리스트 열기</span></button>
           <button class="action" onclick="openSongViewer()"><b>🎼 전체화면 연주</b><span>영상 없이 악보만 전체화면으로 넘깁니다</span></button>
-          <button class="action" onclick="openFullScore()"><b>🖼 전체 악보</b><span>이번 주 전체 악보 보기</span></button>
+          <button class="action" onclick="openFullScore()"><b>🖼 전체 악보</b><span>이번주 콘티 전체 악보 보기</span></button>
+          <button class="action" onclick="shareCurrentConti()"><b>💬 콘티 공유</b><span>공유 전용 페이지 링크 보내기</span></button>
         </div>
       </div>
     </div>
 
     <div class="grid">
       <div class="card">
-        <div class="card-head"><div><h3>이번 주 찬양 흐름</h3><small>곡 순서와 상태 확인</small></div><button class="mini-btn" onclick="openMobileHistory()">모바일 수정</button></div>
+        <div class="card-head"><div><h3>이번주 콘티</h3><small>오늘 기준 이번 주 콘티를 보여줍니다</small></div><button class="mini-btn" onclick="openCurrentMobileHistory()">콘티 수정</button></div>
         <div class="flow-list" id="flow-list"><div class="loading">불러오는 중...</div></div>
       </div>
       <div class="card" id="score-panel">
-        <div class="card-head"><div><small>곡별 악보 보기</small><h3 id="score-title">악보</h3><div class="pill-row" id="score-tags" style="margin-top:8px"></div></div><div class="btn-row"><button class="mini-btn white" onclick="openSongViewer()">전체화면</button><button class="mini-btn" onclick="openActiveYoutube()">영상보기</button></div></div>
+        <div class="card-head"><div><small>곡별 악보 보기</small><h3 id="score-title">악보</h3><div class="pill-row" id="score-tags" style="margin-top:8px"></div></div><div class="btn-row"><button class="mini-btn white" onclick="openActiveSongScoreViewer()">악보 크게보기</button><button class="mini-btn" onclick="openActiveYoutube()">영상보기</button><button class="mini-btn" onclick="openContiSongEdit(activeIdx)">콘티수정</button></div></div>
         <div class="score-grid">
           <div class="score-box" id="score-preview"><div class="score-empty">🎼 악보 미리보기</div></div>
           <div class="side-stack">
@@ -224,12 +234,29 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
 </div>
 
 
+
+<div class="modal" id="conti-song-modal">
+  <div class="sheet">
+    <div class="sheet-head"><h3 id="conti-song-modal-title">콘티 곡 설정</h3><button class="close" onclick="closeContiSongEdit()">✕</button></div>
+    <div class="form-grid">
+      <div class="field full"><label>곡명</label><input id="m-conti-name" readonly></div>
+      <div class="field"><label>이번 콘티 Key</label><input id="m-conti-key" placeholder="예: G, A, Bb"></div>
+      <div class="field"><label>이번 콘티 BPM</label><input id="m-conti-bpm" type="number" min="0" placeholder="예: 72"></div>
+      <div class="field full"><label>악보 버전 / 코드 메모</label><input id="m-conti-score-version" placeholder="예: G 코드버전, A 코드 2페이지, 인트로 포함"></div>
+      <div class="field full"><label>이번 콘티 영상 링크</label><input id="m-conti-url" placeholder="곡별 영상 링크를 이번 콘티에서만 바꿀 때 입력"></div>
+      <div class="field full"><label>이번 콘티 메모</label><textarea id="m-conti-memo" placeholder="예: 2절 후렴 반복, 브릿지 생략, 다음 곡으로 바로 연결"></textarea></div>
+      <div class="field full"><div class="helper-box"><code>이 설정은 이번주 콘티 안에서만 덮어씁니다. 곡 데이터베이스 원본은 바꾸지 않습니다.</code></div></div>
+    </div>
+    <div class="sheet-actions"><button class="mini-btn danger" onclick="resetContiSongEdit()">콘티 설정 초기화</button><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="mini-btn" onclick="closeContiSongEdit()">취소</button><button class="mini-btn white" onclick="saveContiSongEdit()">저장</button></div></div>
+  </div>
+</div>
+
 <div class="modal" id="full-score-modal">
   <div class="sheet">
     <div class="sheet-head"><h3>전체악보 관리</h3><button class="close" onclick="closeFullScoreManager()">✕</button></div>
     <div class="form-grid">
       <div class="field full">
-        <label>이번 주 콘티용 전체악보 JPG / PNG 업로드</label>
+        <label>이번주 콘티용 전체악보 JPG / PNG 업로드</label>
         <input id="full-score-files" type="file" accept="image/png,image/jpeg,image/jpg" multiple>
       </div>
       <div class="field full">
@@ -382,7 +409,7 @@ let expandedDbSongId=null;
 let singleScoreSongId=null, singleScoreFiles=[], singleScorePage=0;
 let performanceImageCache=new Map();
 function setMobilePreviewMode(mode){mobilePreviewMode=mode==='video'?'video':'score';setActiveSong(activeIdx)}
-function mobilePreviewTabs(){return `<div class="score-mode-tabs"><button class="${mobilePreviewMode==='score'?'on':''}" onclick="setMobilePreviewMode('score')">🎼 악보보기</button><button class="${mobilePreviewMode==='video'?'on':''}" onclick="setMobilePreviewMode('video')">▶ 영상보기</button><button onclick="openSongViewer()">⛶ 전체화면</button></div>`}
+function mobilePreviewTabs(){return `<div class="score-mode-tabs"><button class="${mobilePreviewMode==='score'?'on':''}" onclick="setMobilePreviewMode('score')">🎼 악보보기</button><button class="${mobilePreviewMode==='video'?'on':''}" onclick="setMobilePreviewMode('video')">▶ 영상보기</button><button onclick="openActiveSongScoreViewer()">⛶ 악보 크게보기</button><button onclick="openContiSongEdit(activeIdx)">✏ 콘티수정</button></div>`}
 
 
 async function api(method,path,body){const res=await fetch(SUPABASE_URL+'/rest/v1/'+path,{method,headers:HEADERS,body:body?JSON.stringify(body):undefined});if(!res.ok)throw new Error(await res.text());const t=await res.text();return t?JSON.parse(t):null}
@@ -435,11 +462,76 @@ function showSection(name,btn){
 }
 
 async function init(){try{songs=await api('GET','songs?select=*&order=name');history=await api('GET','worship_history?select=*&order=worship_date.desc&limit=30');pickCurrentConti();renderHome();renderSongCards();renderHistory()}catch(e){document.getElementById('flow-list').innerHTML='<div class="loading">연결 실패: '+esc(e.message)+'</div>';toast('데이터 연결 실패')}}
-function pickCurrentConti(){currentConti=history&&history.length?history[0]:null;if(!currentConti){contiSongs=songs.slice(0,4);return}contiSongs=(currentConti.song_names||[]).map((name,i)=>songs.find(s=>s.id===(currentConti.song_ids||[])[i])||songs.find(s=>norm(s.name)===norm(name))||{name,status:'plan',count:0,seasons:[],key:'',bpm:0,music_url:'',has_score:false,memo:''})}
-function renderHome(){if(currentConti){const d=new Date(currentConti.worship_date);document.getElementById('today-badge').textContent=`✨ ${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 주일예배`;document.getElementById('hero-title').textContent=`${(currentConti.song_names||[]).length}곡으로 이어지는 이번 주 콘티`;document.getElementById('hero-desc').textContent=currentConti.note||'주일 기록에 저장된 최신 콘티를 기준으로 보여줍니다.'}else{document.getElementById('hero-title').textContent='아직 주일 콘티가 없습니다';document.getElementById('hero-desc').textContent='PC 화면에서 주일 기록을 추가하면 이곳에 자동으로 표시됩니다.'}renderFlow();setActiveSong(0)}
-function songMeta(s){const tempo=(!s.bpm||s.bpm==0)?'':s.bpm>=120?'빠름':s.bpm>=76?'중간':'느림';return `${s.status==='used'?`사용 ${s.count||0}회`:s.status==='ready'?'악보 완료':'작업 예정'}${s.key?' · Key '+s.key:''}${tempo?' · '+tempo+' '+s.bpm:''}`}
-function renderFlow(){const el=document.getElementById('flow-list');if(!contiSongs.length){el.innerHTML='<div class="loading">콘티 곡이 없습니다.</div>';return}el.innerHTML=contiSongs.map((s,i)=>`<button class="flow-item ${i===activeIdx?'on':''}" onclick="setActiveSong(${i})"><div class="flow-row"><div class="flow-left"><div class="num">${i+1}</div><div style="min-width:0"><div class="song-title">${esc(s.name)}</div><div class="meta">${esc(songMeta(s))}</div></div></div><div class="pill-row"><span class="pill">${s.has_score?'🎼 악보':'🎼 없음'}</span>${s.music_url?'<span class="pill">▶ 영상</span>':''}<span class="mobile-quick-icons"><span>${s.has_score?'🎼':'－'}</span><span>${s.music_url?'▶':'－'}</span></span></div></div></button>`).join('')}
-async function setActiveSong(i){activeIdx=Math.max(0,Math.min(i,contiSongs.length-1));renderFlow();const s=contiSongs[activeIdx]||{};document.getElementById('score-title').textContent=s.name||'악보';const tags=[];if(s.key)tags.push('Key '+s.key);if(s.bpm)tags.push('BPM '+s.bpm);(s.seasons||[]).slice(0,3).forEach(t=>tags.push(t));document.getElementById('score-tags').innerHTML=tags.map(t=>`<span class="pill">${esc(t)}</span>`).join('')+mobilePreviewTabs();document.getElementById('score-memo').textContent=s.memo||s.note||'등록된 메모가 없습니다.';document.getElementById('score-link').textContent=`${contiSongs[activeIdx-1]?.name||'시작'} → ${s.name||''} → ${contiSongs[activeIdx+1]?.name||'마무리'}`;await loadPreview(s)}
+function parseLocalDate(value){
+  const [y,m,d]=String(value||'').split('-').map(Number);
+  return y&&m&&d?new Date(y,m-1,d):new Date(value);
+}
+function weekBoundsFor(date=new Date()){
+  const base=new Date(date.getFullYear(),date.getMonth(),date.getDate());
+  const day=base.getDay();
+  const mondayOffset=day===0?-6:1-day;
+  const start=new Date(base); start.setDate(base.getDate()+mondayOffset); start.setHours(0,0,0,0);
+  const end=new Date(start); end.setDate(start.getDate()+6); end.setHours(23,59,59,999);
+  return {start,end};
+}
+function findThisWeekConti(){
+  const list=history||[];
+  if(!list.length)return null;
+  const {start,end}=weekBoundsFor(new Date());
+  return list.find(h=>{const d=parseLocalDate(h.worship_date);return d>=start&&d<=end})||list[0];
+}
+function contiStoreKey(){return 'worshipdb_conti_overrides_'+(currentConti?.id||currentConti?.worship_date||'draft')}
+function contiSongOverrideKey(song,i){
+  const id=song?._base_id||song?.id;
+  return id?`song:${id}:pos:${i}`:`name:${norm(song?.name||'')}:pos:${i}`;
+}
+function getContiOverrides(){try{return JSON.parse(localStorage.getItem(contiStoreKey())||'{}')}catch(e){return {}}}
+function setContiOverrides(data){try{localStorage.setItem(contiStoreKey(),JSON.stringify(data||{}))}catch(e){}}
+function cloneSongForConti(song,name=''){
+  const base=song?{...song}:{name,status:'plan',count:0,seasons:[],key:'',bpm:0,music_url:'',has_score:false,memo:''};
+  if(!base.name)base.name=name;
+  base._base_id=base.id||null;
+  return base;
+}
+function applyContiOverrides(){
+  const overrides=getContiOverrides();
+  contiSongs=contiSongs.map((s,i)=>{
+    const key=contiSongOverrideKey(s,i);
+    const legacy=overrides[i]||null;
+    const next=overrides[key]||legacy;
+    return {...s,...(next||{}),_conti_override:next||null};
+  });
+}
+function buildContiSongsFromHistory(h){
+  return (h?.song_names||[]).map((name,i)=>cloneSongForConti(songs.find(s=>s.id===(h.song_ids||[])[i])||songs.find(s=>norm(s.name)===norm(name)),name));
+}
+function pickCurrentConti(){
+  currentConti=findThisWeekConti();
+  if(!currentConti){contiSongs=songs.slice(0,4).map(s=>cloneSongForConti(s));applyContiOverrides();return}
+  contiSongs=buildContiSongsFromHistory(currentConti);
+  applyContiOverrides();
+}
+function songMeta(s){
+  const tempo=(!s.bpm||s.bpm==0)?'':s.bpm>=120?'빠름':s.bpm>=76?'중간':'느림';
+  const base=`${s.status==='used'?`사용 ${s.count||0}회`:s.status==='ready'?'악보 완료':'작업 예정'}${s.key?' · Key '+s.key:''}${tempo?' · '+tempo+' '+s.bpm:''}`;
+  return s.score_version?`${base} · 악보 ${s.score_version}`:base;
+}
+function renderHome(){if(currentConti){const d=parseLocalDate(currentConti.worship_date);const {start,end}=weekBoundsFor(new Date());const isThisWeek=d>=start&&d<=end;document.getElementById('today-badge').textContent=`✨ ${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 주일예배`;document.getElementById('hero-title').textContent=`${(currentConti.song_names||[]).length}곡으로 이어지는 이번주 콘티`;document.getElementById('hero-desc').textContent=currentConti.note||(isThisWeek?'오늘 기준 이번주 콘티입니다.':'이번주 콘티가 없어 최신 콘티를 보여줍니다.')}else{document.getElementById('hero-title').textContent='아직 주일 콘티가 없습니다';document.getElementById('hero-desc').textContent='PC 화면에서 주일 기록을 추가하면 이번주 콘티로 표시됩니다.'}renderFlow();setActiveSong(activeIdx)}
+function renderFlow(){
+  const el=document.getElementById('flow-list');
+  if(!contiSongs.length){el.innerHTML='<div class="loading">콘티 곡이 없습니다.</div>';return}
+  el.innerHTML=contiSongs.map((s,i)=>`<button class="flow-item ${i===activeIdx?'on':''}" onclick="setActiveSong(${i})"><div class="flow-row"><div class="flow-left"><div class="num">${i+1}</div><div style="min-width:0"><div class="song-title">${esc(s.name)}</div><div class="meta">${esc(songMeta(s))}</div></div></div><div class="pill-row"><span class="pill">${s.has_score?'🎼 악보':'🎼 없음'}</span>${s.music_url?'<span class="pill">▶ 영상</span>':''}${s._conti_override?'<span class="pill">✏ 콘티설정</span>':''}<button class="mini-btn conti-edit-mini" onclick="event.stopPropagation();openContiSongEdit(${i})">수정</button><span class="mobile-quick-icons"><span>${s.has_score?'🎼':'－'}</span><span>${s.music_url?'▶':'－'}</span></span></div></div></button>`).join('')
+}
+async function setActiveSong(i){
+  activeIdx=Math.max(0,Math.min(i,contiSongs.length-1));renderFlow();
+  const s=contiSongs[activeIdx]||{};
+  document.getElementById('score-title').textContent=s.name||'악보';
+  const tags=[];if(s.key)tags.push('Key '+s.key);if(s.bpm)tags.push('BPM '+s.bpm);if(s.score_version)tags.push('악보 '+s.score_version);(s.seasons||[]).slice(0,3).forEach(t=>tags.push(t));
+  document.getElementById('score-tags').innerHTML=tags.map(t=>`<span class="pill">${esc(t)}</span>`).join('')+mobilePreviewTabs();
+  document.getElementById('score-memo').textContent=s.memo||s.note||'등록된 메모가 없습니다.';
+  document.getElementById('score-link').textContent=`${contiSongs[activeIdx-1]?.name||'시작'} → ${s.name||''} → ${contiSongs[activeIdx+1]?.name||'마무리'}`;
+  await loadPreview(s)
+}
 async function loadPreview(s){
   const box=document.getElementById('score-preview');
   if(mobilePreviewMode==='video'){
@@ -496,6 +588,11 @@ function closeYoutubePlayer(){
 }
 
 function openActiveYoutube(){const s=contiSongs[activeIdx];if(s&&s.music_url)openYoutubePlayer(s.music_url,s.name+' · 유튜브');else toast('이 곡은 유튜브 링크가 없어요')}
+function openActiveSongScoreViewer(){
+  const s=contiSongs[activeIdx];
+  if(!s){toast('선택된 곡이 없어요');return}
+  if(s.id)openDbScoreViewer(s.id);else toast('이 곡은 연결된 악보 ID가 없어요')
+}
 function openCurrentYoutube(){openYoutubePlayer(CONTI_PLAYLIST_URL,'이번 주 콘티 · 유튜브 플레이리스트')}
 
 function fullScorePrefix(){
@@ -808,14 +905,17 @@ function renderDbSongCard(s){
   return `<div class="song-card expanded" onclick="event.stopPropagation()">
     <div onclick="toggleDbSongDetail('${esc(s.id)}')" style="cursor:pointer"><h4>${esc(s.name)}</h4><div class="meta">${esc(songMeta(s))}</div></div>
     <div class="expanded-song-deck">
-      <div class="expanded-song-meta">
-        <span class="pill">${esc(s.key?'Key '+s.key:'Key 미등록')}</span>
-        <span class="pill">${esc(s.bpm?'BPM '+s.bpm:'BPM 미등록')}</span>
-        <span class="pill">${s.has_score?'🎼 악보 있음':'🎼 악보 없음'}</span>
-        <span class="pill">${s.music_url?'▶ 영상 있음':'▶ 영상 없음'}</span>
-        ${tags.map(t=>`<span class="pill">${esc(t)}</span>`).join('')}
+      <div>
+        <div class="expanded-song-meta">
+          <span class="pill">${esc(s.key?'Key '+s.key:'Key 미등록')}</span>
+          <span class="pill">${esc(s.bpm?'BPM '+s.bpm:'BPM 미등록')}</span>
+          <span class="pill">${s.has_score?'🎼 악보 있음':'🎼 악보 없음'}</span>
+          <span class="pill">${s.music_url?'▶ 영상 있음':'▶ 영상 없음'}</span>
+          ${tags.map(t=>`<span class="pill">${esc(t)}</span>`).join('')}
+        </div>
+        <div class="expanded-song-desc">${esc(s.memo||'등록된 메모가 없습니다.')}</div>
       </div>
-      <div class="expanded-song-desc">${esc(s.memo||'등록된 메모가 없습니다.')}</div>
+      <div class="expanded-song-viewer"><div><b>🎼 작은 악보</b>${s.has_score?'악보보기를 누르면 이 곡 악보를 크게 볼 수 있어요':'등록된 악보가 없어요'}<br>${s.music_url?'영상보기는 인플레이어로 열립니다':'등록된 영상이 없어요'}</div></div>
       <div class="expanded-actions">
         <button class="mini-btn white" onclick="addDbSongToConti('${esc(s.id)}')">콘티추가</button>
         <button class="mini-btn" onclick="openDbScoreViewer('${esc(s.id)}')">악보보기</button>
@@ -823,7 +923,7 @@ function renderDbSongCard(s){
         <button class="mini-btn" onclick="openSongEdit('${esc(s.id)}')">수정</button>
         <button class="mini-btn" onclick="moveExpandedDbSong(-1)">이전</button>
         <button class="mini-btn" onclick="moveExpandedDbSong(1)">다음</button>
-        <button class="mini-btn danger" onclick="openSongEdit('${esc(s.id)}')">🗑</button>
+        <button class="mini-btn danger" onclick="deleteDbSongFromCard('${esc(s.id)}')">🗑</button>
       </div>
     </div>
   </div>`;
@@ -843,7 +943,8 @@ function moveExpandedDbSong(delta){
   if(next){expandedDbSongId=next.id;renderSongCards();}
 }
 function selectSongFromDb(id){toggleDbSongDetail(id)}
-function addDbSongToConti(id){const s=songs.find(x=>x.id===id);if(!s)return;if(!contiSongs.find(x=>x.id===id))contiSongs.push(s);showSection('home',document.querySelector('.nav button'));setActiveSong(contiSongs.length-1);toast('현재 화면 콘티에 추가했어요')}
+function addDbSongToConti(id){const s=songs.find(x=>x.id===id);if(!s)return;if(!contiSongs.find(x=>x.id===id))contiSongs.push(cloneSongForConti(s));showSection('home',document.querySelector('.nav button'));setActiveSong(contiSongs.length-1);toast('현재 화면 콘티에 추가했어요')}
+function deleteDbSongFromCard(id){mobileSongId=id;deleteMobileSong()}
 function openDbYoutube(id){const s=songs.find(x=>x.id===id);if(s&&s.music_url)openYoutubePlayer(s.music_url,s.name+' · 유튜브');else toast('유튜브 링크가 없어요')}
 async function openDbScoreViewer(id){
   const s=songs.find(x=>String(x.id)===String(id));
@@ -890,9 +991,81 @@ async function moveSingleScoreSong(delta){
   if(next) await openDbScoreViewer(next.id);
 }
 
-function renderHistory(){const el=document.getElementById('history-grid');el.innerHTML=(history||[]).map(h=>{const d=new Date(h.worship_date);return `<div class="history-card"><div class="history-date">${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}</div><div class="history-title">주일예배</div><div class="pill-row" style="margin-top:10px">${(h.song_names||[]).map(n=>`<span class="pill">${esc(n)}</span>`).join('')}</div><div class="btn-row"><button class="mini-btn" onclick="loadHistoryAsConti('${h.id}')">이 콘티 보기</button><button class="mini-btn white" onclick="openMobileHistory('${h.id}')">수정</button></div></div>`}).join('')||'<div class="loading">주일 기록이 없습니다.</div>'}
-function loadHistoryAsConti(id){const h=history.find(x=>x.id===id);if(!h)return;currentConti=h;contiSongs=(h.song_names||[]).map((name,i)=>songs.find(s=>s.id===(h.song_ids||[])[i])||songs.find(s=>norm(s.name)===norm(name))||{name,status:'plan',count:0,seasons:[],key:'',bpm:0,music_url:'',has_score:false});showSection('home',document.querySelector('.nav button'));renderHome();toast('선택한 주일 기록을 열었어요')}
+function renderHistory(){const el=document.getElementById('history-grid');el.innerHTML=(history||[]).map(h=>{const d=parseLocalDate(h.worship_date);return `<div class="history-card"><div class="history-date">${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}</div><div class="history-title">주일예배</div><div class="pill-row" style="margin-top:10px">${(h.song_names||[]).map(n=>`<span class="pill">${esc(n)}</span>`).join('')}</div><div class="btn-row"><button class="mini-btn" onclick="loadHistoryAsConti('${h.id}')">이 콘티 보기</button><button class="mini-btn" onclick="shareHistory('${h.id}')">카톡공유</button><button class="mini-btn white" onclick="openMobileHistory('${h.id}')">수정</button></div></div>`}).join('')||'<div class="loading">주일 기록이 없습니다.</div>'}
+function loadHistoryAsConti(id){const h=history.find(x=>x.id===id);if(!h)return;currentConti=h;contiSongs=buildContiSongsFromHistory(h);applyContiOverrides();showSection('home',document.querySelector('.nav button'));renderHome();toast('선택한 주일 기록을 열었어요')}
 
+
+function shareUrlForHistory(id){
+  const url=new URL('share.html', location.href);
+  if(id) url.searchParams.set('id',id);
+  return url.toString();
+}
+async function shareHistory(id){
+  const h=(history||[]).find(x=>String(x.id)===String(id));
+  const url=shareUrlForHistory(id);
+  const title='이번주 콘티';
+  const text=h?`${h.worship_date} 주일예배 콘티`:title;
+  try{
+    if(navigator.share){await navigator.share({title,text,url});toast('공유창을 열었어요');return}
+  }catch(e){}
+  try{await navigator.clipboard.writeText(url);toast('공유 링크를 복사했어요')}catch(e){window.open(url,'_blank','noopener')}
+}
+function shareCurrentConti(){
+  if(!currentConti?.id){toast('공유할 콘티가 없습니다');return}
+  shareHistory(currentConti.id);
+}
+
+
+let editingContiSongIdx=null;
+function openContiSongEdit(idx){
+  if(idx==null||idx<0||idx>=contiSongs.length){toast('수정할 콘티 곡을 선택해주세요');return}
+  editingContiSongIdx=idx;
+  const s=contiSongs[idx]||{};
+  document.getElementById('conti-song-modal-title').textContent=`${idx+1}. ${s.name||'콘티 곡'} 설정`;
+  document.getElementById('m-conti-name').value=s.name||'';
+  document.getElementById('m-conti-key').value=s.key||'';
+  document.getElementById('m-conti-bpm').value=s.bpm||'';
+  document.getElementById('m-conti-score-version').value=s.score_version||'';
+  document.getElementById('m-conti-url').value=s.music_url||'';
+  document.getElementById('m-conti-memo').value=s.memo||s.note||'';
+  document.getElementById('conti-song-modal').classList.add('show');
+}
+function closeContiSongEdit(){document.getElementById('conti-song-modal').classList.remove('show')}
+function saveContiSongEdit(){
+  if(editingContiSongIdx==null)return;
+  const overrides=getContiOverrides();
+  const next={
+    key:document.getElementById('m-conti-key').value.trim(),
+    bpm:parseInt(document.getElementById('m-conti-bpm').value)||'',
+    score_version:document.getElementById('m-conti-score-version').value.trim(),
+    music_url:document.getElementById('m-conti-url').value.trim(),
+    memo:document.getElementById('m-conti-memo').value.trim()
+  };
+  Object.keys(next).forEach(k=>{if(next[k]===''||next[k]==null)delete next[k]});
+  const currentSong=contiSongs[editingContiSongIdx]||{};
+  const overrideKey=contiSongOverrideKey(currentSong,editingContiSongIdx);
+  delete overrides[editingContiSongIdx];
+  overrides[overrideKey]=next;
+  setContiOverrides(overrides);
+  contiSongs[editingContiSongIdx]={...contiSongs[editingContiSongIdx],...next,_conti_override:next};
+  closeContiSongEdit();
+  setActiveSong(editingContiSongIdx);
+  toast('이번 콘티 곡 설정을 저장했어요');
+}
+function resetContiSongEdit(){
+  if(editingContiSongIdx==null)return;
+  if(!confirm('이번 콘티에서만 적용한 설정을 초기화할까요?'))return;
+  const overrides=getContiOverrides();
+  const currentSong=contiSongs[editingContiSongIdx]||{};
+  delete overrides[editingContiSongIdx];
+  delete overrides[contiSongOverrideKey(currentSong,editingContiSongIdx)];
+  setContiOverrides(overrides);
+  if(currentConti) contiSongs=buildContiSongsFromHistory(currentConti); else contiSongs=songs.slice(0,4).map(s=>cloneSongForConti(s));
+  applyContiOverrides();
+  closeContiSongEdit();
+  setActiveSong(Math.min(editingContiSongIdx,contiSongs.length-1));
+  toast('콘티 곡 설정을 초기화했어요');
+}
 
 let mobileSongId=null, mobileHistoryId=null, mobileSelectedSongs=[];
 function todayISO(){return new Date().toISOString().split('T')[0]}
@@ -900,6 +1073,7 @@ function openSongEdit(id){mobileSongId=id||null;const m=document.getElementById(
 function closeSongEdit(){document.getElementById('song-modal').classList.remove('show')}
 async function saveMobileSong(){const name=document.getElementById('m-song-name').value.replace(/\s+/g,' ').trim();if(!name){toast('곡명을 입력해주세요');return}const payload={name,status:document.getElementById('m-song-status').value,count:parseInt(document.getElementById('m-song-count').value)||0,key:document.getElementById('m-song-key').value.trim(),bpm:parseInt(document.getElementById('m-song-bpm').value)||0,music_url:document.getElementById('m-song-url').value.trim(),seasons:document.getElementById('m-song-tags').value.split(',').map(x=>x.trim()).filter(Boolean),memo:document.getElementById('m-song-memo').value.trim(),updated_at:new Date().toISOString()};try{if(mobileSongId){const updated=await api('PATCH',`songs?id=eq.${mobileSongId}`,payload);const i=songs.findIndex(x=>x.id===mobileSongId);if(i>=0&&updated?.[0])songs[i]=updated[0];toast('찬양곡을 수정했어요')}else{const created=await api('POST','songs',payload);if(created?.[0])songs.unshift(created[0]);toast('찬양곡을 추가했어요')}closeSongEdit();renderSongCards();pickCurrentConti();renderHome()}catch(e){toast('저장 실패: '+e.message)}}
 async function deleteMobileSong(){if(!mobileSongId)return;if(!confirm('이 찬양곡을 삭제할까요?'))return;try{await api('DELETE',`songs?id=eq.${mobileSongId}`);songs=songs.filter(x=>x.id!==mobileSongId);closeSongEdit();renderSongCards();pickCurrentConti();renderHome();toast('삭제했어요')}catch(e){toast('삭제 실패: '+e.message)}}
+function openCurrentMobileHistory(){openMobileHistory(currentConti?.id||null)}
 function openMobileHistory(id){mobileHistoryId=id||null;const h=id?history.find(x=>x.id===id):null;document.getElementById('history-modal-title').textContent=id?'주일 기록 수정':'주일 기록 추가';document.getElementById('m-history-delete').style.visibility=id?'visible':'hidden';document.getElementById('m-history-date').value=h?.worship_date||todayISO();document.getElementById('m-history-note').value=h?.note||'';mobileSelectedSongs=h?(h.song_names||[]).map((name,i)=>({id:(h.song_ids||[])[i]||null,name})):[];renderMobileSelectedSongs();document.getElementById('m-history-q').value='';document.getElementById('m-history-results').style.display='none';document.getElementById('history-modal').classList.add('show')}
 function closeMobileHistory(){document.getElementById('history-modal').classList.remove('show')}
 function renderMobileSelectedSongs(){const el=document.getElementById('m-history-selected');el.innerHTML=mobileSelectedSongs.length?mobileSelectedSongs.map((s,i)=>`<div class="selected-item"><span>${i+1}. ${esc(s.name)}</span><span><button onclick="moveMobileSong(${i},-1)">↑</button> <button onclick="moveMobileSong(${i},1)">↓</button> <button onclick="removeMobileSelected(${i})">✕</button></span></div>`).join(''):'<div class="selected-item"><span>곡을 검색해서 추가하세요</span></div>'}
