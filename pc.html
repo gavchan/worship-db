@@ -289,7 +289,16 @@ body.dark{--bg:#111315;--surface:#191c20;--surface2:#22262b;--border:#2e343b;--b
 
 @media(max-width:900px){.compact-topbar{grid-template-columns:1fr auto}.compact-stats{grid-column:1/-1;justify-content:flex-start;overflow:auto}.tabs{grid-template-columns:repeat(2,1fr)}.desktop-search-row{grid-template-columns:1fr auto}.desktop-search-row .cb{grid-column:1/-1}.filter-panel{grid-template-columns:repeat(2,1fr)}.current-setlist-strip{flex-wrap:wrap}.song-detail-actions{grid-template-columns:1fr}.song-delete-icon{width:100%!important}.song-action-line{grid-template-columns:1fr}}
 
+
+/* APK download button visibility fix */
+.top-actions{display:flex!important;align-items:center!important;gap:7px!important;flex-wrap:nowrap!important;min-width:max-content!important}
+.android-download-visible{width:auto!important;min-width:50px!important;height:32px!important;padding:0 10px!important;gap:4px!important;border:1px solid rgba(255,255,255,.28)!important;border-radius:999px!important;background:rgba(255,255,255,.16)!important;color:#fff!important;text-decoration:none!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;font-size:.88rem!important;font-weight:900!important;line-height:1!important;visibility:visible!important;opacity:1!important;position:relative!important;z-index:70!important;white-space:nowrap!important;box-shadow:0 6px 18px rgba(0,0,0,.16)!important}
+.android-download-visible span{display:inline!important;font-size:.68rem!important;font-weight:900!important;color:inherit!important}
+.android-download-visible:hover{background:#fff!important;color:#10213b!important;transform:translateY(-1px)!important}
+@media(max-width:760px){.android-download-visible{min-width:38px!important;padding:0 8px!important}.android-download-visible span{display:none!important}.sync-status.led-only #sync-txt{display:none!important}.compact-topbar{grid-template-columns:1fr auto!important}.compact-stats{grid-column:1/-1!important;order:2!important;justify-content:flex-start!important;overflow-x:auto!important}.top-actions{justify-content:flex-end!important}}
+
 </style>
+<!-- 2026 tools password 1955 fix -->
 </head>
 <body>
 
@@ -307,7 +316,7 @@ body.dark{--bg:#111315;--surface:#191c20;--surface2:#22262b;--border:#2e343b;--b
     </div>
     <div class="top-actions">
       <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="주간/야간 모드 전환">☀️</button>
-      <a class="android-download" href="https://pub-a62ecaff5aa54055be3c5d01d98ed78f.r2.dev/releases/app-release.apk" title="안드로이드 앱 다운로드" aria-label="안드로이드 앱 다운로드">📱</a>
+      <a class="android-download android-download-visible" href="https://pub-a62ecaff5aa54055be3c5d01d98ed78f.r2.dev/releases/app-release.apk" title="안드로이드 앱 다운로드" aria-label="안드로이드 앱 다운로드" download>📱<span>앱</span></a>
       <div class="sync-status led-only" title="자료 연결 상태">
         <span class="dot" id="dot"></span>
         <span id="sync-txt">자료 확인 중...</span>
@@ -319,7 +328,7 @@ body.dark{--bg:#111315;--surface:#191c20;--surface2:#22262b;--border:#2e343b;--b
 <div class="tabs">
   <button class="tab on" onclick="switchTab('songs',this)"><span class="tab-ico">🎵</span><span>찬양곡</span></button>
   <button class="tab" onclick="switchTab('history',this)"><span class="tab-ico">📅</span><span>주일기록</span></button>
-  <button class="tab tools-tab" id="tools-tab" onclick="guardToolsClick(event,this)" onpointerdown="startToolsHold(event,this)" onpointerup="cancelToolsHold()" onpointerleave="cancelToolsHold()"><span class="tab-ico">🛠</span><span>관리도구</span><i class="hold-ring"></i></button>
+  <button class="tab tools-tab" id="tools-tab" onclick="guardToolsClick(event,this)"><span class="tab-ico">🛠</span><span>관리도구</span></button>
   <button class="tab" onclick="location.href='mobile.html'"><span class="tab-ico">📱</span><span>모바일보기</span></button>
 </div>
 
@@ -651,11 +660,11 @@ body.dark{--bg:#111315;--surface:#191c20;--surface2:#22262b;--border:#2e343b;--b
 <div class="fake-pass-modal" id="fake-pass-modal">
   <div class="fake-pass-box">
     <h3>관리도구 접근</h3>
-    <p>권한 확인이 필요합니다.</p>
-    <input type="password" id="fake-pass-input" placeholder="암호 입력">
+    <p>비밀번호를 입력하면 관리도구가 열립니다.</p>
+    <input type="password" id="fake-pass-input" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')checkToolsPassword()">
     <div class="fake-pass-actions">
       <button onclick="closeFakePass()">취소</button>
-      <button class="deny" onclick="fakePassFail()">확인</button>
+      <button class="deny" onclick="checkToolsPassword()">확인</button>
     </div>
   </div>
 </div>
@@ -710,33 +719,38 @@ function switchTab(tab, btn) {
   if (tab==='history') { initYearSelect(); loadHistory(); }
 }
 
-let toolsHoldTimer=null, toolsHoldOK=false;
+const TOOLS_PASSWORD='1955';
+let pendingToolsButton=null;
 function guardToolsClick(e, btn){
   e.preventDefault();
-  if(toolsHoldOK){ toolsHoldOK=false; switchTab('tools', btn); return; }
-  showFakePass();
-}
-function startToolsHold(e, btn){
-  toolsHoldOK=false;
-  btn.classList.add('holding');
-  clearTimeout(toolsHoldTimer);
-  toolsHoldTimer=setTimeout(()=>{
-    toolsHoldOK=true;
-    btn.classList.remove('holding');
+  pendingToolsButton=btn;
+  if(sessionStorage.getItem('worshipToolsUnlocked')==='1'){
     switchTab('tools', btn);
-  },4000);
+    return;
+  }
+  showToolsPassword();
 }
-function cancelToolsHold(){
-  clearTimeout(toolsHoldTimer);
-  document.querySelectorAll('.tools-tab').forEach(b=>b.classList.remove('holding'));
-}
-function showFakePass(){
+function showToolsPassword(){
   const m=document.getElementById('fake-pass-modal');
   const i=document.getElementById('fake-pass-input');
+  if(i) i.value='';
   if(m){m.classList.add('show'); setTimeout(()=>i&&i.focus(),30);} 
 }
 function closeFakePass(){document.getElementById('fake-pass-modal')?.classList.remove('show');}
-function fakePassFail(){showToast('암호가 올바르지 않습니다'); closeFakePass();}
+function checkToolsPassword(){
+  const i=document.getElementById('fake-pass-input');
+  const value=(i?.value||'').trim();
+  if(value===TOOLS_PASSWORD){
+    sessionStorage.setItem('worshipToolsUnlocked','1');
+    closeFakePass();
+    switchTab('tools', pendingToolsButton || document.getElementById('tools-tab'));
+    showToast('관리도구가 열렸습니다');
+    return;
+  }
+  showToast('비밀번호가 올바르지 않습니다');
+  if(i){i.value=''; i.focus();}
+}
+function fakePassFail(){checkToolsPassword();}
 function toggleFilterPanel(){
   const p=document.getElementById('filter-panel'), b=document.getElementById('filter-toggle');
   p?.classList.toggle('show'); b?.classList.toggle('on', p?.classList.contains('show'));
