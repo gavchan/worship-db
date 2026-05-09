@@ -28,6 +28,8 @@ body.performance-portrait .viewer.performance{display:none}body.performance-port
 body.performance-landscape .viewer.performance{display:none}body.performance-landscape .viewer.performance.show{display:flex}body.performance-landscape .viewer.performance .viewer-top{position:absolute;right:10px;top:10px;z-index:10;background:transparent;border:0;padding:0;min-height:0;display:flex;justify-content:flex-end}body.performance-landscape .viewer.performance .viewer-title-wrap{display:none}body.performance-landscape .viewer.performance .close{background:rgba(0,0,0,.48);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.14)}body.performance-landscape .viewer-stage{height:100vh;padding:10px 10px 58px}body.performance-landscape .viewer-stage.one .viewer-page{width:100%;max-width:980px}body.performance-landscape .viewer-stage.two .viewer-page{width:50%}body.performance-landscape .viewer-stage.two{gap:8px}body.performance-landscape .viewer-bottom{min-height:42px}.landscape-label{position:absolute;left:10px;top:10px;z-index:5;border:1px solid rgba(255,255,255,.12);background:rgba(11,16,32,.58);backdrop-filter:blur(12px);border-radius:999px;padding:6px 10px;font-size:11px;color:#d7dded}
 .helper-box{border:1px solid var(--line);background:rgba(255,255,255,.04);border-radius:14px;padding:12px;margin-top:8px}.helper-box code{display:block;white-space:pre-wrap;color:#dce4ff;font-size:12px;line-height:1.6}.tool-frame-sheet{width:min(1180px,98vw);height:90vh;max-height:90vh;display:flex;flex-direction:column}.tool-frame-sheet iframe{flex:1}.danger{background:rgba(255,80,80,.14)!important;color:#ffd0d0!important;border-color:rgba(255,80,80,.25)!important}
 .orientation-sheet{width:min(560px,100%)}.orientation-help{color:var(--muted);font-size:13px;line-height:1.65;margin:4px 0 14px}.orientation-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.orientation-actions button{border:1px solid var(--line);background:rgba(255,255,255,.06);color:#fff;text-align:left;border-radius:18px;padding:16px;cursor:pointer;transition:.15s}.orientation-actions button:hover{background:#fff;color:#050816;border-color:#fff;transform:translateY(-1px)}.orientation-actions b{display:block;font-size:17px}.orientation-actions span{display:block;font-size:12px;opacity:.72;margin-top:7px;line-height:1.45}.orientation-note{margin-top:12px;border:1px solid rgba(233,194,118,.28);background:rgba(233,194,118,.08);color:#f5dfad;border-radius:14px;padding:10px 12px;font-size:12px;line-height:1.55}@media(max-width:640px){.orientation-actions{grid-template-columns:1fr}}.viewer-stage,.viewer-page{user-select:none;-webkit-user-select:none}.viewer-stage{touch-action:pan-y}
+
+.youtube-sheet{width:min(980px,96vw);padding:14px}.youtube-frame-wrap{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:18px;overflow:hidden;border:1px solid var(--line)}.youtube-frame-wrap iframe{width:100%;height:100%;border:0;display:block}.youtube-fallback{margin-top:10px;color:var(--muted);font-size:12px;line-height:1.5}.youtube-fallback a{color:#fff}
 </style>
 </head>
 <body class='performance-portrait'><script>window.PERFORMANCE_LAYOUT='portrait'</script>
@@ -252,6 +254,17 @@ body.performance-landscape .viewer.performance{display:none}body.performance-lan
 </div>
 
 
+
+<div class="modal" id="youtube-player-modal">
+  <div class="sheet youtube-sheet">
+    <div class="sheet-head"><h3 id="youtube-player-title">유튜브 보기</h3><button class="close" onclick="closeYoutubePlayer()">✕</button></div>
+    <div class="youtube-frame-wrap">
+      <iframe id="youtube-player-frame" title="YouTube player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    </div>
+    <div class="youtube-fallback">영상이 재생되지 않으면 유튜브 정책 또는 임베드 제한일 수 있습니다. <a id="youtube-open-link" href="#" target="_blank" rel="noopener">새 탭에서 열기</a></div>
+  </div>
+</div>
+
 <div class="modal" id="performance-orientation-modal">
   <div class="sheet orientation-sheet">
     <div class="sheet-head"><h3>연주모드 방향 선택</h3><button class="close" onclick="closeOrientationChooser()">✕</button></div>
@@ -303,8 +316,45 @@ async function setActiveSong(i){activeIdx=Math.max(0,Math.min(i,contiSongs.lengt
 async function loadPreview(s){const box=document.getElementById('score-preview');box.innerHTML='<div class="score-empty">⟳ 악보 불러오는 중...</div>';if(!s.id){box.innerHTML='<div class="score-empty">🎼 DB에 없는 곡입니다</div>';return}let files=scoreCache[s.id];if(!files){files=await listScores(s.id);scoreCache[s.id]=files}if(!files||!files.length){box.innerHTML='<div class="score-empty">⏳ 악보 업로드 예정<br><small>준비되면 이 자리에 표시됩니다</small></div>';return}box.innerHTML=`<img src="${scoreUrl(s.id+'/'+files[0].name)}" alt="${esc(s.name)} 악보">`}
 function moveSong(d){setActiveSong(activeIdx+d)}
 function scrollToScore(){document.getElementById('score-panel').scrollIntoView({behavior:'smooth',block:'start'})}
-function openActiveYoutube(){const s=contiSongs[activeIdx];if(s&&s.music_url)window.open(s.music_url,'_blank');else toast('이 곡은 유튜브 링크가 없어요')}
-function openCurrentYoutube(){const first=contiSongs.find(s=>s.music_url);if(first)window.open(first.music_url,'_blank');else toast('콘티에 유튜브 링크가 있는 곡이 없어요')}
+
+function getYoutubeEmbedUrl(raw){
+  if(!raw) return '';
+  try{
+    const url = new URL(raw.trim());
+    let id = '';
+    if(url.hostname.includes('youtu.be')) id = url.pathname.split('/').filter(Boolean)[0] || '';
+    else if(url.pathname.startsWith('/shorts/')) id = url.pathname.split('/').filter(Boolean)[1] || '';
+    else if(url.pathname.startsWith('/embed/')) id = url.pathname.split('/').filter(Boolean)[1] || '';
+    else id = url.searchParams.get('v') || '';
+    if(!id) return raw;
+    const list = url.searchParams.get('list');
+    const start = url.searchParams.get('start') || url.searchParams.get('t');
+    const params = new URLSearchParams({rel:'0',modestbranding:'1',playsinline:'1'});
+    if(list) params.set('list', list);
+    if(start){
+      const seconds = String(start).endsWith('s') ? String(start).slice(0,-1) : String(start);
+      if(/^\d+$/.test(seconds)) params.set('start', seconds);
+    }
+    return `https://www.youtube.com/embed/${id}?${params.toString()}`;
+  }catch(e){return raw}
+}
+function openYoutubePlayer(url,title){
+  if(!url){toast('유튜브 링크가 없어요');return}
+  const embed = getYoutubeEmbedUrl(url);
+  document.getElementById('youtube-player-title').textContent = title || '유튜브 보기';
+  const frame = document.getElementById('youtube-player-frame');
+  frame.src = embed;
+  const link = document.getElementById('youtube-open-link');
+  link.href = url;
+  document.getElementById('youtube-player-modal').classList.add('show');
+}
+function closeYoutubePlayer(){
+  document.getElementById('youtube-player-modal').classList.remove('show');
+  document.getElementById('youtube-player-frame').src = 'about:blank';
+}
+
+function openActiveYoutube(){const s=contiSongs[activeIdx];if(s&&s.music_url)openYoutubePlayer(s.music_url,s.name+' · 유튜브');else toast('이 곡은 유튜브 링크가 없어요')}
+function openCurrentYoutube(){const first=contiSongs.find(s=>s.music_url);if(first)openYoutubePlayer(first.music_url,'이번 주 콘티 · 유튜브');else toast('콘티에 유튜브 링크가 있는 곡이 없어요')}
 
 function fullScorePrefix(){
   const key = currentConti?.id || currentConti?.worship_date || 'latest';
@@ -533,7 +583,7 @@ async function closeViewer(){document.getElementById('viewer').classList.remove(
 function renderSongCards(){const q=norm(document.getElementById('song-q')?.value||'');const f=document.getElementById('song-filter')?.value||'all';let list=songs.filter(s=>{if(q&&!norm(s.name).includes(q))return false;if(f==='ready')return s.status==='ready'||s.has_score;if(f==='no_score')return !s.has_score;if(f==='video')return !!s.music_url;if(f==='used')return s.status==='used';return true}).slice(0,90);document.getElementById('song-grid').innerHTML=list.map(s=>{const seas=s.seasons||[];const mainTags=[...(seas.filter(t=>!liturgy.includes(t)).slice(0,1)),...(seas.filter(t=>liturgy.includes(t)).slice(0,1))];return `<div class="song-card" onclick="selectSongFromDb('${s.id}')"><h4>${esc(s.name)}</h4><div class="meta">${esc(songMeta(s))}</div><div class="pill-row" style="margin-top:9px">${mainTags.map(t=>`<span class="pill">${esc(t)}</span>`).join('')}<span class="pill">${s.has_score?'악보 있음':'악보 없음'}</span>${s.music_url?'<span class="pill">영상 있음</span>':''}</div><div class="memo">${esc(s.memo||'등록된 메모 없음')}</div><div class="btn-row"><button class="mini-btn white" onclick="event.stopPropagation();addDbSongToConti('${s.id}')">콘티 추가</button><button class="mini-btn" onclick="event.stopPropagation();openDbYoutube('${s.id}')">유튜브</button><button class="mini-btn" onclick="event.stopPropagation();openSongEdit('${s.id}')">수정</button></div></div>`}).join('')||'<div class="loading">검색 결과가 없습니다.</div>'}
 function selectSongFromDb(id){const s=songs.find(x=>x.id===id);if(!s)return;contiSongs=[s,...contiSongs.filter(x=>x.id!==id)];showSection('home',document.querySelector('.nav button'));setActiveSong(0);toast('곡을 미리보기로 열었어요')}
 function addDbSongToConti(id){const s=songs.find(x=>x.id===id);if(!s)return;if(!contiSongs.find(x=>x.id===id))contiSongs.push(s);showSection('home',document.querySelector('.nav button'));setActiveSong(contiSongs.length-1);toast('현재 화면 콘티에 추가했어요')}
-function openDbYoutube(id){const s=songs.find(x=>x.id===id);if(s&&s.music_url)window.open(s.music_url,'_blank');else toast('유튜브 링크가 없어요')}
+function openDbYoutube(id){const s=songs.find(x=>x.id===id);if(s&&s.music_url)openYoutubePlayer(s.music_url,s.name+' · 유튜브');else toast('유튜브 링크가 없어요')}
 function renderHistory(){const el=document.getElementById('history-grid');el.innerHTML=(history||[]).map(h=>{const d=new Date(h.worship_date);return `<div class="history-card"><div class="history-date">${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}</div><div class="history-title">주일예배</div><div class="pill-row" style="margin-top:10px">${(h.song_names||[]).map(n=>`<span class="pill">${esc(n)}</span>`).join('')}</div><div class="btn-row"><button class="mini-btn" onclick="loadHistoryAsConti('${h.id}')">이 콘티 보기</button><button class="mini-btn white" onclick="openMobileHistory('${h.id}')">수정</button></div></div>`}).join('')||'<div class="loading">주일 기록이 없습니다.</div>'}
 function loadHistoryAsConti(id){const h=history.find(x=>x.id===id);if(!h)return;currentConti=h;contiSongs=(h.song_names||[]).map((name,i)=>songs.find(s=>s.id===(h.song_ids||[])[i])||songs.find(s=>norm(s.name)===norm(name))||{name,status:'plan',count:0,seasons:[],key:'',bpm:0,music_url:'',has_score:false});showSection('home',document.querySelector('.nav button'));renderHome();toast('선택한 주일 기록을 열었어요')}
 
@@ -666,7 +716,7 @@ function openMobileToolFrame(url,title){mobileToolFrameUrl=url;document.getEleme
 function closeMobileToolFrame(){document.getElementById('mobile-tool-frame-modal').classList.remove('show');document.getElementById('mobile-tool-frame').src='about:blank'}
 function openMobileToolNewTab(){if(mobileToolFrameUrl) window.open(mobileToolFrameUrl,'_blank','noopener')}
 
-['song-modal','history-modal','full-score-modal','song-score-modal','filename-helper-modal','ai-settings-modal','mobile-tool-frame-modal','performance-orientation-modal'].forEach(id=>{setTimeout(()=>{const el=document.getElementById(id);if(el)el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('show')})},0)})
+['youtube-player-modal','song-modal','history-modal','full-score-modal','song-score-modal','filename-helper-modal','ai-settings-modal','mobile-tool-frame-modal','performance-orientation-modal'].forEach(id=>{setTimeout(()=>{const el=document.getElementById(id);if(el)el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('show')})},0)})
 
 
 let viewerTouchX=0, viewerTouchY=0;
