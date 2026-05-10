@@ -69,6 +69,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .btn-save:disabled{opacity:.4;cursor:not-allowed}
 .btn-prev{width:40px;padding:.6rem;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text2);font-family:'Noto Sans KR',sans-serif;font-size:.9rem;cursor:pointer}
 .btn-prev:hover{border-color:var(--text2)}
+.session-panel{background:#1f2a1d;border:1px solid #36552d;color:#d8f5d0;padding:9px 14px;font-size:.75rem;line-height:1.5;display:none}.session-panel button{margin-left:8px;padding:4px 9px;border-radius:14px;border:1px solid #6fb567;background:transparent;color:#d8f5d0;cursor:pointer}.hint{font-size:.68rem;color:var(--text3);margin-top:6px}
 
 /* 완료 화면 */
 .done{display:none;flex:1;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;padding:2rem}
@@ -86,9 +87,10 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 </head>
 <body>
 <div style="padding:10px 14px;background:#241d12;border-bottom:1px solid #4a3a1c;color:#f0ece3;font-size:13px;line-height:1.55">
-  <b>✏️ 순차 편집기 안내</b> · 기존 곡 정보를 하나씩 넘기며 Key, BPM, 유튜브 링크, 악보 상태를 수정합니다. BPM 범위(예: 100-115)와 악보 버전/페이지 관리는 <b>악보 버전 관리</b>에서 처리합니다.
+  <b>✏️ 순차 편집기 안내</b> · 기존 곡 정보를 하나씩 넘기며 Key, BPM 범위, 유튜브 링크, 악보 상태를 수정합니다. 이전 작업은 자동 저장되어 이어서 편집할 수 있습니다.
 </div>
 
+<div class="session-panel" id="session-panel"></div>
 <div class="header">
   <h1>🎵 곡 에디터</h1>
   <div class="progress-bar"><div class="progress-fill" id="pf" style="width:0"></div></div>
@@ -121,15 +123,12 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     <div class="section-label">🎵 키 & 템포</div>
     <div class="row2">
       <div class="sel-wrap">
-        <select id="f-key">
-          <option value="">키 선택</option>
-          <option>C</option><option>C#</option><option>D</option><option>D#</option>
-          <option>E</option><option>F</option><option>F#</option><option>G</option>
-          <option>G#</option><option>A</option><option>A#</option><option>B</option>
-        </select>
+        <input type="text" id="f-key" placeholder="Key 목록 예: G, A, Bb">
+        <div class="hint">여러 Key는 쉼표로 입력합니다.</div>
       </div>
       <div class="sel-wrap">
-        <input type="number" id="f-bpm" placeholder="BPM (예: 100)" min="40" max="200">
+        <input type="text" id="f-bpm" placeholder="BPM 예: 72 또는 100-115">
+        <div class="hint">범위 입력 시 bpm_min/bpm_max로 저장을 시도합니다.</div>
       </div>
     </div>
   </div>
@@ -207,6 +206,13 @@ const RH = {'apikey':KEY,'Authorization':'Bearer '+KEY};
 const STORAGE = URL_BASE + '/storage/v1';
 
 let songs = [], idx = 0, scoreFiles = [], savedCount = 0, skippedCount = 0;
+const EDIT_SESSION_KEY='worshipSequentialEditorSessionV1';
+function splitKeys(v){return String(v||'').split(/[,+/\s]+/).map(x=>x.trim()).filter(Boolean)}
+function parseBpmRange(v){const raw=String(v||'').trim();if(!raw)return {min:null,max:null,label:''};const m=raw.match(/(\d{2,3})\s*[-~–]\s*(\d{2,3})/);if(m)return {min:+m[1],max:+m[2],label:raw};const n=raw.match(/\d{2,3}/);if(n)return {min:+n[0],max:+n[0],label:raw};return {min:null,max:null,label:raw};}
+function saveEditSession(){try{localStorage.setItem(EDIT_SESSION_KEY,JSON.stringify({idx,savedCount,skippedCount,updatedAt:Date.now(),total:songs.length,lastSong:songs[idx]?.name||''}));}catch(e){}}
+function clearEditSession(){try{localStorage.removeItem(EDIT_SESSION_KEY)}catch(e){}}
+function checkResumeSession(){try{const raw=localStorage.getItem(EDIT_SESSION_KEY);if(!raw)return;const ss=JSON.parse(raw);if(!ss||Date.now()-ss.updatedAt>1000*60*60*24*7)return;const panel=document.getElementById('session-panel');panel.style.display='block';panel.innerHTML=`이전 순차편집 작업이 있습니다. ${ss.idx+1}번째부터 이어갈 수 있어요. 마지막: ${ss.lastSong||'-'} <button onclick="resumeEditSession()">이어하기</button><button onclick="clearEditSession();document.getElementById('session-panel').style.display='none'">처음부터</button>`;}catch(e){}}
+function resumeEditSession(){try{const ss=JSON.parse(localStorage.getItem(EDIT_SESSION_KEY)||'{}');idx=Math.min(Math.max(0,ss.idx||0),Math.max(0,songs.length-1));savedCount=ss.savedCount||0;skippedCount=ss.skippedCount||0;document.getElementById('session-panel').style.display='none';loadSong();showToast('이전 작업 이후부터 이어갑니다');}catch(e){}}
 
 async function syncR2Praise(songId) {
   try {
@@ -234,12 +240,13 @@ async function api(method, path, body) {
 }
 
 async function init() {
-  const data = await api('GET', 'songs?select=id,name,key,bpm,seasons,has_score,music_url&order=name&limit=500');
+  const data = await api('GET', 'songs?select=id,name,key,keys,bpm,bpm_min,bpm_max,bpm_label,seasons,has_score,music_url,status&order=name&limit=500');
   songs = data;
   document.getElementById('loading').style.display = 'none';
   document.getElementById('card').style.display = 'flex';
   document.getElementById('nav').style.display = 'flex';
   loadSong();
+  checkResumeSession();
 }
 
 function loadSong() {
@@ -258,8 +265,8 @@ function loadSong() {
 
   // 필드 채우기
   document.getElementById('f-url').value = s.music_url || '';
-  document.getElementById('f-key').value = s.key || '';
-  document.getElementById('f-bpm').value = s.bpm || '';
+  document.getElementById('f-key').value = (Array.isArray(s.keys)&&s.keys.length?s.keys.join(', '):(s.key || ''));
+  document.getElementById('f-bpm').value = s.bpm_label || (s.bpm_min&&s.bpm_max?(s.bpm_min===s.bpm_max?String(s.bpm_min):`${s.bpm_min}-${s.bpm_max}`):(s.bpm || ''));
   onUrlInput();
 
   // 태그 초기화
@@ -283,6 +290,7 @@ function loadSong() {
 
   // 스크롤 맨 위
   document.getElementById('card').scrollTop = 0;
+  saveEditSession();
 }
 
 function onUrlInput() {
@@ -337,13 +345,22 @@ async function saveAndNext() {
       seasons: getSelectedTags(),
     };
     const url = document.getElementById('f-url').value.trim();
-    const key = document.getElementById('f-key').value.trim();
-    const bpm = parseInt(document.getElementById('f-bpm').value) || 0;
+    const keyRaw = document.getElementById('f-key').value.trim();
+    const keys = splitKeys(keyRaw);
+    const bpmRaw = document.getElementById('f-bpm').value.trim();
+    const bpmInfo = parseBpmRange(bpmRaw);
     if(url) body.music_url = url;
-    if(key) body.key = key;
-    if(bpm) body.bpm = bpm;
+    if(keys.length) body.key = keys[0];
+    if(bpmInfo.min) body.bpm = bpmInfo.min;
 
-    await fetch(URL_BASE+'/rest/v1/songs?id=eq.'+s.id, {method:'PATCH',headers:H,body:JSON.stringify(body)});
+    if(!confirm('이 수정은 곡 원본 DB에 적용됩니다.\n콘티에만 적용되는 수정이 아닙니다. 계속할까요?')) {
+      btn.disabled=false; btn.textContent='저장 후 다음 ➜'; return;
+    }
+
+    let patchRes = await fetch(URL_BASE+'/rest/v1/songs?id=eq.'+s.id, {method:'PATCH',headers:H,body:JSON.stringify(body)});
+    if(!patchRes.ok) throw new Error(await patchRes.text());
+    const extended={keys:keys,bpm_min:bpmInfo.min,bpm_max:bpmInfo.max,bpm_label:bpmInfo.label,updated_at:new Date().toISOString()};
+    try{await fetch(URL_BASE+'/rest/v1/songs?id=eq.'+s.id, {method:'PATCH',headers:H,body:JSON.stringify(extended)});}catch(_e){}
 
     // 악보 업로드
     if(scoreFiles.length) {
@@ -379,11 +396,12 @@ async function saveAndNext() {
 function goNext(saved) {
   if(!saved) skippedCount++;
   idx++;
+  saveEditSession();
   loadSong();
 }
 
 function goPrev() {
-  if(idx > 0) { idx--; loadSong(); }
+  if(idx > 0) { idx--; saveEditSession(); loadSong(); }
 }
 
 function showDone() {
@@ -391,11 +409,12 @@ function showDone() {
   document.getElementById('nav').style.display = 'none';
   document.getElementById('done').style.display = 'flex';
   document.getElementById('done-msg').textContent = `저장 ${savedCount}곡 · 건너뜀 ${skippedCount}곡`;
+  clearEditSession();
   document.getElementById('pf').style.width = '100%';
 }
 
 function restart() {
-  idx = 0; savedCount = 0; skippedCount = 0;
+  idx = 0; savedCount = 0; skippedCount = 0; clearEditSession();
   document.getElementById('done').style.display = 'none';
   document.getElementById('card').style.display = 'flex';
   document.getElementById('nav').style.display = 'flex';

@@ -38,7 +38,10 @@ body{font-family:sans-serif;background:#faf8f5;color:#1a1714;min-height:100vh}
 .b-err{background:#fdeaea;color:#b0281f}
 .b-has{background:#edf5f0;color:#3a7a52;border:1px solid rgba(58,122,82,.2)}
 .b-meta{background:#f4f1eb;color:#6b6560;border:1px solid #e8e2d9}
+.b-pdf{background:#fff4e5;color:#9a5b00;border:1px solid rgba(154,91,0,.25)}
+.b-block{background:#fdeaea;color:#b0281f;border:1px solid rgba(176,40,31,.2)}
 .sel{font-size:.76rem;padding:3px 7px;border:1px solid #d4cec4;border-radius:6px;background:#faf8f5;font-family:sans-serif;max-width:200px;color:#1a1714;outline:none}
+.meta-edit{display:grid;grid-template-columns:1.5fr .7fr .8fr .8fr .6fr;gap:5px;margin-top:6px}.meta-edit input{min-width:0;border:1px solid #d4cec4;background:#faf8f5;border-radius:6px;padding:4px 6px;font-size:.72rem}.warn-line{font-size:.68rem;color:#9a5b00;margin-top:4px}.summary-box{margin:8px 1rem;padding:10px;border:1px solid #e8e2d9;background:#fff;border-radius:10px;font-size:.75rem;line-height:1.5}
 .rb{font-size:.63rem;padding:3px 8px;border:1px solid #d4cec4;border-radius:20px;background:transparent;cursor:pointer;color:#6b6560;white-space:nowrap}
 .rb:hover{border-color:#b0281f;color:#b0281f}
 .prog-wrap{display:none;padding:.5rem 1rem;background:#fff;border-top:1px solid #e8e2d9;position:sticky;bottom:0}
@@ -68,7 +71,7 @@ body{font-family:sans-serif;background:#faf8f5;color:#1a1714;min-height:100vh}
   <button class="btn btn-blue" id="btnFile" onclick="document.getElementById('fi').click()" disabled>📁 파일 선택</button>
   <button class="btn btn-green" id="btnUp" onclick="startUpload()" disabled>☁️ 업로드 시작</button>
   <button class="btn btn-outline" onclick="skipAll()">매칭 안된 곡 건너뛰기</button>
-  <span class="stat" id="stat">⟳ 곡 목록 불러오는 중...</span>
+  <span class="stat" id="stat">⟳ 곡 목록 불러오는 중...</span><button class="btn btn-outline" onclick="showBatchPreview()">변경 미리보기</button>
 </div>
 
 <div class="guide">
@@ -80,7 +83,12 @@ body{font-family:sans-serif;background:#faf8f5;color:#1a1714;min-height:100vh}
 예: 주신실하심놀라워_A_밴드_1.png
 
 ※ 곡명은 DB 곡명과 최대한 같게 적어주세요.
-※ 한 곡이 여러 장이면 페이지 번호를 1, 2, 3 순서로 붙여주세요.</code>
+※ 한 곡이 여러 장이면 페이지 번호를 1, 2, 3 순서로 붙여주세요.
+
+PDF 기준:
+현재 Worship DB 연주엔진은 이미지 기반입니다.
+PDF는 이 화면에서 바로 연주용 업로드하지 않고, 페이지별 이미지 변환 후 등록하는 방향입니다.
+예: 은혜_G_코드.pdf → 은혜_G_코드_1.jpg, 은혜_G_코드_2.jpg</code>
   </div>
   <div>
     <h2>🛠 파일명 생성 도우미</h2>
@@ -99,9 +107,10 @@ body{font-family:sans-serif;background:#faf8f5;color:#1a1714;min-height:100vh}
 <div class="drop-zone" id="dz">
   <input type="file" id="fi" multiple accept="image/*,.pdf" onchange="go(this.files)">
   <p style="font-size:.9rem;color:#6b6560;margin-bottom:.4rem">📂 파일을 드래그하거나 클릭해서 선택</p>
-  <small style="font-size:.75rem;color:#9e9891">PNG, JPG, PDF · 폴더 내 전체 선택 가능</small>
+  <small style="font-size:.75rem;color:#9e9891">PNG, JPG 업로드 가능 · PDF는 변환 안내/검증만 표시</small>
 </div>
 <div class="debug" id="debug"></div>
+<div class="summary-box" id="batch-summary" style="display:none"></div>
 <div class="list" id="list"></div>
 <div class="prog-wrap" id="pw">
   <div class="prog-bar"><div class="prog-fill" id="pf"></div></div>
@@ -112,6 +121,8 @@ body{font-family:sans-serif;background:#faf8f5;color:#1a1714;min-height:100vh}
 function helperClean(v){return String(v||'').trim().replace(/\s+/g,'').replace(/[\/:*?"<>|]/g,'')}
 function makeHelperNames(){const song=helperClean(document.getElementById('fh-song').value)||'은혜';const key=helperClean(document.getElementById('fh-key').value)||'G';const type=helperClean(document.getElementById('fh-type').value)||'코드';const pages=Math.max(1,parseInt(document.getElementById('fh-pages').value||'1',10));const ext=document.getElementById('fh-ext').value||'jpg';document.getElementById('fh-result').value=Array.from({length:pages},(_,i)=>`${song}_${key}_${type}_${i+1}.${ext}`).join('\n')}
 async function copyHelperNames(){makeHelperNames();try{await navigator.clipboard.writeText(document.getElementById('fh-result').value);alert('파일명을 복사했어요')}catch(e){alert('복사 실패: 직접 선택해서 복사하세요')}}
+function isPdfFile(file){return /\.pdf$/i.test(file?.name||'') || String(file?.type||'').toLowerCase().includes('pdf')}
+function hasPdfFiles(files){return [...(files||[])].some(isPdfFile)}
 setTimeout(makeHelperNames,0);
 
 const SURL='https://rmtysrytveexshwzenxj.supabase.co';
@@ -121,6 +132,10 @@ const JH={'Content-Type':'application/json','apikey':KEY,'Authorization':'Bearer
 const SH={'apikey':KEY,'Authorization':'Bearer '+KEY};
 
 let DB=[], items=[];
+const VALID_KEYS=['C','C#','Db','D','D#','Eb','E','F','F#','Gb','G','G#','Ab','A','A#','Bb','B','여성키','남성키','원키'];
+function splitKeys(v){return String(v||'').split(/[,+/\s]+/).map(x=>x.trim()).filter(Boolean)}
+function parseBpmRange(v){const raw=String(v||'').trim();if(!raw)return {min:null,max:null,label:''};const m=raw.match(/(\d{2,3})\s*[-~–]\s*(\d{2,3})/);if(m)return {min:+m[1],max:+m[2],label:raw};const n=raw.match(/\d{2,3}/);if(n)return {min:+n[0],max:+n[0],label:raw};return {min:null,max:null,label:raw};}
+function normalizeKeyText(v){return splitKeys(v).join(', ')}
 
 async function syncR2Praise(songIds) {
   try {
@@ -169,7 +184,7 @@ function parseScoreFileName(fileName){
   const name = fileName.normalize('NFC').replace(/\.[a-z0-9]+$/i,'');
   const parts = name.split('_').map(v=>v.trim()).filter(Boolean);
   const ext = (fileName.split('.').pop() || '').toLowerCase();
-  const knownKeys = ['C','C#','Db','D','D#','Eb','E','F','F#','Gb','G','G#','Ab','A','A#','Bb','B','여성키','남성키','원키'];
+  const knownKeys = VALID_KEYS;
   let page = null, key = '', type = '', song = name;
   if(parts.length >= 4){
     const last = parts[parts.length-1];
@@ -189,7 +204,9 @@ function parseScoreFileName(fileName){
     if(/^\d+$/.test(last)) page = parseInt(last,10);
     song = parts.slice(0, page ? -1 : undefined).join('_') || parts[0];
   }
-  return { songName: song, key, type, page, ext, original: fileName };
+  const bpmMatch = name.match(/(?:bpm)?\s*(\d{2,3})(?:\s*[-~–]\s*(\d{2,3}))?/i);
+  const bpm = bpmMatch ? (bpmMatch[2] ? `${bpmMatch[1]}-${bpmMatch[2]}` : bpmMatch[1]) : '';
+  return { songName: song, key, type, page, ext, original: fileName, bpm };
 }
 
 function match(fileName, songName){
@@ -317,7 +334,13 @@ function go(files){
       matchType:!matched?'none':bestScore>=0.85?'auto':'sim',
       hasScore:matched?.has_score||false,
       skip:false,
-      done:false,err:null
+      done:false,err:null,
+      conversionNeeded: hasPdfFiles(gfiles),
+      editSongName: meta.songName || '',
+      editKey: normalizeKeyText(meta.key || ''),
+      editType: meta.type || '기본악보',
+      editPage: meta.page || '',
+      editBpm: meta.bpm || ''
     });
   });
 
@@ -331,9 +354,9 @@ function render(){
   document.getElementById('list').innerHTML=items.map((it,i)=>{
     const f=it.files[0];
     const isImg=f.type.startsWith('image/');
-    const rc=it.done?'done':it.err?'err':it.skip?'skip':it.songId?'ok':'';
-    const bl=it.done?'b-done':it.err?'b-err':it.matchType==='auto'?'b-ok':it.matchType==='sim'?'b-sim':'b-no';
-    const bt=it.done?'✓ 완료':it.err?'✗ 실패':it.matchType==='auto'?`자동 ${Math.round(it.score*100)}%`:it.matchType==='sim'?`유사 ${Math.round(it.score*100)}%`:'매칭 필요';
+    const rc=it.done?'done':it.err?'err':it.conversionNeeded?'err':it.skip?'skip':it.songId?'ok':'';
+    const bl=it.done?'b-done':it.err?'b-err':it.conversionNeeded?'b-block':it.matchType==='auto'?'b-ok':it.matchType==='sim'?'b-sim':'b-no';
+    const bt=it.done?'✓ 완료':it.err?'✗ 실패':it.conversionNeeded?'변환 후 업로드':it.matchType==='auto'?`자동 ${Math.round(it.score*100)}%`:it.matchType==='sim'?`유사 ${Math.round(it.score*100)}%`:'매칭 필요';
     const opts=DB.map(s=>`<option value="${s.id}"${s.id===it.songId?' selected':''}>${s.name}</option>`).join('');
     const thumb=isImg?`<img class="thumb" src="${URL.createObjectURL(f)}" style="width:40px;height:40px;object-fit:cover;border-radius:4px">`:`<div class="thumb">📄</div>`;
     return`<div class="row ${rc}" id="r${i}">
@@ -342,18 +365,30 @@ ${thumb}
   <div class="fname">${it.files.map(f=>f.name).join(', ')}</div>
   <div class="mrow">
     <span class="badge ${bl}">${bt}</span>
-    ${it.meta?.key?`<span class="badge b-meta">Key ${it.meta.key}</span>`:''}
-    ${it.meta?.type?`<span class="badge b-meta">${it.meta.type}</span>`:''}
+    ${it.editKey?`<span class="badge b-meta">Key ${it.editKey}</span>`:'<span class="badge b-no">Key 확인 필요</span>'}
+    ${it.editBpm?`<span class="badge b-meta">BPM ${it.editBpm}</span>`:''}
+    ${it.editType?`<span class="badge b-meta">${it.editType}</span>`:''}
     ${it.files?.length?`<span class="badge b-meta">${it.files.length}장</span>`:''}
+    ${it.conversionNeeded?'<span class="badge b-pdf">PDF 변환 필요</span>':''}
     ${it.hasScore?'<span class="badge b-has">기존 악보 있음</span>':''}
     ${!it.done&&!it.err?`<select class="sel" onchange="upd(${i},this.value)"><option value="">-- 곡 선택 --</option>${opts}</select>`:(it.songName?`<span style="font-size:.78rem;font-weight:500">${it.songName}</span>`:'')}
   </div>
+  ${!it.done&&!it.err?`<div class="meta-edit">
+    <input value="${escapeHtml(it.editSongName||'')}" placeholder="곡명" oninput="editItem(${i},'editSongName',this.value)">
+    <input value="${escapeHtml(it.editKey||'')}" placeholder="Key: G, A" oninput="editItem(${i},'editKey',this.value)">
+    <input value="${escapeHtml(it.editBpm||'')}" placeholder="BPM: 72-80" oninput="editItem(${i},'editBpm',this.value)">
+    <input value="${escapeHtml(it.editType||'')}" placeholder="악보종류" oninput="editItem(${i},'editType',this.value)">
+    <input value="${escapeHtml(it.editPage||'')}" placeholder="p" oninput="editItem(${i},'editPage',this.value)">
+  </div><div class="warn-line">멀티 Key/BPM은 최종 적용 전 이 줄에서 개별 수정할 수 있습니다.</div>`:''}
 </div>
 <button class="rb" onclick="tog(${i})">${it.skip&&!it.done?'↩ 취소':'건너뛰기'}</button>
 </div>`;
   }).join('');
 }
 
+function escapeHtml(v){return String(v||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]||m))}
+function editItem(i,k,v){if(!items[i])return;items[i][k]=v; if(k==='editKey')items[i].editKey=normalizeKeyText(v); updateStat();}
+function showBatchPreview(){const newKeys=items.flatMap(it=>splitKeys(it.editKey));const bpm=items.filter(it=>it.editBpm).length;const need=items.filter(it=>!it.songId&&!it.skip).length;const pdf=items.filter(it=>it.conversionNeeded&&!it.skip).length;const box=document.getElementById('batch-summary');box.style.display='block';box.innerHTML=`<b>일괄관리 미리보기</b><br>대상 ${items.length}묶음 · 매칭 필요 ${need} · PDF 변환 필요 ${pdf}<br>감지 Key: ${[...new Set(newKeys)].join(', ')||'없음'} · BPM 입력 ${bpm}건<br><span style="color:#9a5b00">이 작업은 곡 원본 DB와 악보 정보를 변경할 수 있습니다. 백업 후 최종 적용하세요.</span>`;}
 function upd(i,id){
   const s=DB.find(x=>x.id===id);
   items[i].songId=id||null;
@@ -366,14 +401,17 @@ function tog(i){items[i].skip=!items[i].skip;render();updateStat();}
 function skipAll(){items.forEach(it=>{if(!it.songId)it.skip=true;});render();updateStat();}
 
 function updateStat(){
-  const tot=items.length,ok=items.filter(i=>i.songId&&!i.skip).length,sk=items.filter(i=>i.skip).length,dn=items.filter(i=>i.done).length;
-  document.getElementById('stat').textContent=`전체 ${tot} · 매칭 ${ok} · 건너뛰기 ${sk} · 완료 ${dn}`;
+  const tot=items.length,ok=items.filter(i=>i.songId&&!i.skip&&!i.conversionNeeded).length,sk=items.filter(i=>i.skip).length,dn=items.filter(i=>i.done).length,pdf=items.filter(i=>i.conversionNeeded&&!i.skip).length;
+  document.getElementById('stat').textContent=`전체 ${tot} · 업로드가능 ${ok} · PDF변환 ${pdf} · 건너뛰기 ${sk} · 완료 ${dn}`;
 }
 
 async function startUpload(){
-  const todo=items.filter(i=>i.songId&&!i.skip&&!i.done);
-  if(!todo.length){alert('업로드할 파일이 없어요');return;}
-  if(!confirm(`${todo.length}개 업로드할까요?`))return;
+  const blocked=items.filter(i=>i.conversionNeeded&&!i.skip&&!i.done);
+  const todo=items.filter(i=>i.songId&&!i.skip&&!i.done&&!i.conversionNeeded);
+  if(blocked.length){alert(`PDF ${blocked.length}개는 이미지 변환 후 업로드해야 합니다. 이번 업로드에서는 제외됩니다.`);}
+  if(!todo.length){alert('업로드할 이미지 파일이 없어요');return;}
+  showBatchPreview();
+  if(!confirm(`${todo.length}개를 원본 DB/악보에 반영할까요?\n\n이 작업은 곡 원본 DB와 악보 버전 정보를 변경합니다. 백업 후 진행하세요.`))return;
   document.getElementById('btnUp').disabled=true;
   document.getElementById('pw').style.display='block';
   let done=0;
@@ -395,6 +433,9 @@ async function startUpload(){
       const song=DB.find(s=>s.id===it.songId);
       const newStatus=song?.status==='plan'?'ready':song?.status;
       await fetch(`${SURL}/rest/v1/songs?id=eq.${it.songId}`,{method:'PATCH',headers:JH,body:JSON.stringify({has_score:true,status:newStatus,updated_at:new Date().toISOString()})});
+      const bpmInfo=parseBpmRange(it.editBpm);
+      const extBody={keys:splitKeys(it.editKey),bpm_min:bpmInfo.min,bpm_max:bpmInfo.max,bpm_label:bpmInfo.label,updated_at:new Date().toISOString()};
+      try{await fetch(`${SURL}/rest/v1/songs?id=eq.${it.songId}`,{method:'PATCH',headers:JH,body:JSON.stringify(extBody)});}catch(_e){}
       if(song){song.has_score=true;song.status=newStatus;}
       it.done=true;
     }catch(e){it.err=e.message;}
