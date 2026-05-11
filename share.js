@@ -1,34 +1,7 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>콘티 공유</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;800&display=swap" rel="stylesheet">
-<style>
-:root{--bg:#0b1020;--card:#121a2d;--line:rgba(255,255,255,.12);--text:#f8fafc;--muted:#9ca3af;--accent:#93c5fd;--white:#fff}
-*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Noto Sans KR',sans-serif;background:radial-gradient(circle at 20% 0%,rgba(147,197,253,.16),transparent 36%),var(--bg);color:var(--text);min-height:100vh}.wrap{max-width:720px;margin:0 auto;padding:24px 16px 42px}.hero{border:1px solid var(--line);background:rgba(255,255,255,.06);border-radius:28px;padding:22px;box-shadow:0 24px 70px rgba(0,0,0,.26);margin-bottom:14px}.eyebrow{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:6px 11px;color:var(--accent);font-size:12px;font-weight:800}.hero h1{font-size:30px;letter-spacing:-.04em;margin-top:14px}.hero p{color:var(--muted);font-size:13px;line-height:1.65;margin-top:8px}.list{display:grid;gap:10px}.song{border:1px solid var(--line);background:var(--card);border-radius:18px;padding:14px}.song-head{display:flex;gap:10px;align-items:center}.num{width:34px;height:34px;border-radius:12px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--accent);flex-shrink:0}.name{font-size:17px;font-weight:900;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.pill{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:5px 8px;color:#dbeafe;background:rgba(255,255,255,.045)}.memo{margin-top:9px;color:#d1d5db;font-size:13px;line-height:1.55}.empty{border:1px dashed var(--line);border-radius:20px;padding:40px 18px;text-align:center;color:var(--muted)}.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:18px}.btn{border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--text);border-radius:14px;padding:12px;text-align:center;text-decoration:none;font-weight:900;font-size:14px;cursor:pointer}.btn.primary{background:var(--white);color:#0b1020;border-color:var(--white)}.footer{margin-top:18px;text-align:center;color:var(--muted);font-size:12px;line-height:1.6}.loading{padding:40px;text-align:center;color:var(--muted)}@media(max-width:520px){.hero h1{font-size:25px}.actions{grid-template-columns:1fr}}
-</style>
-</head>
-<body>
-<div class="wrap">
-  <div class="hero">
-    <div class="eyebrow">📖 Worship DB 공유</div>
-    <h1 id="title">콘티 공유</h1>
-    <p id="desc">콘티 정보를 불러오는 중입니다.</p>
-  </div>
-  <div id="content" class="loading">불러오는 중...</div>
-  <div class="actions">
-    <button class="btn" onclick="shareThisPage()">💬 카톡/공유</button>
-    <a class="btn primary" href="index.html">홈페이지 방문</a>
-  </div>
-  <div class="footer">공유 페이지는 읽기 전용입니다. 수정과 관리는 홈페이지에서 진행하세요.</div>
-</div>
-<script>
 const SUPABASE_URL='https://rmtysrytveexshwzenxj.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdHlzcnl0dmVleHNod3plbnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjQ3OTYsImV4cCI6MjA5MjEwMDc5Nn0.5FzzJ1rg-uRG4jAGZ75xVT3i3NH0m6J_tDeOS4GxyT8';
 const HEADERS={'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY};
-let shareTitle='콘티 공유';
+let shareTitle='이번주 콘티';
 function esc(s){return String(s||'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function norm(v){return (v||'').normalize('NFC').replace(/\s+/g,' ').trim().toLowerCase()}
 function parseLocalDate(value){const [y,m,d]=String(value||'').split('-').map(Number);return y&&m&&d?new Date(y,m-1,d):new Date(value)}
@@ -45,7 +18,7 @@ async function load(){
       rows=[all.find(h=>{const d=parseLocalDate(h.worship_date);return d>=start&&d<=end})||all[0]].filter(Boolean);
     }
     if(!rows.length){document.getElementById('content').innerHTML='<div class="empty">공유할 콘티가 없습니다.</div>';document.getElementById('desc').textContent='콘티가 아직 등록되지 않았습니다.';return}
-    const h=rows[0]; const d=parseLocalDate(h.worship_date); shareTitle=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 콘티`;
+    const h=rows[0]; const d=parseLocalDate(h.worship_date); shareTitle=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 이번주 콘티`;
     document.getElementById('title').textContent=shareTitle;
     document.getElementById('desc').textContent=h.note||'찬양 순서와 Key, BPM, 메모를 확인할 수 있는 공유용 페이지입니다.';
     const ids=(h.song_ids||[]).filter(Boolean); let songMap={};
@@ -60,12 +33,4 @@ async function shareThisPage(){
   try{if(navigator.share){await navigator.share({title:shareTitle,text:shareTitle,url});return}}catch(e){}
   try{await navigator.clipboard.writeText(url);alert('공유 링크를 복사했습니다. 카톡에 붙여넣어 보내세요.')}catch(e){prompt('이 링크를 복사해서 공유하세요',url)}
 }
-document.addEventListener('DOMContentLoaded',()=>{
-  try{ load(); }catch(e){
-    const content=document.getElementById('content');
-    if(content) content.innerHTML='<div class="empty">공유 페이지를 불러오지 못했습니다.</div>';
-  }
-});
-</script>
-</body>
-</html>
+load();

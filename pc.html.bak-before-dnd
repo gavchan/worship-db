@@ -171,7 +171,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .selected-songs{margin-top:8px;display:flex;flex-direction:column;gap:4px}
 .sel-song{display:flex;align-items:center;gap:6px;background:var(--blue-bg);border-radius:6px;padding:5px 8px}
 .sel-song span{flex:1;font-size:.78rem;color:var(--accent)}
-.sel-song button{font-size:.65rem;color:var(--red);background:none;border:none;cursor:pointer;padding:2px 4px}.sel-song.dragging{opacity:.55}.sel-song.drag-over{box-shadow:0 0 0 2px rgba(59,130,246,.28) inset}.sel-song .drag-handle{border:1px solid var(--border2);background:var(--surface);color:var(--text2);border-radius:8px;padding:3px 7px;cursor:grab;touch-action:none;user-select:none;font-weight:900}.sel-song .drag-handle:active{cursor:grabbing}.sel-song .sel-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sel-song .order-backup{color:var(--accent);font-size:.7rem}
+.sel-song button{font-size:.65rem;color:var(--red);background:none;border:none;cursor:pointer;padding:2px 4px}
 .stat-filter{cursor:pointer;transition:.15s}
 .stat-filter:hover{transform:translateY(-2px);border-color:var(--accent)!important}
 .stat-filter.active{box-shadow:0 0 0 2px var(--accent) inset;background:var(--blue-bg)!important}
@@ -1135,53 +1135,11 @@ function addToSelected(id,name) {
 }
 
 function removeFromSelected(idx) { selectedSongs.splice(idx,1); renderSelectedSongs(); }
-function moveSelectedSong(idx,delta){const next=idx+delta;if(next<0||next>=selectedSongs.length)return;[selectedSongs[idx],selectedSongs[next]]=[selectedSongs[next],selectedSongs[idx]];renderSelectedSongs();}
-let selectedDragFromIdx=null;
-function reorderSelectedSongs(from,to){
-  if(from===to||from<0||to<0||from>=selectedSongs.length||to>=selectedSongs.length)return;
-  const [item]=selectedSongs.splice(from,1);
-  selectedSongs.splice(to,0,item);
-  renderSelectedSongs();
-}
-function startSelectedDrag(e,i){selectedDragFromIdx=i;e.currentTarget.classList.add('dragging');try{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',String(i))}catch(_){}}
-function overSelectedDrag(e,i){e.preventDefault();e.currentTarget.classList.add('drag-over');}
-function dropSelectedDrag(e,i){e.preventDefault();const from=selectedDragFromIdx ?? parseInt(e.dataTransfer?.getData('text/plain')||'-1',10);selectedDragFromIdx=null;reorderSelectedSongs(from,i);}
-function endSelectedDrag(){document.querySelectorAll('#h-selected .sel-song').forEach(x=>x.classList.remove('dragging','drag-over'));selectedDragFromIdx=null;}
 
 function renderSelectedSongs() {
-  const el=document.getElementById('h-selected');
-  el.innerHTML=selectedSongs.length
-    ?selectedSongs.map((s,i)=>`<div class="sel-song" draggable="true" data-selected-idx="${i}" ondragstart="startSelectedDrag(event,${i})" ondragover="overSelectedDrag(event,${i})" ondrop="dropSelectedDrag(event,${i})" ondragend="endSelectedDrag()"><span class="drag-handle" title="잡고 순서 이동">≡</span><span class="sel-title">🎵 ${s.name}</span><button class="order-backup" onclick="moveSelectedSong(${i},-1)">↑</button><button class="order-backup" onclick="moveSelectedSong(${i},1)">↓</button><button onclick="removeFromSelected(${i})">✕</button></div>`).join('')
+  document.getElementById('h-selected').innerHTML=selectedSongs.length
+    ?selectedSongs.map((s,i)=>`<div class="sel-song"><span>🎵 ${s.name}</span><button onclick="removeFromSelected(${i})">✕</button></div>`).join('')
     :'<div style="font-size:.72rem;color:var(--text3)">곡을 검색해서 추가하세요</div>';
-  enableSelectedTouchSort();
-}
-function enableSelectedTouchSort(){
-  document.querySelectorAll('#h-selected .sel-song').forEach(item=>{
-    const handle=item.querySelector('.drag-handle');
-    if(!handle||handle.dataset.bound)return;
-    handle.dataset.bound='1';
-    handle.addEventListener('pointerdown',ev=>{
-      if(ev.pointerType==='mouse')return;
-      ev.preventDefault();
-      const from=parseInt(item.dataset.selectedIdx||'-1',10);
-      item.classList.add('dragging');
-      const onMove=moveEv=>{
-        const target=document.elementFromPoint(moveEv.clientX,moveEv.clientY)?.closest?.('#h-selected .sel-song');
-        document.querySelectorAll('#h-selected .sel-song').forEach(x=>x.classList.remove('drag-over'));
-        if(target)target.classList.add('drag-over');
-      };
-      const onUp=upEv=>{
-        const target=document.elementFromPoint(upEv.clientX,upEv.clientY)?.closest?.('#h-selected .sel-song');
-        const to=target?parseInt(target.dataset.selectedIdx||'-1',10):-1;
-        document.removeEventListener('pointermove',onMove);
-        document.removeEventListener('pointerup',onUp);
-        document.querySelectorAll('#h-selected .sel-song').forEach(x=>x.classList.remove('dragging','drag-over'));
-        if(to>=0)reorderSelectedSongs(from,to);
-      };
-      document.addEventListener('pointermove',onMove,{passive:false});
-      document.addEventListener('pointerup',onUp,{once:true});
-    },{passive:false});
-  });
 }
 
 async function saveHistory() {
@@ -1826,16 +1784,16 @@ function shareUrlForHistory(id){
 }
 async function shareHistory(id){
   const url=shareUrlForHistory(id);
-  let text='콘티 공유';
+  let text='이번주 콘티';
   try{
     const row=await api('GET',`worship_history?id=eq.${id}&select=worship_date,song_names`);
-    if(row?.[0]) text=`${row[0].worship_date} 콘티`;
+    if(row?.[0]) text=`${row[0].worship_date} 주일예배 콘티`;
   }catch(e){}
   try{
-    if(navigator.share){await navigator.share({title:'콘티 공유',text,url});showToast('공유창을 열었습니다');return;}
+    if(navigator.share){await navigator.share({title:'이번주 콘티',text,url});showToast('공유창을 열었습니다');return;}
   }catch(e){}
   try{await navigator.clipboard.writeText(url);showToast('공유 링크를 복사했습니다');}
-  catch(e){prompt('이 링크를 복사해서 공유하세요',url);}
+  catch(e){window.open(url,'_blank','noopener');}
 }
 
 // ── TOAST ─────────────────────────────────────────────────

@@ -1,0 +1,19 @@
+# 공유 기능 수정 안내
+
+기준: worship-db-phase6-mobile-performance-overlay.zip
+
+수정 파일:
+- mobile.html
+- pc.html
+- share.html
+
+수정 내용:
+1. 모바일 공유 실패 시 새 창/share.html을 강제로 열지 않고, 공유 링크 복사 안내로 처리했습니다.
+2. share.html의 직접 load() 실행을 DOMContentLoaded 이후 실행으로 변경했습니다.
+3. share.html 제목을 “이번주 콘티”에서 더 넓은 “콘티 공유” 흐름으로 정리했습니다.
+4. 기존 콘티 드래그앤드롭, 모바일 연주모드 오버레이, 유튜브 주소 보강은 유지했습니다.
+
+삭제/변경 영향:
+- 공유 실패 시 window.open으로 새 페이지를 띄우던 모바일 fallback은 제거했습니다.
+- Web Share API가 가능한 기기에서는 기존처럼 공유창이 열립니다.
+- 공유 API가 막힌 환경에서는 링크가 복사됩니다.

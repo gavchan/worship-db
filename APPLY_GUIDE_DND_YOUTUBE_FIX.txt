@@ -1,0 +1,45 @@
+Worship DB 수정 안내 - 콘티 드래그 순서 변경 + 모바일 유튜브 임베드 보강
+
+수정일: 2026-05-11
+기준 파일: worship-db-phase6(3).zip
+
+1) 수정된 파일
+- mobile.html
+- pc.html
+
+2) 모바일 유튜브 영상보기 수정
+- mobile.html의 유튜브 주소 변환 로직을 보강했습니다.
+- 지원 주소:
+  - youtube.com/watch?v=...
+  - youtu.be/...
+  - youtube.com/shorts/...
+  - youtube.com/live/...
+  - youtube.com/embed/...
+  - music.youtube.com/watch?v=...
+  - 영상 ID 11자리 직접 입력
+- iframe 주소는 youtube-nocookie.com/embed/... 형식으로 통일했습니다.
+- 주소 변환 실패 시 잘못된 주소를 iframe에 넣지 않고 앱 안에서 안내합니다.
+
+3) 콘티 만들기/수정 순서 변경 개선
+- 모바일 주일 기록 추가/수정 화면의 선택된 곡 목록에 ≡ 드래그 핸들을 추가했습니다.
+- PC 주일 기록 추가/수정 화면의 선택된 곡 목록에도 ≡ 드래그 핸들을 추가했습니다.
+- 핸들을 잡고 드래그하면 곡 순서를 바꿀 수 있습니다.
+- 기존 ↑/↓ 버튼은 삭제하지 않고 보조 조작으로 유지했습니다.
+- 저장 시 현재 화면의 곡 순서 그대로 worship_history의 song_ids/song_names에 반영됩니다.
+
+4) 원본에서 사라진 부분
+- 핵심 기능 삭제 없음.
+- 기존 위/아래 이동 버튼 유지.
+- 기존 삭제 버튼 유지.
+- 기존 콘티 저장 방식 유지.
+- 단, 모바일 영상보기에서 잘못된 유튜브 주소를 그대로 iframe에 넣던 불안정한 동작은 제거되었습니다.
+
+5) 백업 파일
+- mobile.html.bak-before-dnd-youtube
+- pc.html.bak-before-dnd
+
+6) 테스트 권장
+- 모바일에서 유튜브 watch / youtu.be / live 주소 각각 영상보기 테스트
+- 모바일 콘티 수정에서 ≡ 핸들로 순서 변경 후 저장 확인
+- PC 주일 기록 수정에서 ≡ 핸들로 순서 변경 후 저장 확인
+- 기존 ↑/↓ 버튼도 그대로 동작하는지 확인

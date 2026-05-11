@@ -3,99 +3,93 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Worship DB 백업 / 롤백</title>
+<title>Worship DB 백업 / 복원</title>
 <style>
-:root{--bg:#f8fafc;--surface:#fff;--surface2:#f1f5f9;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;--blue:#2563eb;--green:#16a34a;--red:#dc2626;--amber:#d97706;--purple:#7c3aed;--shadow:0 12px 34px rgba(15,23,42,.07)}
-*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#f8fafc,#eef2ff);color:var(--text);font-family:'Noto Sans KR',system-ui,-apple-system,sans-serif}.wrap{max-width:1120px;margin:0 auto;padding:24px}.head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px}.eyebrow{font-size:12px;color:var(--muted);font-weight:900;letter-spacing:.08em}h1{margin:4px 0 6px;font-size:28px;letter-spacing:-.04em}p{margin:0;color:var(--muted);line-height:1.55}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid.wide{grid-template-columns:1.1fr .9fr}.card{background:rgba(255,255,255,.92);border:1px solid var(--border);border-radius:20px;padding:18px;box-shadow:var(--shadow);backdrop-filter:blur(10px)}h2{margin:0 0 10px;font-size:18px;letter-spacing:-.02em}.btn{border:0;border-radius:12px;padding:12px 14px;font-weight:900;cursor:pointer;background:var(--blue);color:white}.btn.green{background:var(--green)}.btn.red{background:var(--red)}.btn.gray{background:#334155}.btn.amber{background:var(--amber)}.btn.purple{background:var(--purple)}.btn.ghost{background:#fff;color:#0f172a;border:1px solid var(--border)}.btn:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.box{background:#f8fafc;border:1px solid var(--border);border-radius:14px;padding:12px;color:#334155;font-size:13px;line-height:1.58;white-space:pre-wrap}.log{margin-top:14px;max-height:320px;overflow:auto;background:#020617;color:#dbeafe;border-radius:14px;padding:12px;font-family:ui-monospace,Menlo,monospace;font-size:12px;line-height:1.5}.file{width:100%;border:1px dashed var(--border);border-radius:12px;background:#fff;padding:12px}.stat{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}.stat div{background:#fff;border:1px solid var(--border);border-radius:13px;padding:10px}.stat b{display:block;font-size:20px}.stat span{font-size:12px;color:var(--muted)}label{font-size:13px;font-weight:900;display:block;margin:10px 0 6px}.warn{border-color:#fed7aa;background:#fffbeb;color:#92400e}.danger{border-color:#fecaca;background:#fff1f2;color:#991b1b}.ok{border-color:#bbf7d0;background:#f0fdf4;color:#166534}.snap-list{display:grid;gap:10px;margin-top:12px}.snap{border:1px solid var(--border);border-radius:14px;background:#fff;padding:12px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}.snap strong{display:block;font-size:14px}.snap small{color:var(--muted);line-height:1.45}.snap .actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.mini{font-size:11px;padding:8px 10px;border-radius:999px}.input{width:100%;border:1px solid var(--border);border-radius:12px;background:#fff;padding:11px;color:var(--text)}.checkline{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:#475569;line-height:1.45;margin-top:10px}.checkline input{margin-top:2px}.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;border:1px solid var(--border);background:#fff;padding:5px 9px;font-size:12px;font-weight:900;color:#334155;margin:2px}.sep{height:1px;background:var(--border);margin:14px 0}.muted{color:var(--muted);font-size:12px;line-height:1.5}@media(max-width:860px){.grid,.grid.wide{grid-template-columns:1fr}.wrap{padding:14px}.stat{grid-template-columns:repeat(2,1fr)}.head{display:block}.head .btn{margin-top:10px}.snap{grid-template-columns:1fr}.snap .actions{justify-content:flex-start}}
+:root{--bg:#f8fafc;--surface:#fff;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;--blue:#2563eb;--green:#16a34a;--red:#dc2626;--amber:#d97706}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:'Noto Sans KR',system-ui,-apple-system,sans-serif}.wrap{max-width:980px;margin:0 auto;padding:24px}.head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px}.eyebrow{font-size:12px;color:var(--muted);font-weight:800;letter-spacing:.06em}h1{margin:4px 0 6px;font-size:26px}p{margin:0;color:var(--muted);line-height:1.55}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:0 10px 30px rgba(15,23,42,.05)}h2{margin:0 0 10px;font-size:18px}.btn{border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:pointer;background:var(--blue);color:white}.btn.green{background:var(--green)}.btn.red{background:var(--red)}.btn.gray{background:#334155}.btn:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.box{background:#f1f5f9;border:1px solid var(--border);border-radius:12px;padding:12px;color:#334155;font-size:13px;line-height:1.55;white-space:pre-wrap}.log{margin-top:14px;max-height:320px;overflow:auto;background:#020617;color:#dbeafe;border-radius:12px;padding:12px;font-family:ui-monospace,Menlo,monospace;font-size:12px;line-height:1.5}.file{width:100%;border:1px dashed var(--border);border-radius:12px;background:#fff;padding:12px}.stat{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}.stat div{background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:10px}.stat b{display:block;font-size:20px}.stat span{font-size:12px;color:var(--muted)}label{font-size:13px;font-weight:800;display:block;margin:10px 0 6px}.warn{border-color:#fed7aa;background:#fffbeb;color:#92400e}@media(max-width:760px){.grid{grid-template-columns:1fr}.wrap{padding:14px}.stat{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="head">
-    <div><div class="eyebrow">WORSHIP DB SAFETY</div><h1>백업 / 롤백</h1><p>중간 수정본이 아니라, 관리자가 “작업 완료 저장”을 누른 시점을 하나의 운영 스냅샷으로 남깁니다.</p></div>
+    <div><div class="eyebrow">WORSHIP DB SAFETY</div><h1>백업 / 복원</h1><p>찬양곡·주일 기록·현재 콘티·설정을 JSON으로 내보내고, 안전하게 다시 가져옵니다.</p></div>
     <button class="btn gray" onclick="location.href='pc.html'">PC 화면</button>
   </div>
-
-  <div class="grid wide">
+  <div class="grid">
     <section class="card">
-      <h2>✅ 작업 완료 저장</h2>
-      <div class="box ok">여러 수정 작업을 마친 뒤 누르는 운영 체크포인트입니다.\n곡 DB, 주일기록, 악보 버전 테이블, 로컬 설정을 JSON 스냅샷으로 저장합니다.\n악보 이미지 파일 자체는 포함하지 않고, 파일 경로/악보 기록만 포함합니다.</div>
-      <label>스냅샷 이름</label>
-      <input id="snapshot-name" class="input" placeholder="예: 2026-05-10 업로드/관리도구 정리 완료">
-      <div class="stat" id="backup-stat"><div><b>-</b><span>찬양곡</span></div><div><b>-</b><span>주일기록</span></div><div><b>-</b><span>악보버전</span></div><div><b>-</b><span>악보파일</span></div></div>
-      <div class="row"><button class="btn" onclick="loadStats()">상태 새로고침</button><button class="btn green" onclick="createSnapshot(true)">작업 완료 저장</button><button class="btn ghost" onclick="exportBackup()">현재 상태 JSON 다운로드</button></div>
+      <h2>📦 JSON 백업</h2>
+      <div class="box">1차 백업은 DB 데이터 중심입니다. 악보 이미지 파일은 포함하지 않습니다.\nSupabase 이전이나 실수 삭제 대비용으로 주기적으로 저장해두면 좋아요.</div>
+      <div class="stat" id="backup-stat"><div><b>-</b><span>찬양곡</span></div><div><b>-</b><span>주일기록</span></div><div><b>-</b><span>현재콘티</span></div><div><b>-</b><span>설정</span></div></div>
+      <div class="row"><button class="btn" onclick="loadStats()">상태 새로고침</button><button class="btn green" onclick="exportBackup()">JSON 내보내기</button></div>
     </section>
-
     <section class="card">
-      <h2>🧭 롤백 원칙</h2>
-      <div class="box warn">전체 롤백은 선택한 스냅샷으로 운영 데이터를 되돌리는 강한 작업입니다.\n그래서 롤백 직전 현재 상태를 자동 백업으로 먼저 저장합니다.\n복원은 관리자 확인 체크 후에만 실행됩니다.</div>
-      <div class="sep"></div>
-      <div id="table-status" class="muted">테이블 상태 확인 전입니다.</div>
-      <div class="row"><button class="btn purple" onclick="checkTables()">확장 테이블 확인</button><button class="btn amber" onclick="downloadAllSnapshots()">스냅샷 묶음 다운로드</button></div>
-    </section>
-  </div>
-
-  <div class="grid" style="margin-top:14px">
-    <section class="card">
-      <h2>📚 저장된 스냅샷</h2>
-      <div class="box">브라우저에 저장되는 빠른 롤백 목록입니다. 용량이 큰 경우 저장이 제한될 수 있으므로 중요한 시점은 JSON 다운로드도 함께 해두는 것이 안전합니다.</div>
-      <div id="snap-list" class="snap-list"></div>
-    </section>
-
-    <section class="card">
-      <h2>📥 JSON 가져오기 / 복원</h2>
-      <div class="box">백업 JSON을 불러와서 안전 복원 또는 전체 롤백에 사용할 수 있습니다.\n안전 복원은 기존 데이터를 지우지 않고 추가합니다.</div>
+      <h2>♻️ JSON 복원</h2>
+      <div class="box warn">복원은 기존 데이터를 지우지 않고 추가하는 안전 방식입니다.\n같은 곡명은 중복 생성을 최대한 피하고, 주일 기록은 새 기록으로 추가합니다.</div>
       <label>백업 JSON 파일</label>
       <input class="file" id="restore-file" type="file" accept="application/json">
-      <div class="row"><button class="btn green" onclick="importBackupSafe()">안전 복원: 추가만</button><button class="btn red" onclick="rollbackFromFile()">파일 기준 전체 롤백</button></div>
-      <label class="checkline"><input type="checkbox" id="danger-confirm"> 전체 롤백 위험을 이해했습니다. 롤백 전 현재 상태 자동 백업을 만든 뒤 진행합니다.</label>
+      <div class="row"><button class="btn green" onclick="importBackup()">JSON 가져오기</button></div>
     </section>
   </div>
-
   <div class="log" id="log">준비됨.</div>
 </div>
 <script>
 const SUPABASE_URL = 'https://rmtysrytveexshwzenxj.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6InJtdHlzcnl0dmVleHNod3plbnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjQ3OTYsImV4cCI6MjA5MjEwMDc5Nn0.5FzzJ1rg-uRG4jAGZ75xVT3i3NH0m6J_tDeOS4GxyT8'.replace('JIUzI1Ni','JIUzI1Ni');
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdHlzcnl0dmVleHNod3plbnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjQ3OTYsImV4cCI6MjA5MjEwMDc5Nn0.5FzzJ1rg-uRG4jAGZ75xVT3i3NH0m6J_tDeOS4GxyT8';
 const HEADERS = {'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Prefer':'return=representation'};
-const SNAP_KEY='wdb-complete-snapshots-v1';
-const LOCAL_KEYS=['currentConti','worshipAiSettings','worship_ai_settings','wdb-theme','wdb-current-setlist','wdb-detail-panel-pct','wdb-viewer-mode','r2-praise-sync-offset'];
-const TABLES=[
-  {name:'songs', label:'찬양곡', order:'name.asc'},
-  {name:'worship_history', label:'주일기록', order:'worship_date.desc'},
-  {name:'song_score_versions', label:'악보버전', order:'created_at.asc', optional:true},
-  {name:'song_score_files', label:'악보파일기록', order:'page_no.asc', optional:true}
-];
-const logEl=()=>document.getElementById('log');
-function log(msg){logEl().textContent+='\n'+msg;logEl().scrollTop=logEl().scrollHeight;}
-function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
-async function api(method,path,body){const res=await fetch(SUPABASE_URL+'/rest/v1/'+path,{method,headers:HEADERS,body:body?JSON.stringify(body):undefined});if(!res.ok)throw new Error(await res.text());const text=await res.text();return text?JSON.parse(text):null;}
-async function safeGet(path){try{return await api('GET',path)}catch(e){log('읽기 실패: '+path+' / '+e.message);return []}}
-function localDump(){const out={};for(const k of LOCAL_KEYS){try{const v=localStorage.getItem(k);if(v!==null)out[k]=v}catch(e){}}return out;}
-function applyLocalDump(data){if(!data||typeof data!=='object')return;for(const [k,v] of Object.entries(data)){try{if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,String(v))}catch(e){}}}
-function getSnaps(){try{return JSON.parse(localStorage.getItem(SNAP_KEY)||'[]')}catch(e){return []}}
-function setSnaps(list){localStorage.setItem(SNAP_KEY,JSON.stringify(list.slice(0,12)));renderSnapshots();}
-function downloadJSON(data,name){const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href);}
-async function collectBackup(label){const tables={};for(const t of TABLES){tables[t.name]=await safeGet(`${t.name}?select=*&order=${t.order||'id.asc'}&limit=10000`);}return {meta:{app:'worship-db',backup_type:'complete-snapshot',version:'phase7-2-backup-rollback',label:label||'',exported_at:new Date().toISOString(),note:'악보 이미지 파일은 포함하지 않고 DB 기록과 Storage 경로만 포함합니다.'},tables,local_storage:localDump()};}
-function count(backup,table){return (backup?.tables?.[table]||[]).length;}
-async function loadStats(){logEl().textContent='상태 확인 중...';const data=await collectBackup('stats-only');document.getElementById('backup-stat').innerHTML=`<div><b>${count(data,'songs')}</b><span>찬양곡</span></div><div><b>${count(data,'worship_history')}</b><span>주일기록</span></div><div><b>${count(data,'song_score_versions')}</b><span>악보버전</span></div><div><b>${count(data,'song_score_files')}</b><span>악보파일</span></div>`;log('상태 확인 완료.');}
-async function checkTables(){logEl().textContent='확장 테이블 확인 중...';let html='';for(const t of TABLES){try{const r=await api('GET',`${t.name}?select=*&limit=1`);html+=`<span class="pill">✅ ${esc(t.label)}</span>`;log(`${t.name}: 정상`)}catch(e){html+=`<span class="pill">⚠️ ${esc(t.label)} 확인 필요</span>`;log(`${t.name}: 확인 필요 / ${e.message}`)}}document.getElementById('table-status').innerHTML=html;}
-async function createSnapshot(saveLocal){const input=document.getElementById('snapshot-name');const label=(input.value||'작업 완료 저장').trim();logEl().textContent='작업 완료 스냅샷 생성 중...';const backup=await collectBackup(label);const stamp=new Date().toISOString().replace(/[:.]/g,'-');backup.meta.id='snap-'+stamp;try{if(saveLocal){const list=getSnaps();list.unshift({id:backup.meta.id,label,created_at:backup.meta.exported_at,counts:{songs:count(backup,'songs'),history:count(backup,'worship_history'),versions:count(backup,'song_score_versions'),files:count(backup,'song_score_files')},backup});setSnaps(list);log('브라우저 스냅샷 목록에 저장했습니다.')}}catch(e){log('브라우저 저장 용량 제한으로 목록 저장에 실패했습니다. JSON 다운로드로 보관하세요. / '+e.message)}downloadJSON(backup,`worship-db-complete-snapshot-${stamp}.json`);log(`스냅샷 완료: 곡 ${count(backup,'songs')} / 기록 ${count(backup,'worship_history')} / 악보버전 ${count(backup,'song_score_versions')} / 파일기록 ${count(backup,'song_score_files')}`);}
-async function exportBackup(){const label='현재 상태 수동 백업';logEl().textContent='현재 상태 JSON 생성 중...';const backup=await collectBackup(label);downloadJSON(backup,`worship-db-backup-${new Date().toISOString().slice(0,10)}.json`);log('다운로드 완료.');}
-function renderSnapshots(){const box=document.getElementById('snap-list');const list=getSnaps();if(!list.length){box.innerHTML='<div class="box">아직 저장된 작업 완료 스냅샷이 없습니다.</div>';return;}box.innerHTML=list.map(s=>`<div class="snap"><div><strong>${esc(s.label||'작업 완료 저장')}</strong><small>${new Date(s.created_at).toLocaleString()}<br>곡 ${s.counts?.songs||0} · 기록 ${s.counts?.history||0} · 악보버전 ${s.counts?.versions||0} · 파일기록 ${s.counts?.files||0}</small></div><div class="actions"><button class="btn ghost mini" onclick="downloadSnapshot('${esc(s.id)}')">다운로드</button><button class="btn red mini" onclick="rollbackSnapshot('${esc(s.id)}')">롤백</button><button class="btn gray mini" onclick="deleteSnapshot('${esc(s.id)}')">삭제</button></div></div>`).join('');}
-function findSnap(id){return getSnaps().find(s=>s.id===id)}
-function downloadSnapshot(id){const s=findSnap(id);if(!s)return;downloadJSON(s.backup,`worship-db-snapshot-${(s.label||s.id).replace(/[\\/:*?"<>|]/g,'_')}.json`);}
-function deleteSnapshot(id){if(!confirm('이 스냅샷 목록을 삭제할까요? JSON 파일로 내려받은 백업은 별도 보관됩니다.'))return;setSnaps(getSnaps().filter(s=>s.id!==id));}
-function downloadAllSnapshots(){downloadJSON({meta:{app:'worship-db',type:'snapshot-bundle',exported_at:new Date().toISOString()},snapshots:getSnaps()},`worship-db-snapshot-bundle-${new Date().toISOString().slice(0,10)}.json`);}
-function cleanRows(rows){return (rows||[]).map(row=>{const x={...row};delete x.created_at;delete x.updated_at;return x;});}
-function cleanInsertRows(table,rows){return (rows||[]).map(row=>{const x={...row};return x;});}
-async function importBackupSafe(){const file=document.getElementById('restore-file').files[0];if(!file)return alert('복원할 JSON 파일을 선택해주세요.');if(!confirm('기존 데이터는 지우지 않고 추가합니다. 계속할까요?'))return;logEl().textContent='안전 복원 파일 읽는 중...';const backup=JSON.parse(await file.text());const tables=backup.tables||{};const existing=await safeGet('songs?select=name&limit=10000');const exists=new Set(existing.map(s=>(s.name||'').trim()));const songs=(tables.songs||backup.songs||[]).filter(s=>s.name&&!exists.has(String(s.name).trim())).map(s=>{const x={...s};delete x.id;delete x.created_at;delete x.updated_at;return x});if(songs.length){log(`찬양곡 ${songs.length}곡 추가 중...`);await api('POST','songs',songs)}else log('추가할 새 찬양곡 없음.');const histories=(tables.worship_history||backup.worship_history||[]).map(h=>{const x={...h};delete x.id;delete x.created_at;delete x.updated_at;return x});if(histories.length){log(`주일기록 ${histories.length}개 추가 중...`);await api('POST','worship_history',histories)}else log('추가할 주일기록 없음.');applyLocalDump(backup.local_storage);log('안전 복원 완료. 새로고침하면 반영됩니다.');alert('안전 복원이 완료되었습니다.');}
-async function rollbackSnapshot(id){const s=findSnap(id);if(!s)return;await performRollback(s.backup,`저장된 스냅샷: ${s.label}`);}
-async function rollbackFromFile(){const file=document.getElementById('restore-file').files[0];if(!file)return alert('롤백할 JSON 파일을 선택해주세요.');const backup=JSON.parse(await file.text());await performRollback(backup,`파일: ${file.name}`);}
-async function performRollback(backup,sourceLabel){if(!document.getElementById('danger-confirm').checked)return alert('전체 롤백 확인 체크를 먼저 해주세요.');if(!confirm(`${sourceLabel}\n\n이 시점으로 전체 롤백합니다. 현재 상태는 먼저 자동 백업됩니다. 계속할까요?`))return;logEl().textContent='롤백 전 현재 상태 자동 백업 생성 중...';const before=await collectBackup('rollback-before-auto-backup');const stamp=new Date().toISOString().replace(/[:.]/g,'-');downloadJSON(before,`worship-db-before-rollback-${stamp}.json`);log('롤백 전 현재 상태 백업 다운로드 완료.');const tables=backup.tables||{};const orderDelete=['song_score_files','song_score_versions','worship_history','songs'];const orderInsert=['songs','worship_history','song_score_versions','song_score_files'];for(const table of orderDelete){if(!tables[table]){log(`${table}: 백업에 없음, 삭제/복원 건너뜀`);continue;}try{log(`${table}: 기존 데이터 삭제 중...`);await api('DELETE',`${table}?id=not.is.null`);}catch(e){log(`${table}: 삭제 실패 또는 권한/테이블 확인 필요 / ${e.message}`);throw e;}}
-for(const table of orderInsert){const rows=tables[table]||[];if(!rows.length){log(`${table}: 복원할 데이터 없음`);continue;}try{log(`${table}: ${rows.length}건 복원 중...`);for(let i=0;i<rows.length;i+=300){await api('POST',table,cleanInsertRows(table,rows.slice(i,i+300)));}}catch(e){log(`${table}: 복원 실패 / ${e.message}`);throw e;}}
-applyLocalDump(backup.local_storage);log('전체 롤백 완료. PC 화면을 새로고침하세요.');alert('전체 롤백이 완료되었습니다.');}
-renderSnapshots();loadStats();checkTables();
+const logEl = () => document.getElementById('log');
+function log(msg) { logEl().textContent += '\n' + msg; logEl().scrollTop = logEl().scrollHeight; }
+async function api(method, path, body) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, { method, headers: HEADERS, body: body ? JSON.stringify(body) : undefined });
+  if (!res.ok) throw new Error(await res.text());
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+function uniqByName(list) { const seen = new Set(); return (list||[]).filter(x=>{ const k=(x.name||'').trim(); if(!k || seen.has(k)) return false; seen.add(k); return true; }); }
+async function safeGet(path) { try { return await api('GET', path); } catch(e) { log('읽기 실패: '+path+' / '+e.message); return []; } }
+async function loadStats() {
+  logEl().textContent = '상태 확인 중...';
+  const songs = await safeGet('songs?select=id&limit=5000');
+  const history = await safeGet('worship_history?select=id&limit=5000');
+  const current = JSON.parse(localStorage.getItem('currentConti') || '[]');
+  const settings = JSON.parse(localStorage.getItem('worshipAiSettings') || '{}');
+  document.getElementById('backup-stat').innerHTML = `<div><b>${songs.length}</b><span>찬양곡</span></div><div><b>${history.length}</b><span>주일기록</span></div><div><b>${current.length}</b><span>현재콘티</span></div><div><b>${Object.keys(settings).length}</b><span>설정항목</span></div>`;
+  log('상태 확인 완료.');
+}
+async function exportBackup() {
+  logEl().textContent = '백업 생성 중...';
+  const backup = {
+    meta: { app:'worship-db', version:'step9-pc-tools', exported_at:new Date().toISOString() },
+    songs: await safeGet('songs?select=*'),
+    worship_history: await safeGet('worship_history?select=*'),
+    current_conti: JSON.parse(localStorage.getItem('currentConti') || '[]'),
+    ai_settings: JSON.parse(localStorage.getItem('worshipAiSettings') || '{}')
+  };
+  const blob = new Blob([JSON.stringify(backup,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `worship-db-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  log(`백업 완료: 찬양곡 ${backup.songs.length}곡, 주일기록 ${backup.worship_history.length}개`);
+}
+async function importBackup() {
+  const file = document.getElementById('restore-file').files[0];
+  if(!file) return alert('복원할 JSON 파일을 선택해주세요.');
+  if(!confirm('기존 데이터는 지우지 않고 추가합니다. 복원을 진행할까요?')) return;
+  logEl().textContent = '복원 파일 읽는 중...';
+  const backup = JSON.parse(await file.text());
+  const existing = await safeGet('songs?select=name&limit=5000');
+  const exists = new Set(existing.map(s=>(s.name||'').trim()));
+  const songs = uniqByName(backup.songs || []).filter(s=>!exists.has((s.name||'').trim())).map(s=>{ const x={...s}; delete x.id; delete x.created_at; delete x.updated_at; return x; });
+  if(songs.length) { log(`찬양곡 ${songs.length}곡 추가 중...`); await api('POST','songs',songs); } else log('추가할 새 찬양곡 없음.');
+  const histories = (backup.worship_history || []).map(h=>{ const x={...h}; delete x.id; delete x.created_at; delete x.updated_at; return x; });
+  if(histories.length) { log(`주일 기록 ${histories.length}개 추가 중...`); await api('POST','worship_history',histories); } else log('추가할 주일 기록 없음.');
+  if(Array.isArray(backup.current_conti)) localStorage.setItem('currentConti', JSON.stringify(backup.current_conti));
+  if(backup.ai_settings) localStorage.setItem('worshipAiSettings', JSON.stringify(backup.ai_settings));
+  log('복원 완료. PC 화면을 새로고침하면 반영됩니다.');
+  alert('복원이 완료되었습니다.');
+}
+loadStats();
 </script>
 </body>
 </html>
