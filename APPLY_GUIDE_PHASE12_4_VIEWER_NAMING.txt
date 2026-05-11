@@ -1,0 +1,15 @@
+Phase12-4 viewer naming/layout patch
+
+Changed mobile.html only.
+
+Summary:
+- Renamed mobile top concept from weekly worship flow to designated conti.
+- Removed "곡별 보기" label from the right detail panel.
+- Right detail panel now shows only song title, Key/BPM/season/situation metadata, and score/video actions at top right.
+- Main preview is a 16:10 viewer frame for YouTube compatibility.
+- Score preview fills the viewer width and can be dragged vertically inside the frame.
+- Bottom controls are only Previous / Edit / Next.
+- Score upload remains inside the Edit modal.
+- Memo readability updated: black background with white 12px text.
+
+No DB/schema changes.

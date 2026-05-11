@@ -1,0 +1,25 @@
+worship-db 2차-B 적용 안내
+
+1) GitHub에 다음 파일을 업로드/교체하세요.
+- index.html
+- pc.html
+- mobile.html
+- mobile-portrait.html
+- mobile-landscape.html
+- score-upload.html
+- score-version-manager.html
+- phase2b_schema.sql
+
+2) Supabase에서 SQL Editor를 열고 phase2b_schema.sql 내용을 실행하세요.
+
+3) 사이트에서 확인하세요.
+- PC: /pc.html → 관리도구 → 악보 버전 관리
+- 모바일: /mobile.html → 관리도구 → 악보 버전 관리
+
+4) 사용 흐름
+- 곡 선택
+- 새 악보 버전 추가: Key, BPM 범위, 악보종류, 대표 여부
+- 해당 버전에 파일 페이지 업로드
+- 대표 악보 지정
+
+주의: SQL 실행 전에는 새 버전관리 화면이 “확장 테이블 없음” 안내를 보여줍니다. 기존 PC/모바일 기능은 그대로 동작합니다.

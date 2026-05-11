@@ -1,0 +1,39 @@
+Worship DB 배포용 정리본
+
+이 폴더 안의 파일만 서버/호스팅에 올리면 됩니다.
+
+시작 파일:
+- index.html
+
+주요 화면:
+- pc.html
+- mobile.html
+- mobile-portrait.html
+- mobile-landscape.html
+
+점검/가이드:
+- final-guide.html
+- launch-check.html
+- db-health-check.html
+- backup-restore.html
+
+관리 도구:
+- score-version-manager.html
+- score-upload.html
+- score-sync.html
+- r2-sync.html
+- song-editor.html
+- song-merge.html
+- name-cleanup.html
+- tag-update.html
+- status-update.html
+- db-export.html
+
+DB 스키마:
+- phase2b_schema.sql
+- supabase_estimates_schema.sql
+
+정리에서 제외한 것:
+- index_1.html ~ index_7.html 같은 이전 백업본
+- STEP*_TEST_NOTES.txt / APPLY_GUIDE*.txt 같은 작업 메모
+- quote 폴더, 한글 깨진 파일명 HTML, 사용하지 않는 임시 파일
