@@ -132,6 +132,31 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
 .conti-head-actions .mini-btn{white-space:nowrap!important}
 @media(max-width:420px){.conti-head-actions{gap:5px!important}.conti-head-actions .mini-btn{padding:7px 8px!important;font-size:11px!important}}
 
+
+
+/* Phase6 responsive compact conti hero: keep functions, compress UI on narrow/short screens */
+@media (max-width:760px), (max-height:720px){
+  #sec-home .hero{padding:12px!important;border-radius:18px!important;margin-bottom:10px!important;box-shadow:0 12px 32px rgba(0,0,0,.18)!important;}
+  #sec-home .hero-in{display:block!important;}
+  #sec-home .hero .eyebrow{font-size:10.5px!important;padding:4px 8px!important;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  #sec-home .hero h2{font-size:20px!important;line-height:1.16!important;margin-top:8px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  #sec-home .hero p{font-size:11px!important;line-height:1.35!important;margin-top:5px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  #sec-home .hero .actions{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:6px!important;margin-top:10px!important;}
+  #sec-home .hero .action{padding:8px 6px!important;border-radius:999px!important;text-align:center!important;min-width:0!important;}
+  #sec-home .hero .action b{font-size:11px!important;line-height:1.1!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+  #sec-home .hero .action span{display:none!important;}
+}
+@media (max-width:380px){
+  #sec-home .hero .actions{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+}
+@media (max-height:560px){
+  #sec-home .hero p{display:none!important;}
+  #sec-home .hero{padding:9px!important;margin-bottom:7px!important;}
+  #sec-home .hero h2{font-size:18px!important;margin-top:5px!important;}
+  #sec-home .hero .actions{margin-top:7px!important;}
+  #sec-home .hero .action{padding:7px 5px!important;}
+}
+
 </style>
 </head>
 <body>
