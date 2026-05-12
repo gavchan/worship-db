@@ -1548,10 +1548,7 @@ body > div,
 
 /* === Phase12 fix15: selected score thumbnails only, existing score names only === */
 
-/* 새 악보 선택 후에는 업로드 드롭존 숨김 */
-.score-zone.phase12-has-new-score {
-  display: none !important;
-}
+/* 새 악보 선택 후에는 업로드 드롭존을 미리보기 영역으로 사용 */
 
 /* 새로 선택한 악보 썸네일만 작게 */
 #score-thumbs {
@@ -1640,6 +1637,96 @@ body > div,
   color: #111 !important;
   font-weight: 950 !important;
   cursor: pointer !important;
+}
+
+
+/* === Phase12 fix16: score preview carousel after upload === */
+
+/* 업로드 후에도 영역은 유지하고, 작은 악보 미리보기 자리로 사용 */
+.score-zone.phase12-has-new-score {
+  display: block !important;
+  min-height: 118px !important;
+  padding: 8px !important;
+  cursor: default !important;
+}
+
+/* 업로드 후 안내 문구는 숨김 */
+.score-zone.phase12-has-new-score .zone-txt {
+  display: none !important;
+}
+
+/* 새 악보 캐러셀 */
+.phase12-new-score-carousel {
+  display: grid !important;
+  grid-template-columns: 32px minmax(0, 1fr) 32px !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+}
+
+.phase12-score-nav-btn {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(255,255,255,.16) !important;
+  background: rgba(255,255,255,.07) !important;
+  color: #dbeafe !important;
+  font-weight: 950 !important;
+  cursor: pointer !important;
+}
+
+.phase12-score-nav-btn:disabled {
+  opacity: .35 !important;
+  cursor: default !important;
+}
+
+.phase12-score-preview-wrap {
+  min-width: 0 !important;
+  text-align: center !important;
+}
+
+.phase12-score-preview-img {
+  width: 78px !important;
+  height: 98px !important;
+  object-fit: cover !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255,255,255,.18) !important;
+  background: #fff !important;
+  cursor: pointer !important;
+  display: inline-block !important;
+}
+
+.phase12-score-preview-meta {
+  margin-top: 4px !important;
+  color: #cbd5e1 !important;
+  font-size: .68rem !important;
+  font-weight: 850 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.phase12-score-preview-actions {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  margin-top: 5px !important;
+}
+
+.phase12-score-preview-actions button {
+  border: 1px solid rgba(255,255,255,.16) !important;
+  background: rgba(255,255,255,.07) !important;
+  color: #dbeafe !important;
+  border-radius: 999px !important;
+  padding: 4px 8px !important;
+  font-size: .66rem !important;
+  font-weight: 900 !important;
+  cursor: pointer !important;
+}
+
+/* 기존 score-thumbs는 캐러셀 렌더링용으로 숨김 */
+#score-thumbs.phase12-carousel-source {
+  display: none !important;
 }
 
 </style>
@@ -1925,7 +2012,11 @@ function loadSong() {
   renderExistingScores(s);
   document.getElementById('score-thumbs').innerHTML = '';
   const scoreZone = document.getElementById('f-score')?.closest('.score-zone');
-  if(scoreZone) scoreZone.classList.remove('phase12-has-new-score');
+  if(scoreZone) {
+    scoreZone.classList.remove('phase12-has-new-score');
+    const carousel = scoreZone.querySelector('.phase12-new-score-carousel');
+    if(carousel) carousel.remove();
+  }
   document.getElementById('f-score').value = '';
 
   // 스크롤 맨 위
@@ -2024,11 +2115,15 @@ function previewScores(input) {
   const wrap = document.getElementById('score-thumbs');
   const zone = input.closest('.score-zone');
   if(zone && scoreFiles.length) zone.classList.add('phase12-has-new-score');
+
   wrap.innerHTML = '';
-  scoreFiles.forEach(f => {
+  wrap.classList.add('phase12-carousel-source');
+
+  scoreFiles.forEach((f, i) => {
     const img = document.createElement('img');
     img.className = 'score-thumb';
     img.src = URL.createObjectURL(f);
+    img.dataset.index = String(i);
     img.title = '클릭하면 크게 봅니다';
     img.onclick = function(e) {
       e.preventDefault();
@@ -2037,6 +2132,10 @@ function previewScores(input) {
     };
     wrap.appendChild(img);
   });
+
+  if(typeof phase12RenderNewScoreCarousel === 'function') {
+    phase12RenderNewScoreCarousel(0);
+  }
 }
 
 
@@ -2909,6 +3008,134 @@ init();
   if(document.documentElement) {
     obs.observe(document.documentElement, {childList:true, subtree:true});
   }
+})();
+</script>
+
+
+<script>
+/* === Phase12 fix16: render selected score carousel === */
+(function(){
+  if(window.__phase12NewScoreCarouselInstalled) return;
+  window.__phase12NewScoreCarouselInstalled = true;
+
+  window.__phase12CurrentScoreIndex = 0;
+
+  function ensureBigModal(){
+    let modal = document.getElementById('phase12-score-big-modal');
+    if(modal) return modal;
+
+    modal = document.createElement('div');
+    modal.id = 'phase12-score-big-modal';
+    modal.className = 'phase12-score-big-modal';
+    modal.innerHTML = '<button type="button">×</button><img alt="악보 크게 보기">';
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => {
+      if(e.target === modal || e.target.tagName === 'BUTTON') {
+        modal.classList.remove('show');
+        modal.querySelector('img').src = '';
+      }
+    });
+    return modal;
+  }
+
+  window.phase12OpenScoreBig = window.phase12OpenScoreBig || function(url){
+    const modal = ensureBigModal();
+    modal.querySelector('img').src = url;
+    modal.classList.add('show');
+  };
+
+  function getZone(){
+    return document.getElementById('f-score')?.closest('.score-zone');
+  }
+
+  function getThumbs(){
+    return Array.from(document.querySelectorAll('#score-thumbs img.score-thumb'));
+  }
+
+  window.phase12RenderNewScoreCarousel = function(nextIndex){
+    const zone = getZone();
+    const source = document.getElementById('score-thumbs');
+    if(!zone || !source) return;
+
+    const thumbs = getThumbs();
+    if(!thumbs.length) {
+      zone.classList.remove('phase12-has-new-score');
+      const old = zone.querySelector('.phase12-new-score-carousel');
+      if(old) old.remove();
+      return;
+    }
+
+    zone.classList.add('phase12-has-new-score');
+    source.classList.add('phase12-carousel-source');
+
+    let index = Number.isFinite(nextIndex) ? nextIndex : window.__phase12CurrentScoreIndex;
+    index = Math.max(0, Math.min(thumbs.length - 1, index));
+    window.__phase12CurrentScoreIndex = index;
+
+    let carousel = zone.querySelector('.phase12-new-score-carousel');
+    if(!carousel) {
+      carousel = document.createElement('div');
+      carousel.className = 'phase12-new-score-carousel';
+      zone.appendChild(carousel);
+    }
+
+    const img = thumbs[index];
+    const file = (typeof scoreFiles !== 'undefined' && scoreFiles[index]) ? scoreFiles[index] : null;
+    const fileName = file?.name || img?.alt || `새 악보 ${index + 1}`;
+
+    carousel.innerHTML = `
+      <button type="button" class="phase12-score-nav-btn phase12-prev" ${index <= 0 ? 'disabled' : ''}>‹</button>
+      <div class="phase12-score-preview-wrap">
+        <img class="phase12-score-preview-img" src="${img.src}" alt="선택 악보 미리보기">
+        <div class="phase12-score-preview-meta">${index + 1} / ${thumbs.length} · ${String(fileName).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</div>
+        <div class="phase12-score-preview-actions">
+          <button type="button" class="phase12-score-add-more">추가/교체</button>
+        </div>
+      </div>
+      <button type="button" class="phase12-score-nav-btn phase12-next" ${index >= thumbs.length - 1 ? 'disabled' : ''}>›</button>
+    `;
+
+    carousel.querySelector('.phase12-score-preview-img').onclick = e => {
+      e.preventDefault();
+      e.stopPropagation();
+      phase12OpenScoreBig(img.src);
+    };
+
+    carousel.querySelector('.phase12-prev').onclick = e => {
+      e.preventDefault();
+      e.stopPropagation();
+      phase12RenderNewScoreCarousel(index - 1);
+    };
+
+    carousel.querySelector('.phase12-next').onclick = e => {
+      e.preventDefault();
+      e.stopPropagation();
+      phase12RenderNewScoreCarousel(index + 1);
+    };
+
+    carousel.querySelector('.phase12-score-add-more').onclick = e => {
+      e.preventDefault();
+      e.stopPropagation();
+      document.getElementById('f-score')?.click();
+    };
+  };
+
+  function hookInput(){
+    const input = document.getElementById('f-score');
+    if(!input || input.dataset.phase12CarouselHooked === '1') return;
+    input.dataset.phase12CarouselHooked = '1';
+    input.addEventListener('change', () => setTimeout(() => phase12RenderNewScoreCarousel(0), 30));
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    hookInput();
+    setTimeout(() => phase12RenderNewScoreCarousel(0), 300);
+  });
+
+  window.addEventListener('load', () => {
+    hookInput();
+    setTimeout(() => phase12RenderNewScoreCarousel(0), 600);
+  });
 })();
 </script>
 
