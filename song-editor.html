@@ -1729,6 +1729,14 @@ body > div,
   display: none !important;
 }
 
+
+/* === Phase12 fix17: reliable persisted existing score display === */
+.existing-score-box .existing-score-text {
+  font-size:.68rem !important;
+  line-height:1.3 !important;
+  color:#93c5fd !important;
+}
+
 </style>
 </head>
 <body>
@@ -1929,47 +1937,82 @@ function openExistingScorePreview(url) {
   modal.classList.add('show');
 }
 
+
+async function markSongHasScore(song) {
+  if(!song?.id) return;
+  try {
+    song.has_score = true;
+    await fetch(URL_BASE+'/rest/v1/songs?id=eq.'+song.id, {
+      method:'PATCH',
+      headers:H,
+      body:JSON.stringify({
+        has_score:true,
+        status: song.status === 'plan' ? 'ready' : song.status,
+        updated_at:new Date().toISOString()
+      })
+    });
+  } catch(e) {
+    console.warn('has_score mark failed', e);
+  }
+}
+
 async function renderExistingScores(song) {
   const ei = document.getElementById('existing-info');
   if(!ei) return;
 
-  if(!song?.has_score) {
-    ei.style.display = 'none';
-    ei.innerHTML = '';
-    return;
-  }
-
   ei.style.display = 'block';
   ei.className = 'existing-score-box';
-  ei.innerHTML = '<div class="existing-score-text">✓ 기존 악보를 불러오는 중입니다...</div>';
+  ei.dataset.phase12NameListDone = '';
+  ei.innerHTML = '<div class="existing-score-text">기존 악보 확인 중...</div>';
 
   const files = await listExistingScoreFiles(song.id);
 
-  if(!files.length) {
-    ei.innerHTML = '<div class="existing-score-text">✓ 악보 있음 — 하지만 저장소에서 기존 악보 파일을 찾지 못했습니다. 새 이미지 추가 가능</div>';
+  // 핵심 수정: has_score 값이 false여도 Storage에 파일이 있으면 악보 있음으로 처리
+  if(files && files.length) {
+    if(!song.has_score) {
+      markSongHasScore(song);
+    }
+
+    song.has_score = true;
+
+    const cards = files.map((f, i) => {
+      const path = `${song.id}/${f.name}`;
+      const url = existingScoreUrl(path);
+      const safeName = String(f.name || ('악보 ' + (i + 1))).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      return `
+        <div class="existing-score-card" onclick="openExistingScorePreview('${url}')">
+          <img src="${url}" alt="${safeName}" loading="lazy">
+          <div class="existing-score-card-name">${safeName}</div>
+        </div>
+      `;
+    }).join('');
+
+    ei.innerHTML = `
+      <div class="existing-score-text">기존 악보 ${files.length}장</div>
+      <div class="existing-score-list">${cards}</div>
+    `;
+
+    // 기존 악보 이름 목록 모드로 변환
+    setTimeout(() => {
+      if(typeof window.__phase12ForceExistingNameList === 'function') {
+        window.__phase12ForceExistingNameList();
+      }
+    }, 50);
+
     return;
   }
 
-  const cards = files.map((f, i) => {
-    const path = `${song.id}/${f.name}`;
-    const url = existingScoreUrl(path);
-    const safeName = String(f.name || ('악보 ' + (i + 1))).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    return `
-      <div class="existing-score-card" onclick="openExistingScorePreview('${url}')">
-        <img src="${url}" alt="${safeName}" loading="lazy">
-        <div class="existing-score-card-name">${safeName}</div>
-      </div>
-    `;
-  }).join('');
-
-  ei.innerHTML = `
-    <div class="existing-score-text">✓ 기존 악보 ${files.length}장 — 확인 후 새 이미지 추가 가능</div>
-    <div class="existing-score-list">${cards}</div>
-  `;
+  // 파일이 없을 때만 상태값을 참고
+  if(song?.has_score) {
+    ei.innerHTML = '<div class="existing-score-text">악보 있음으로 표시되어 있지만 저장소에서 파일을 찾지 못했습니다.</div>';
+  } else {
+    ei.style.display = 'none';
+    ei.innerHTML = '';
+  }
 }
 
 async function init() {
-  const data = await api('GET', 'songs?select=id,name,key,bpm,bpm_min,bpm_max,seasons,has_score,music_url&order=name&limit=500');
+  const data = await api('GET', 'songs?select=id,name,key,bpm,bpm_min,bpm_max,seasons,has_score,status,music_url&order=name&limit=500');
   songs = data;
   const lastIdx = parseInt(localStorage.getItem('worshipdb_song_editor_last_idx') || '0', 10);
   if(Number.isFinite(lastIdx) && lastIdx >= 0 && lastIdx < songs.length) idx = lastIdx;
@@ -2223,16 +2266,29 @@ async function saveAndNext() {
       for(const file of scoreFiles) {
         const safeName = file.name.normalize('NFC');
         const path = `${s.id}/${safeName}`;
-        await fetch(`${STORAGE}/object/scores/${path}`, {
+        const uploadRes = await fetch(`${STORAGE}/object/scores/${path}`, {
           method:'POST',
           headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':file.type,'x-upsert':'true'},
           body: file
         });
+
+        if(!uploadRes.ok) {
+          const msg = await uploadRes.text().catch(() => '');
+          throw new Error('악보 업로드 실패: ' + (msg || uploadRes.status));
+        }
       }
-      // has_score 업데이트
+
+      // has_score 업데이트 + 현재 화면 데이터 즉시 반영
+      s.has_score = true;
+      if(s.status === 'plan') s.status = 'ready';
+
       await fetch(URL_BASE+'/rest/v1/songs?id=eq.'+s.id, {
         method:'PATCH',headers:H,
-        body:JSON.stringify({has_score:true,status:s.status==='plan'?'ready':s.status,updated_at:new Date().toISOString()})
+        body:JSON.stringify({
+          has_score:true,
+          status:s.status,
+          updated_at:new Date().toISOString()
+        })
       });
     }
 
