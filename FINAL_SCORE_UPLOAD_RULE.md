@@ -1,39 +1,41 @@
 # Worship DB 최종 악보 업로드 규칙
 
-## Storage 구조
+## 핵심
 
-현재 앱 호환성을 위해 Storage 경로는 아래 구조를 유지합니다.
+Supabase Storage 저장명에는 한글을 넣지 않습니다.  
+Supabase Storage에서 한글 object key가 `InvalidKey` 오류를 낼 수 있기 때문입니다.
+
+## Storage 실제 구조
 
 ```text
 scores/
   곡ID/
-    곡명_Key_코드_1.png
-    곡명_Key_코드_2.png
-```
-
-## 파일명 규칙
-
-```text
-곡명_Key_버전_페이지번호.확장자
+    곡ID_Key_code_1.png
+    곡ID_Key_code_2.png
 ```
 
 예:
 
 ```text
+scores/
+  31feba3c-c47d-439a-9aef-5bbf181e9f42/
+    31feba3c-c47d-439a-9aef-5bbf181e9f42_A_code_1.png
+    31feba3c-c47d-439a-9aef-5bbf181e9f42_A_code_2.png
+```
+
+## 화면 표시명
+
+화면에서는 기존 규칙처럼 이해하기 쉽게 표시할 수 있습니다.
+
+```text
 가서제자삼으라_A_코드_1.png
-가서제자삼으라_A_코드_2.png
 ```
 
 ## 안정화 처리
 
-- 저장 시 현재 Key 값을 자동 반영합니다.
-- 공백과 Storage 오류를 유발하는 특수문자는 제거합니다.
+- Storage 실제 파일명은 ASCII만 사용합니다.
+- 곡 연결은 상위 폴더 `곡ID/`로 보장합니다.
+- Key와 페이지 번호는 파일명에 유지합니다.
 - 같은 곡, 같은 Key, 같은 페이지를 다시 올리면 덮어씁니다.
-- 업로드 성공 시 `songs.has_score=true`로 보정합니다.
-- 다시 들어올 때 DB 값만 믿지 않고 Storage 실제 파일을 조회합니다.
-- 기존 악보 목록은 페이지 번호 기준으로 정렬합니다.
-
-## 주의
-
-추후 악보 버전 선택 UI가 생기면 `getScoreVersionName()` 함수만 연결하면 됩니다.
-현재 순차 편집기는 기본 버전을 `코드`로 저장합니다.
+- 다시 들어올 때 Storage 실제 파일을 조회합니다.
+- 파일이 있으면 `has_score=true`로 자동 보정합니다.

@@ -2243,18 +2243,18 @@ function getBpmMinMaxForSave() {
 }
 
 
-function cleanScoreFilePart(value, fallback) {
+function cleanAsciiFilePart(value, fallback) {
   const raw = String(value || fallback || '')
-    .normalize('NFC')
+    .normalize('NFKD')
     .trim()
     .replace(/\s+/g, '');
 
-  const cleaned = raw
-    .replace(/[\\/:*?"<>|#%&{}$!'@+=`~^;\[\],]/g, '')
-    .replace(/\.+/g, '')
-    .replace(/_+/g, '_');
+  const ascii = raw
+    .replace(/[^A-Za-z0-9_-]/g, '')
+    .replace(/_+/g, '_')
+    .replace(/-+/g, '-');
 
-  return cleaned || fallback || 'score';
+  return ascii || fallback || 'score';
 }
 
 function getScoreExtension(file) {
@@ -2266,21 +2266,25 @@ function getScoreExtension(file) {
 }
 
 function getScoreVersionName() {
-  // 현재 순차 편집기에는 별도 악보버전 선택이 없으므로 기본 버전은 '코드'
-  // 추후 버전 선택 UI가 생기면 이 함수만 연결하면 됨
-  return '코드';
+  return 'code';
 }
 
 function makeRuleBasedScoreFileName(song, keyValue, file, index) {
-  const songName = cleanScoreFilePart(song?.name, '곡명');
-  const key = cleanScoreFilePart(keyValue || song?.key, 'Key');
-  const version = cleanScoreFilePart(getScoreVersionName(), '코드');
+  const songId = cleanAsciiFilePart(song?.id, 'song');
+  const key = cleanAsciiFilePart(keyValue || song?.key, 'Key');
+  const version = cleanAsciiFilePart(getScoreVersionName(), 'code');
   const page = index + 1;
   const ext = getScoreExtension(file);
 
-  // 최종 규칙: 곡명_Key_버전_페이지.확장자
-  // 예: 가서제자삼으라_A_코드_1.png
-  return `${songName}_${key}_${version}_${page}.${ext}`;
+  return `${songId}_${key}_${version}_${page}.${ext}`;
+}
+
+function displayRuleBasedScoreFileName(song, keyValue, file, index) {
+  const songName = String(song?.name || '곡명').normalize('NFC').trim().replace(/\s+/g, '');
+  const key = String(keyValue || song?.key || 'Key').trim();
+  const page = index + 1;
+  const ext = getScoreExtension(file);
+  return `${songName}_${key}_코드_${page}.${ext}`;
 }
 
 function storageObjectUrl(bucketAndPath) {
@@ -3287,7 +3291,7 @@ init();
       const song = (typeof songs !== 'undefined' && typeof idx !== 'undefined') ? songs[idx] : null;
       const keyValue = document.getElementById('f-key')?.value || song?.key || '';
       if(typeof makeRuleBasedScoreFileName === 'function') {
-        return makeRuleBasedScoreFileName(song, keyValue, file, index);
+        return displayRuleBasedScoreFileName(song, keyValue, file, index);
       }
     } catch(e) {}
     return file?.name || `악보_${index + 1}`;
