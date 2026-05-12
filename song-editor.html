@@ -1898,7 +1898,7 @@ async function api(method, path, body) {
 
 
 function existingScoreUrl(path) {
-  return `${STORAGE}/object/public/scores/${path}`;
+  return `${STORAGE}/object/public/scores/${storageObjectUrl(path)}`;
 }
 
 async function listExistingScoreFiles(songId) {
@@ -1908,13 +1908,17 @@ async function listExistingScoreFiles(songId) {
       headers: {...RH, 'Content-Type':'application/json'},
       body: JSON.stringify({
         prefix: songId + '/',
-        limit: 100,
+        limit: 200,
         sortBy: { column: 'name', order: 'asc' }
       })
     });
+
     if(!res.ok) return [];
+
     const files = await res.json();
-    return Array.isArray(files) ? files.filter(f => !f.name?.startsWith('.')) : [];
+    const cleanFiles = Array.isArray(files) ? files.filter(isValidScoreObject) : [];
+
+    return sortScoreFiles(cleanFiles);
   } catch(e) {
     console.warn('existing score list failed', e);
     return [];
@@ -2238,6 +2242,72 @@ function getBpmMinMaxForSave() {
   return { min, max };
 }
 
+
+function cleanScoreFilePart(value, fallback) {
+  const raw = String(value || fallback || '')
+    .normalize('NFC')
+    .trim()
+    .replace(/\s+/g, '');
+
+  const cleaned = raw
+    .replace(/[\\/:*?"<>|#%&{}$!'@+=`~^;\[\],]/g, '')
+    .replace(/\.+/g, '')
+    .replace(/_+/g, '_');
+
+  return cleaned || fallback || 'score';
+}
+
+function getScoreExtension(file) {
+  const original = String(file?.name || '');
+  const extMatch = original.match(/\.([a-zA-Z0-9]{1,8})$/);
+  const ext = extMatch ? extMatch[1].toLowerCase() : 'jpg';
+  if(['jpg','jpeg','png','webp'].includes(ext)) return ext;
+  return 'jpg';
+}
+
+function getScoreVersionName() {
+  // 현재 순차 편집기에는 별도 악보버전 선택이 없으므로 기본 버전은 '코드'
+  // 추후 버전 선택 UI가 생기면 이 함수만 연결하면 됨
+  return '코드';
+}
+
+function makeRuleBasedScoreFileName(song, keyValue, file, index) {
+  const songName = cleanScoreFilePart(song?.name, '곡명');
+  const key = cleanScoreFilePart(keyValue || song?.key, 'Key');
+  const version = cleanScoreFilePart(getScoreVersionName(), '코드');
+  const page = index + 1;
+  const ext = getScoreExtension(file);
+
+  // 최종 규칙: 곡명_Key_버전_페이지.확장자
+  // 예: 가서제자삼으라_A_코드_1.png
+  return `${songName}_${key}_${version}_${page}.${ext}`;
+}
+
+function storageObjectUrl(bucketAndPath) {
+  return String(bucketAndPath).split('/').map(encodeURIComponent).join('/');
+}
+
+function extractScorePageNumber(fileName) {
+  const name = String(fileName || '');
+  const m = name.match(/_(\d+)\.[^.]+$/);
+  return m ? parseInt(m[1], 10) || 9999 : 9999;
+}
+
+function sortScoreFiles(files) {
+  return [...(files || [])].sort((a, b) => {
+    const pa = extractScorePageNumber(a?.name);
+    const pb = extractScorePageNumber(b?.name);
+    if(pa !== pb) return pa - pb;
+    return String(a?.name || '').localeCompare(String(b?.name || ''), 'ko');
+  });
+}
+
+function isValidScoreObject(file) {
+  const name = String(file?.name || '');
+  if(!name || name.startsWith('.') || name.endsWith('/')) return false;
+  return /\.(jpg|jpeg|png|webp)$/i.test(name);
+}
+
 async function saveAndNext() {
   const btn = document.getElementById('btn-save');
   btn.disabled = true;
@@ -2255,6 +2325,7 @@ async function saveAndNext() {
     const bpmRange = getBpmMinMaxForSave();
     if(url) body.music_url = url;
     if(key) body.key = key;
+    if(scoreFiles.length && !key) throw new Error('악보 업로드 전 Key를 먼저 입력하세요.');
     if(bpmRange.min) body.bpm_min = bpmRange.min;
     if(bpmRange.max) body.bpm_max = bpmRange.max;
     if(bpmRange.min && bpmRange.max) body.bpm = bpmRange.min === bpmRange.max ? String(bpmRange.min) : `${bpmRange.min}-${bpmRange.max}`;
@@ -2263,12 +2334,20 @@ async function saveAndNext() {
 
     // 악보 업로드
     if(scoreFiles.length) {
-      for(const file of scoreFiles) {
-        const safeName = file.name.normalize('NFC');
+      for(let i = 0; i < scoreFiles.length; i++) {
+        const file = scoreFiles[i];
+        const safeName = makeRuleBasedScoreFileName(s, key, file, i);
         const path = `${s.id}/${safeName}`;
-        const uploadRes = await fetch(`${STORAGE}/object/scores/${path}`, {
+        const uploadUrl = `${STORAGE}/object/scores/${storageObjectUrl(path)}`;
+
+        const uploadRes = await fetch(uploadUrl, {
           method:'POST',
-          headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':file.type,'x-upsert':'true'},
+          headers:{
+            'apikey':KEY,
+            'Authorization':'Bearer '+KEY,
+            'Content-Type':file.type || 'image/jpeg',
+            'x-upsert':'true'
+          },
           body: file
         });
 
@@ -2280,6 +2359,7 @@ async function saveAndNext() {
 
       // has_score 업데이트 + 현재 화면 데이터 즉시 반영
       s.has_score = true;
+      s.key = key || s.key;
       if(s.status === 'plan') s.status = 'ready';
 
       await fetch(URL_BASE+'/rest/v1/songs?id=eq.'+s.id, {
@@ -3137,7 +3217,7 @@ init();
 
     const img = thumbs[index];
     const file = (typeof scoreFiles !== 'undefined' && scoreFiles[index]) ? scoreFiles[index] : null;
-    const fileName = file?.name || img?.alt || `새 악보 ${index + 1}`;
+    const fileName = (typeof phase12GeneratedScoreName === 'function' && file) ? phase12GeneratedScoreName(file, index) : (file?.name || img?.alt || `새 악보 ${index + 1}`);
 
     carousel.innerHTML = `
       <button type="button" class="phase12-score-nav-btn phase12-prev" ${index <= 0 ? 'disabled' : ''}>‹</button>
@@ -3192,6 +3272,26 @@ init();
     hookInput();
     setTimeout(() => phase12RenderNewScoreCarousel(0), 600);
   });
+})();
+</script>
+
+
+<script>
+/* === Phase12 fix19: show generated rule-based score filenames in preview === */
+(function(){
+  if(window.__phase12FilenamePreviewInstalled) return;
+  window.__phase12FilenamePreviewInstalled = true;
+
+  window.phase12GeneratedScoreName = function(file, index) {
+    try {
+      const song = (typeof songs !== 'undefined' && typeof idx !== 'undefined') ? songs[idx] : null;
+      const keyValue = document.getElementById('f-key')?.value || song?.key || '';
+      if(typeof makeRuleBasedScoreFileName === 'function') {
+        return makeRuleBasedScoreFileName(song, keyValue, file, index);
+      }
+    } catch(e) {}
+    return file?.name || `악보_${index + 1}`;
+  };
 })();
 </script>
 
