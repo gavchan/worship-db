@@ -1597,6 +1597,30 @@ body > div,
   background: rgba(147,197,253,.10) !important;
 }
 
+.existing-score-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 6px !important;
+  align-items: center !important;
+}
+
+.existing-score-delete-btn {
+  border: 1px solid rgba(248,113,113,.38) !important;
+  background: rgba(127,29,29,.38) !important;
+  color: #fecaca !important;
+  border-radius: 8px !important;
+  padding: 6px 8px !important;
+  font-size: .68rem !important;
+  font-weight: 900 !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+}
+
+.existing-score-delete-btn:hover {
+  border-color: rgba(248,113,113,.78) !important;
+  background: rgba(185,28,28,.58) !important;
+}
+
 /* 기존 이미지 카드 방식은 숨김 */
 .phase12-score-left .existing-score-card {
   display: none !important;
@@ -1960,6 +1984,86 @@ async function markSongHasScore(song) {
   }
 }
 
+async function updateSongHasScoreState(song, hasScore) {
+  if(!song?.id) return;
+  try {
+    song.has_score = !!hasScore;
+    const body = {
+      has_score: !!hasScore,
+      updated_at: new Date().toISOString()
+    };
+    if(hasScore && song.status === 'plan') body.status = 'ready';
+
+    const res = await fetch(URL_BASE+'/rest/v1/songs?id=eq.'+song.id, {
+      method:'PATCH',
+      headers:H,
+      body:JSON.stringify(body)
+    });
+    if(!res.ok) {
+      const msg = await res.text().catch(() => '');
+      throw new Error(msg || res.status);
+    }
+  } catch(e) {
+    console.warn('has_score state update failed', e);
+  }
+}
+
+async function removeScoreObject(path) {
+  const encodedPath = storageObjectUrl(path);
+  let res = await fetch(`${STORAGE}/object/scores/${encodedPath}`, {
+    method:'DELETE',
+    headers:RH
+  });
+
+  if(res.ok) return true;
+
+  // Supabase Storage 환경에 따라 remove 엔드포인트가 필요한 경우를 대비한 보조 경로
+  res = await fetch(`${STORAGE}/object/remove/scores`, {
+    method:'POST',
+    headers:{...RH, 'Content-Type':'application/json'},
+    body:JSON.stringify({ prefixes:[path] })
+  });
+
+  if(!res.ok) {
+    const msg = await res.text().catch(() => '');
+    throw new Error(msg || res.status);
+  }
+
+  return true;
+}
+
+async function deleteExistingScoreFile(songId, fileName) {
+  const song = songs[idx];
+  if(!song?.id || String(song.id) !== String(songId)) {
+    showToast('현재 곡 정보를 다시 확인해주세요');
+    return;
+  }
+
+  if(!fileName) {
+    showToast('삭제할 악보 파일명을 찾지 못했어요');
+    return;
+  }
+
+  if(!confirm(`이 악보 이미지 파일을 삭제할까요?
+
+${fileName}`)) return;
+
+  try {
+    showToast('악보 삭제 중...');
+    await removeScoreObject(`${songId}/${fileName}`);
+
+    const remain = await listExistingScoreFiles(songId);
+    await updateSongHasScoreState(song, remain.length > 0);
+    await syncR2Praise(songId);
+
+    showToast(remain.length ? '악보 이미지를 삭제했어요' : '마지막 악보를 삭제해서 악보 없음으로 바꿨어요');
+    renderExistingScores(song);
+  } catch(e) {
+    console.warn('score delete failed', e);
+    showToast('⚠ 악보 삭제 실패: ' + e.message);
+  }
+}
+
 async function renderExistingScores(song) {
   const ei = document.getElementById('existing-info');
   if(!ei) return;
@@ -1984,9 +2088,10 @@ async function renderExistingScores(song) {
       const url = existingScoreUrl(path);
       const safeName = String(f.name || ('악보 ' + (i + 1))).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
       return `
-        <div class="existing-score-card" onclick="openExistingScorePreview('${url}')">
+        <div class="existing-score-card" data-score-file="${safeName}" onclick="openExistingScorePreview('${url}')">
           <img src="${url}" alt="${safeName}" loading="lazy">
           <div class="existing-score-card-name">${safeName}</div>
+          <button type="button" class="existing-score-delete-btn" onclick="event.preventDefault();event.stopPropagation();deleteExistingScoreFile('${song.id}', '${safeName.replace(/\'/g, "\\'")}')">삭제</button>
         </div>
       `;
     }).join('');
@@ -3091,6 +3196,9 @@ init();
       const name = (nameEl?.textContent || img?.alt || ('기존 악보 ' + (index + 1))).trim();
       const url = img?.src || '';
 
+      const row = document.createElement('div');
+      row.className = 'existing-score-row';
+
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'existing-score-name-btn';
@@ -3102,7 +3210,21 @@ init();
         if(url) phase12OpenScoreBig(url);
       });
 
-      list.appendChild(btn);
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'existing-score-delete-btn';
+      del.textContent = '삭제';
+      del.title = name + ' 삭제';
+      del.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        const song = songs[idx];
+        if(song?.id) deleteExistingScoreFile(song.id, name);
+      });
+
+      row.appendChild(btn);
+      row.appendChild(del);
+      list.appendChild(row);
     });
 
     ei.innerHTML = '';
