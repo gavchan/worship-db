@@ -1,0 +1,22 @@
+2026-05-13 수정 내용
+
+문제:
+- 콘티 저장 시 song_ids에서 빈 값을 filter(Boolean)으로 제거하면서 song_names와 song_ids의 순서가 어긋날 수 있었음.
+- 이후 공유 화면/모바일 연주모드에서 같은 이름의 다른 버전 곡이 잘못 따라오는 문제가 생길 수 있었음.
+
+수정:
+1. pc.html
+   - worship_history 저장 시 song_ids 배열 길이를 song_names와 동일하게 유지.
+   - ID가 없는 직접입력 곡은 null로 보존.
+
+2. mobile.html
+   - 모바일 콘티 저장 시 song_ids 배열 길이를 song_names와 동일하게 유지.
+   - buildContiSongsFromHistory에서 이름 fallback 제거.
+   - song_id가 없거나 못 찾으면 해당 이름의 임시 곡으로만 표시하고, 다른 버전 곡을 자동으로 끌고 오지 않음.
+
+3. share.html / share.js
+   - 공유 화면도 song_id의 같은 인덱스만 사용.
+   - 이름 기준 자동 매칭 제거.
+
+주의:
+- 기존에 이미 저장된 worship_history 중 song_names와 song_ids 순서가 어긋난 기록은 한 번 다시 저장하면 정렬 구조가 정상화됩니다.

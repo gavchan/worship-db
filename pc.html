@@ -1226,7 +1226,10 @@ async function saveHistory() {
   const date=getSelectedDate();
   if(!date){showToast('날짜를 선택해주세요');return;}
   const note=document.getElementById('h-note').value.trim();
-  const song_ids=selectedSongs.map(s=>s.id).filter(Boolean);
+  // song_names와 song_ids의 순서를 반드시 맞춘다.
+  // filter(Boolean)을 쓰면 ID가 없는 항목 때문에 인덱스가 밀려서
+  // 같은 제목의 다른 버전 곡이 연주 화면에 섞일 수 있다.
+  const song_ids=selectedSongs.map(s=>s.id||null);
   const song_names=selectedSongs.map(s=>s.name);
   const btn=document.getElementById('h-btn-save');
   btn.disabled=true;btn.textContent='저장 중...';
