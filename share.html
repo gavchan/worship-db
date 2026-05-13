@@ -129,15 +129,37 @@ function songBpm(s){return s?.bpm||s?.tempo||'-'}
 function youtubeId(url){const u=String(url||'').trim();if(!u)return '';let m=u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{6,})/);if(m)return m[1];try{const parsed=new URL(u);return parsed.searchParams.get('v')||''}catch(e){return ''}}
 function youtubeEmbed(url){const id=youtubeId(url);return id?`https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`:''}
 function scoreUrl(path){return `${STORAGE_URL}/object/public/scores/${path}`}
+function contiBaseName(v){
+  return norm(v)
+    .replace(/\[[^\]]*\]/g,' ')
+    .replace(/\([^)]*\)/g,' ')
+    .replace(/[_-](?:[a-g](?:#|b)?|코드|악보|ver\.?\s*\d+|v\d+|\d+페이지|\d+p)$/gi,' ')
+    .replace(/\b(?:key|ver|version|코드)\b\s*[a-g](?:#|b)?/gi,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
 function uniqueContiSongList(list){
-  const seen=new Set();
+  const seenIds=new Set();
+  const seenNames=new Set();
   return (list||[]).filter(s=>{
-    const key=norm(s?.name||'');
-    if(!key)return true;
-    if(seen.has(key))return false;
-    seen.add(key);
-    return true;
+    const id=String(s?.id||'').trim();
+    const nameKey=contiBaseName(s?.name||'') || norm(s?.name||'');
+    if(id){
+      if(seenIds.has(id))return false;
+      seenIds.add(id);
+    }
+    if(nameKey){
+      if(seenNames.has(nameKey))return false;
+      seenNames.add(nameKey);
+    }
+    return !!(id||nameKey);
   });
+}
+function normalizeShareSongList(){
+  shareSongs=uniqueContiSongList(shareSongs||[]);
+  selectedIdx=Math.max(0,Math.min(selectedIdx,Math.max(0,shareSongs.length-1)));
+  viewerIdx=Math.max(0,Math.min(viewerIdx,Math.max(0,shareSongs.length-1)));
+  return shareSongs;
 }
 async function listScores(songId){if(!songId)return[];if(scoreCache[songId])return scoreCache[songId];try{const res=await fetch(`${STORAGE_URL}/object/list/scores`,{method:'POST',headers:{...STOR_HEADERS,'Content-Type':'application/json'},body:JSON.stringify({prefix:songId+'/',limit:100,sortBy:{column:'name',order:'asc'}})});if(!res.ok)return[];const files=await res.json();scoreCache[songId]=files||[];return scoreCache[songId]}catch(e){return[]}}
 async function load(){
@@ -151,17 +173,18 @@ async function load(){
     document.getElementById('title').textContent=shareTitle;
     document.getElementById('desc').textContent=h.note||'지정한 콘티의 악보, 영상, 메모를 확인할 수 있는 공유용 페이지입니다.';
     const rawIds=Array.isArray(h.song_ids)?h.song_ids:[];
-    const ids=rawIds.filter(Boolean); let songMap={};
+    const ids=[...new Set(rawIds.filter(Boolean).map(x=>String(x)))]; let songMap={};
     if(ids.length){try{const detail=await api(`songs?id=in.(${ids.map(encodeURIComponent).join(',')})&select=*`);detail.forEach(s=>songMap[s.id]=s)}catch(e){}}
     shareSongMap=songMap;
     const names=h.song_names||[];
     // 공유 연주 화면도 이름이 아니라 song_id의 같은 인덱스만 사용한다.
     // 이렇게 해야 같은 제목의 다른 키/버전 곡이 함께 딸려 나오지 않는다.
     shareSongs=uniqueContiSongList(names.map((name,i)=>{
-      const id=rawIds[i]||'';
+      const id=rawIds[i]?String(rawIds[i]):'';
       const found=id?(songMap[id]||{}):{};
-      return {...found,id:id||'',name:name||found.name||('곡 '+(i+1)),conti_memo:(h.memos||h.song_memos||[])[i]||''};
+      return {...found,id:id||'',name:found.name||name||('곡 '+(i+1)),conti_memo:(h.memos||h.song_memos||[])[i]||''};
     }));
+    normalizeShareSongList();
     selectedIdx=0;
     document.getElementById('top-tabs').style.display=shareSongs.length?'grid':'none';
     document.getElementById('footer-actions').style.display='none';
@@ -176,6 +199,7 @@ function renderShell(){
 }
 function renderBookmarks(){
   const box=document.getElementById('bookmarks'); if(!box)return;
+  normalizeShareSongList();
   box.innerHTML=shareSongs.map((s,i)=>`<button class="bookmark ${i===selectedIdx?'on':''}" onclick="selectSong(${i})"><span class="bookmark-num">${i+1}</span><span class="bookmark-name">${esc(s.name)}</span><span class="bookmark-meta">${esc(songKey(s))} · ${esc(songBpm(s))}</span></button>`).join('');
 }
 async function selectSong(i,render=true){
@@ -206,14 +230,16 @@ function visitHome(){location.href='index.html'}
 function viewerToast(msg){const t=document.getElementById('viewer-toast');if(!t)return;t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1400)}
 async function openSingleScore(i){singleViewer=true;viewerMode=1;await openSharePerformance(i)}
 async function openSharePerformance(i=0){
+  normalizeShareSongList();
   if(!shareSongs.length){viewerToast('콘티 곡이 없습니다');return}
   viewerIdx=Math.max(0,Math.min(i,shareSongs.length-1));viewerPage=0;singleViewer=!!singleViewer;
   const v=document.getElementById('share-viewer');v.classList.add('show');v.classList.toggle('single',singleViewer);await requestShareWakeLock(false);await renderShareViewer();singleViewer=false;
 }
-async function goShareSong(i){viewerIdx=Math.max(0,Math.min(i,shareSongs.length-1));viewerPage=0;await renderShareViewer()}
+async function goShareSong(i){normalizeShareSongList();viewerIdx=Math.max(0,Math.min(i,shareSongs.length-1));viewerPage=0;await renderShareViewer()}
 function setSharePageMode(mode){viewerMode=mode===2?2:1;renderShareViewerBody()}
-async function renderShareViewer(){const s=shareSongs[viewerIdx];viewerFiles=s?.id?await listScores(s.id):[];viewerPage=Math.max(0,Math.min(viewerPage,Math.max(0,viewerFiles.length-1)));renderShareViewerBody()}
+async function renderShareViewer(){normalizeShareSongList();const s=shareSongs[viewerIdx];viewerFiles=s?.id?await listScores(s.id):[];viewerPage=Math.max(0,Math.min(viewerPage,Math.max(0,viewerFiles.length-1)));renderShareViewerBody()}
 function renderShareViewerBody(){
+  normalizeShareSongList();
   const s=shareSongs[viewerIdx]||{};const v=document.getElementById('share-viewer');const stage=document.getElementById('share-viewer-stage');v.classList.toggle('two',viewerMode===2);v.classList.toggle('one',viewerMode!==2);
   const pages=[];
   if(!viewerFiles.length){pages.push(`<div class="viewer-page empty">악보 업로드 예정<small>${esc(s.name||'곡')} 악보가 준비되면 여기에 표시됩니다.</small></div>`)}

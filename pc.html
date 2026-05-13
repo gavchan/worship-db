@@ -1107,6 +1107,26 @@ function toggleHistory(id) {
 // ── HISTORY MODAL ─────────────────────────────────────────
 let editHistoryId = null;
 
+function contiBaseName(v){
+  return norm(v)
+    .replace(/\[[^\]]*\]/g,' ')
+    .replace(/\([^)]*\)/g,' ')
+    .replace(/[_-](?:[a-g](?:#|b)?|코드|악보|ver\.?\s*\d+|v\d+|\d+페이지|\d+p)$/gi,' ')
+    .replace(/\b(?:key|ver|version|코드)\b\s*[a-g](?:#|b)?/gi,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+function uniqueContiSongsByName(list){
+  const seenIds=new Set();
+  const seenNames=new Set();
+  return (list||[]).filter(s=>{
+    const id=String(s?.id||'').trim();
+    const nameKey=contiBaseName(s?.name||'') || norm(s?.name||'');
+    if(id){ if(seenIds.has(id))return false; seenIds.add(id); }
+    if(nameKey){ if(seenNames.has(nameKey))return false; seenNames.add(nameKey); }
+    return !!(id||nameKey);
+  });
+}
 async function openHistoryModal(id) {
   editHistoryId = id||null;
   selectedSongs = [];
@@ -1122,7 +1142,7 @@ async function openHistoryModal(id) {
         const h=data[0];
         setSelectedDate(h.worship_date);
         document.getElementById('h-note').value=h.note||'';
-        selectedSongs=(h.song_names||[]).map((name,i)=>({id:(h.song_ids||[])[i]||null,name}));
+        selectedSongs=uniqueContiSongsByName((h.song_names||[]).map((name,i)=>({id:(h.song_ids||[])[i]||null,name})));
       }
     } catch(e){}
   } else {
@@ -1155,9 +1175,30 @@ function searchHistorySongs() {
     + `<div class="ssr-item" style="color:var(--accent2);border-top:1px solid var(--border);font-weight:500" onclick="addToSelectedDirect('${safeOrig}')">➕ "${orig}" 직접 추가</div>`;
 }
 
+
+function contiBaseName(v){
+  return String(v||'').normalize('NFC').replace(/\s+/g,' ').trim().toLowerCase()
+    .replace(/\[[^\]]*\]/g,' ')
+    .replace(/\([^)]*\)/g,' ')
+    .replace(/[_-](?:[a-g](?:#|b)?|코드|악보|ver\.?\s*\d+|v\d+|\d+페이지|\d+p)$/gi,' ')
+    .replace(/\b(?:key|ver|version|코드)\b\s*[a-g](?:#|b)?/gi,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+function uniqueSelectedSongsByBaseName(list){
+  const seen=new Set();
+  return (list||[]).filter(s=>{
+    const key=contiBaseName(s?.name||'') || String(s?.id||'');
+    if(!key)return true;
+    if(seen.has(key))return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 function addToSelectedDirect(name) {
   if(!name) return;
-  if(selectedSongs.find(s=>s.name===name)){showToast('이미 추가된 곡이에요');return;}
+  if(selectedSongs.find(s=>contiBaseName(s.name)===contiBaseName(name))){showToast('같은 곡의 다른 버전이 이미 들어가 있어요');return;}
   selectedSongs.push({id:null, name});
   renderSelectedSongs();
   document.getElementById('h-song-q').value='';
@@ -1165,7 +1206,7 @@ function addToSelectedDirect(name) {
 }
 
 function addToSelected(id,name) {
-  if(selectedSongs.find(s=>s.name===name)){showToast('이미 추가된 곡이에요');return;}
+  if(selectedSongs.find(s=>contiBaseName(s.name)===contiBaseName(name))){showToast('같은 곡의 다른 버전이 이미 들어가 있어요');return;}
   selectedSongs.push({id,name});
   renderSelectedSongs();
   document.getElementById('h-song-q').value='';
@@ -1229,6 +1270,7 @@ async function saveHistory() {
   // song_names와 song_ids의 순서를 반드시 맞춘다.
   // filter(Boolean)을 쓰면 ID가 없는 항목 때문에 인덱스가 밀려서
   // 같은 제목의 다른 버전 곡이 연주 화면에 섞일 수 있다.
+  selectedSongs=uniqueSelectedSongsByBaseName(selectedSongs);
   const song_ids=selectedSongs.map(s=>s.id||null);
   const song_names=selectedSongs.map(s=>s.name);
   const btn=document.getElementById('h-btn-save');
