@@ -129,6 +129,16 @@ function songBpm(s){return s?.bpm||s?.tempo||'-'}
 function youtubeId(url){const u=String(url||'').trim();if(!u)return '';let m=u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{6,})/);if(m)return m[1];try{const parsed=new URL(u);return parsed.searchParams.get('v')||''}catch(e){return ''}}
 function youtubeEmbed(url){const id=youtubeId(url);return id?`https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`:''}
 function scoreUrl(path){return `${STORAGE_URL}/object/public/scores/${path}`}
+function uniqueContiSongList(list){
+  const seen=new Set();
+  return (list||[]).filter(s=>{
+    const key=norm(s?.name||'');
+    if(!key)return true;
+    if(seen.has(key))return false;
+    seen.add(key);
+    return true;
+  });
+}
 async function listScores(songId){if(!songId)return[];if(scoreCache[songId])return scoreCache[songId];try{const res=await fetch(`${STORAGE_URL}/object/list/scores`,{method:'POST',headers:{...STOR_HEADERS,'Content-Type':'application/json'},body:JSON.stringify({prefix:songId+'/',limit:100,sortBy:{column:'name',order:'asc'}})});if(!res.ok)return[];const files=await res.json();scoreCache[songId]=files||[];return scoreCache[songId]}catch(e){return[]}}
 async function load(){
   const params=new URLSearchParams(location.search);const id=params.get('id');
@@ -147,11 +157,11 @@ async function load(){
     const names=h.song_names||[];
     // 공유 연주 화면도 이름이 아니라 song_id의 같은 인덱스만 사용한다.
     // 이렇게 해야 같은 제목의 다른 키/버전 곡이 함께 딸려 나오지 않는다.
-    shareSongs=names.map((name,i)=>{
+    shareSongs=uniqueContiSongList(names.map((name,i)=>{
       const id=rawIds[i]||'';
       const found=id?(songMap[id]||{}):{};
       return {...found,id:id||'',name:name||found.name||('곡 '+(i+1)),conti_memo:(h.memos||h.song_memos||[])[i]||''};
-    });
+    }));
     selectedIdx=0;
     document.getElementById('top-tabs').style.display=shareSongs.length?'grid':'none';
     document.getElementById('footer-actions').style.display='none';
