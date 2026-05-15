@@ -11,7 +11,7 @@
 <style>
 :root{--bg:#0b1020;--panel:#11182d;--panel2:#151d34;--line:rgba(255,255,255,.10);--line2:rgba(255,255,255,.18);--text:#fff;--muted:#a7adbd;--muted2:#747b8f;--white:#fff;--black:#050816;--green:#87d3a2;--red:#ff8a8a;--amber:#e9c276;--blue:#8fb8ff}
 *{box-sizing:border-box;margin:0;padding:0}body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}.bg{position:fixed;inset:0;pointer-events:none;overflow:hidden}.bg:before{content:'';position:absolute;left:-120px;top:-160px;width:520px;height:520px;border-radius:50%;background:rgba(99,102,241,.13);filter:blur(70px)}.bg:after{content:'';position:absolute;right:-150px;bottom:-180px;width:540px;height:540px;border-radius:50%;background:rgba(14,165,233,.11);filter:blur(80px)}
-.wrap{position:relative;max-width:1280px;margin:0 auto;padding:22px 22px 60px}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:22px}.eyebrow{display:inline-flex;gap:7px;align-items:center;padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.05);font-size:12px;color:#d3d8e8}.top h1{font-size:42px;line-height:1.12;margin-top:14px;letter-spacing:-.04em}.top p{font-size:14px;color:var(--muted);margin-top:10px}.nav{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.nav button,.nav a{border:1px solid var(--line);background:rgba(255,255,255,.05);color:white;text-decoration:none;border-radius:14px;padding:10px 14px;font-size:13px;cursor:pointer;transition:.15s}.nav .on,.nav button:hover,.nav a:hover{background:white;color:#070a12;border-color:white}.section{display:none}.section.show{display:block}.hero{position:relative;border:1px solid var(--line);border-radius:30px;background:linear-gradient(135deg,#151b30,#0d1325);padding:26px;margin-bottom:18px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.25)}.hero:after{content:'';position:absolute;right:-60px;top:-80px;width:260px;height:260px;border-radius:50%;background:rgba(129,140,248,.13);filter:blur(48px)}.hero-in{position:relative;display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:center}.hero h2{font-size:34px;line-height:1.18;letter-spacing:-.035em;margin-top:12px}.hero p{color:var(--muted);font-size:14px;line-height:1.7;margin-top:14px}.actions{display:grid;gap:10px}.action{border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.055);color:white;text-align:left;padding:15px;cursor:pointer;transition:.15s}.action:hover{border-color:var(--line2);background:rgba(255,255,255,.09);transform:translateY(-1px)}.action.primary{background:white;color:#070a12;border-color:white;box-shadow:0 14px 40px rgba(255,255,255,.08)}.action b{display:block;font-size:17px}.action span{display:block;font-size:12px;color:inherit;opacity:.66;margin-top:5px}.grid{display:grid;grid-template-columns:.95fr 1.05fr;gap:16px}.card{border:1px solid var(--line);border-radius:26px;background:rgba(255,255,255,.05);backdrop-filter:blur(16px);padding:18px}.card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:14px}.card h3{font-size:23px;letter-spacing:-.03em}.card small{display:block;color:var(--muted);font-size:12px;margin-top:4px}.mini-btn{border:1px solid var(--line);background:rgba(255,255,255,.05);color:white;border-radius:11px;padding:8px 10px;font-size:12px;cursor:pointer;text-decoration:none;display:inline-flex;gap:5px;align-items:center}.mini-btn.white{background:white;color:#050816;border-color:white;font-weight:700}.mini-btn:hover{background:rgba(255,255,255,.1)}.mini-btn.white:hover{background:white}.flow-list{display:grid;gap:9px}.flow-item{width:100%;border:1px solid rgba(255,255,255,.07);background:#12192d;color:white;border-radius:16px;padding:12px;text-align:left;cursor:pointer;transition:.15s}.flow-item.on{background:white;color:#050816;border-color:white}.flow-row{display:flex;align-items:center;justify-content:space-between;gap:10px}.flow-left{display:flex;gap:10px;align-items:center;min-width:0}.num{width:34px;height:34px;border-radius:12px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0}.flow-item.on .num{background:rgba(0,0,0,.08)}.song-title{font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.meta{font-size:11px;color:var(--muted);margin-top:2px}.flow-item.on .meta{color:#656b78}.pill-row{display:flex;gap:6px;flex-wrap:wrap}.pill{font-size:10.5px;border:1px solid var(--line);background:rgba(255,255,255,.05);border-radius:9px;padding:4px 7px;color:#dbe1ee}.flow-item.on .pill{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.1);color:#333}.score-grid{display:grid;grid-template-columns:1fr 220px;gap:14px}.score-box{background:white;border-radius:20px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.28);min-height:360px;display:flex;align-items:center;justify-content:center;color:#6b7280}.score-box img{display:block;max-width:100%;width:100%;height:auto}.score-empty{text-align:center;color:#7b8190;font-weight:700}.side-stack{display:grid;gap:10px;align-content:start}.info{background:#12192d;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:12px}.info-label{font-size:11px;color:var(--muted)}.info p{font-size:13px;line-height:1.55;color:#d7dced;margin-top:6px}.pager{display:flex;gap:8px}.pager button{flex:1}.db-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-end;margin-bottom:14px}.db-head h3{font-size:27px}.searchbar{display:flex;gap:8px;flex-wrap:wrap}.searchbar input,.searchbar select{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:12px;color:white;padding:10px 12px;font-size:13px;outline:none}.searchbar input{width:220px}.searchbar option{color:#111}.song-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}.song-card{border:1px solid var(--line);background:rgba(255,255,255,.05);border-radius:18px;padding:13px;cursor:pointer;transition:.15s}.song-card:hover{border-color:var(--line2);background:rgba(255,255,255,.08)}.song-card h4{font-size:16px;letter-spacing:-.02em}.song-card .meta{margin-top:5px}.song-card .memo{font-size:12px;color:var(--muted);line-height:1.5;margin-top:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.btn-row{display:flex;gap:7px;margin-top:12px;flex-wrap:wrap}.history-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:11px}.history-card{border:1px solid var(--line);background:#12192d;border-radius:18px;padding:14px}.history-date{font-size:11px;color:var(--muted)}.history-title{font-size:17px;font-weight:800;margin-top:3px}.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);background:#fff;color:#050816;padding:10px 16px;border-radius:999px;font-size:13px;font-weight:700;opacity:0;transition:.2s;z-index:1000}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.viewer{display:none;position:fixed;inset:0;background:rgba(2,5,14,.94);z-index:500;flex-direction:column}.viewer.show{display:flex}.viewer-top{height:54px;display:flex;justify-content:space-between;align-items:center;padding:0 16px;border-bottom:1px solid rgba(255,255,255,.1)}.viewer-body{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:10px;align-items:center}.viewer-body img{max-width:100%;border-radius:12px}.close{border:0;background:rgba(255,255,255,.1);color:white;border-radius:999px;width:34px;height:34px;cursor:pointer}.loading{color:var(--muted);padding:20px;text-align:center}.tools{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}.tool{display:block;border:1px solid var(--line);background:rgba(255,255,255,.05);border-radius:18px;padding:15px;color:white;text-decoration:none}.tool b{display:block;margin-top:7px}.tool span{display:block;color:var(--muted);font-size:12px;line-height:1.45;margin-top:5px}
+.wrap{position:relative;max-width:1280px;margin:0 auto;padding:22px 22px 60px}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:22px}.eyebrow{display:inline-flex;gap:7px;align-items:center;padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.05);font-size:12px;color:#d3d8e8}.top h1{font-size:42px;line-height:1.12;margin-top:14px;letter-spacing:-.04em}.top p{font-size:14px;color:var(--muted);margin-top:10px}.nav{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.nav button,.nav a{border:1px solid var(--line);background:rgba(255,255,255,.05);color:white;text-decoration:none;border-radius:14px;padding:10px 14px;font-size:13px;cursor:pointer;transition:.15s}.nav .on,.nav button:hover,.nav a:hover{background:white;color:#070a12;border-color:white}.section{display:none}.section.show{display:block}.hero{position:relative;border:1px solid var(--line);border-radius:30px;background:linear-gradient(135deg,#151b30,#0d1325);padding:26px;margin-bottom:18px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.25)}.hero:after{content:'';position:absolute;right:-60px;top:-80px;width:260px;height:260px;border-radius:50%;background:rgba(129,140,248,.13);filter:blur(48px)}.hero-in{position:relative;display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:center}.hero h2{font-size:34px;line-height:1.18;letter-spacing:-.035em;margin-top:12px}.hero p{color:var(--muted);font-size:14px;line-height:1.7;margin-top:14px}.actions{display:grid;gap:10px}.action{border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.055);color:white;text-align:left;padding:15px;cursor:pointer;transition:.15s}.action:hover{border-color:var(--line2);background:rgba(255,255,255,.09);transform:translateY(-1px)}.action.primary{background:white;color:#070a12;border-color:white;box-shadow:0 14px 40px rgba(255,255,255,.08)}.action b{display:block;font-size:17px}.action span{display:block;font-size:12px;color:inherit;opacity:.66;margin-top:5px}.grid{display:grid;grid-template-columns:.95fr 1.05fr;gap:16px}.card{border:1px solid var(--line);border-radius:26px;background:rgba(255,255,255,.05);backdrop-filter:blur(16px);padding:18px}.card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:14px}.card h3{font-size:23px;letter-spacing:-.03em}.card small{display:block;color:var(--muted);font-size:12px;margin-top:4px}.mini-btn{border:1px solid var(--line);background:rgba(255,255,255,.05);color:white;border-radius:11px;padding:8px 10px;font-size:12px;cursor:pointer;text-decoration:none;display:inline-flex;gap:5px;align-items:center}.mini-btn.white{background:white;color:#050816;border-color:white;font-weight:700}.mini-btn:hover{background:rgba(255,255,255,.1)}.mini-btn.white:hover{background:white}.flow-list{display:grid;gap:9px}.flow-item{width:100%;border:1px solid rgba(255,255,255,.07);background:#12192d;color:white;border-radius:16px;padding:12px;text-align:left;cursor:pointer;transition:.15s}.flow-item.on{background:white;color:#050816;border-color:white}.flow-row{display:flex;align-items:center;justify-content:space-between;gap:10px}.flow-left{display:flex;gap:10px;align-items:center;min-width:0}.num{width:34px;height:34px;border-radius:12px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0}.flow-item.on .num{background:rgba(0,0,0,.08)}.song-title{font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.meta{font-size:11px;color:var(--muted);margin-top:2px}.flow-item.on .meta{color:#656b78}.pill-row{display:flex;gap:6px;flex-wrap:wrap}.pill{font-size:10.5px;border:1px solid var(--line);background:rgba(255,255,255,.05);border-radius:9px;padding:4px 7px;color:#dbe1ee}.flow-item.on .pill{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.1);color:#333}.score-grid{display:grid;grid-template-columns:1fr 220px;gap:14px}.score-box{background:white;border-radius:20px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.28);min-height:360px;display:flex;align-items:center;justify-content:center;color:#6b7280}.score-box img{display:block;max-width:100%;width:100%;height:auto}.score-empty{text-align:center;color:#7b8190;font-weight:700}.side-stack{display:grid;gap:10px;align-content:start}.info{background:#12192d;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:12px}.info-label{font-size:11px;color:var(--muted)}.info p{font-size:13px;line-height:1.55;color:#d7dced;margin-top:6px}.pager{display:flex;gap:8px}.pager button{flex:1}.db-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-end;margin-bottom:14px}.db-head h3{font-size:27px}.searchbar{display:flex;gap:8px;flex-wrap:wrap}.searchbar input,.searchbar select{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:12px;color:white;padding:10px 12px;font-size:13px;outline:none}.searchbar input{width:220px}.searchbar option{color:#111}.song-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}.song-card{border:1px solid var(--line);background:rgba(255,255,255,.05);border-radius:18px;padding:13px;cursor:pointer;transition:.15s}.song-card:hover{border-color:var(--line2);background:rgba(255,255,255,.08)}.song-card h4{font-size:16px;letter-spacing:-.02em}.song-card .meta{margin-top:5px}.song-card .memo{font-size:12px;color:var(--muted);line-height:1.5;margin-top:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.btn-row{display:flex;gap:7px;margin-top:12px;flex-wrap:wrap}.history-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:11px}.history-card{border:1px solid var(--line);background:#12192d;border-radius:18px;padding:14px}.history-date{font-size:11px;color:var(--muted)}.history-title{font-size:17px;font-weight:800;margin-top:3px}.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);background:#fff;color:#050816;padding:10px 16px;border-radius:999px;font-size:13px;font-weight:700;opacity:0;transition:.2s;z-index:1000}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.viewer{display:none;position:fixed;inset:0;background:rgba(2,5,14,.94);z-index:500;flex-direction:column}.viewer.show{display:flex}.viewer-top{height:54px;display:flex;justify-content:space-between;align-items:center;padding:0 16px;border-bottom:1px solid rgba(255,255,255,.1)}.viewer-body{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:10px;align-items:center}.viewer-body img{max-width:100%;border-radius:12px}.close{border:0;background:rgba(255,255,255,.1);color:white;border-radius:999px;width:34px;height:34px;cursor:pointer}.loading{color:var(--muted);padding:20px;text-align:center}.tools{display:grid;grid-template-columns:1fr;gap:10px}.mobile-tool-section{border:1px solid var(--line);background:rgba(255,255,255,.035);border-radius:18px;padding:10px}.mobile-tool-title{font-size:12px;font-weight:900;color:#e6ebff;margin:0 0 8px;display:flex;align-items:center;gap:6px}.mobile-tool-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.tool{display:grid;grid-template-columns:30px 1fr;align-items:center;gap:8px;border:1px solid var(--line);background:rgba(255,255,255,.05);border-radius:14px;padding:10px;color:white;text-decoration:none;text-align:left;min-height:54px}.tool>span:first-child{font-size:18px;width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.08);margin:0}.tool b{display:block;margin:0;font-size:13px;line-height:1.15}.tool span:last-child{display:block;color:var(--muted);font-size:10.5px;line-height:1.32;margin-top:3px}.mobile-tools-advanced{border:1px dashed var(--line);border-radius:18px;padding:10px;background:rgba(255,255,255,.025)}.mobile-tools-advanced summary{cursor:pointer;font-size:12px;font-weight:900;color:#e6ebff;list-style:none}.mobile-tools-advanced summary::-webkit-details-marker{display:none}.mobile-tools-advanced summary:after{content:"펼치기";float:right;color:var(--muted);font-size:11px}.mobile-tools-advanced[open] summary:after{content:"접기"}
 .viewer.performance .viewer-top{height:auto;min-height:58px;padding:8px 12px;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;background:rgba(11,16,32,.96);backdrop-filter:blur(14px)}
 .viewer-title-wrap{min-width:0}.viewer-title-main{font-weight:800;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.viewer-title-sub{font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.viewer-mini{display:flex;gap:6px;overflow-x:auto;padding:7px 12px;border-bottom:1px solid rgba(255,255,255,.1);background:rgba(11,16,32,.9);scrollbar-width:none}.viewer-mini::-webkit-scrollbar{display:none}.mini-song{border:1px solid var(--line);background:rgba(255,255,255,.05);color:white;border-radius:999px;padding:7px 10px;font-size:11px;white-space:nowrap;cursor:pointer}.mini-song.on{background:white;color:#050816;border-color:white;font-weight:800}.viewer.performance .viewer-body{position:relative;padding:10px;touch-action:pan-y;background:#040814}.viewer.performance .viewer-body img{max-height:calc(100vh - 145px);max-width:100%;width:auto;border-radius:10px;box-shadow:0 20px 70px rgba(0,0,0,.45)}.viewer-empty-big{height:calc(100vh - 145px);width:min(760px,100%);display:flex;align-items:center;justify-content:center;flex-direction:column;color:#8a91a5;border:1px dashed rgba(255,255,255,.18);border-radius:20px;background:rgba(255,255,255,.03);text-align:center;font-weight:800}.viewer-empty-big small{font-size:12px;color:var(--muted);font-weight:500;margin-top:8px}.viewer-nav{position:absolute;left:10px;right:10px;bottom:12px;display:flex;justify-content:space-between;gap:10px;pointer-events:none}.viewer-nav button{pointer-events:auto;border:1px solid rgba(255,255,255,.16);background:rgba(11,16,32,.76);backdrop-filter:blur(14px);color:white;border-radius:999px;padding:9px 12px;font-size:12px;max-width:42%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.viewer-nav button:disabled{opacity:.35}.score-box{height:360px}.score-box img{height:100%;object-fit:contain;background:#fff}.score-empty small{display:block;font-size:12px;color:#9ca3af;margin-top:6px}
 @media(max-width:980px){.top{display:block}.nav{justify-content:flex-start;margin-top:16px}.hero-in,.grid,.score-grid{grid-template-columns:1fr}.song-grid,.history-grid,.tools{grid-template-columns:repeat(2,1fr)}.hero h2{font-size:30px}.top h1{font-size:38px}}@media(max-width:640px){.wrap{padding:16px 14px 42px}.song-grid,.history-grid,.tools{grid-template-columns:1fr}.searchbar input{width:100%}.db-head{display:block}.searchbar{margin-top:10px}.hero{padding:18px;border-radius:24px}.card{padding:14px;border-radius:22px}.score-box{min-height:280px}.top h1{font-size:32px}.hero h2{font-size:25px}.nav button,.nav a{padding:9px 11px;font-size:12px}}
@@ -288,6 +288,30 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
   border-radius:12px;
   background:#fff;
 }
+#song-modal .edit-score-panel .score-preview-box.expanded{
+  min-height:min(58vh,560px);
+  max-height:min(62vh,620px);
+  align-items:flex-start;
+}
+#song-modal .edit-score-panel .score-preview-box.expanded img{
+  max-height:min(58vh,580px);
+}
+.mobile-inline-score-preview{
+  border:1px solid rgba(148,163,184,.22);
+  background:rgba(2,6,23,.38);
+  border-radius:16px;
+  padding:10px;
+  margin:10px 0;
+}
+.mobile-inline-score-preview .inline-score-head{
+  display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px;color:#cbd5e1;font-size:12px;font-weight:800;
+}
+.mobile-inline-score-preview .inline-score-body{
+  max-height:min(58vh,560px);overflow:auto;display:flex;justify-content:center;align-items:flex-start;background:white;border-radius:12px;
+}
+.mobile-inline-score-preview img{
+  width:100%;max-width:760px;height:auto;display:block;object-fit:contain;
+}
 #song-modal .edit-score-panel .score-empty{
   color:#94a3b8;
   text-align:center;
@@ -303,9 +327,9 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
 #song-modal .edit-video-frame iframe{width:100%;height:100%;border:0;display:block}
 #song-modal .tempo-range-mobile{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 #song-modal .memo-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0 8px}
-#song-modal .memo-history-box{display:none;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.18);border-radius:14px;padding:8px;max-height:160px;overflow:auto;margin-bottom:8px}
-#song-modal .memo-history-item{display:block;width:100%;text-align:left;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:white;border-radius:10px;padding:8px;margin-bottom:6px;font-size:12px;line-height:1.45;cursor:pointer}
-#song-modal .memo-history-item small{display:block;color:#94a3b8;margin-bottom:3px}
+#song-modal .memo-history-box,#conti-song-modal .memo-history-box{display:none;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.18);border-radius:14px;padding:8px;max-height:130px;overflow:auto;margin-bottom:6px}
+#song-modal .memo-history-item,#conti-song-modal .memo-history-item{display:block;width:100%;text-align:left;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:white;border-radius:10px;padding:8px;margin-bottom:6px;font-size:12px;line-height:1.45;cursor:pointer}
+#song-modal .memo-history-item small,#conti-song-modal .memo-history-item small{display:block;color:#94a3b8;margin-bottom:3px}
 
 @media(min-width:900px){
   #song-modal .song-form-left{grid-column:span 1;}
@@ -605,6 +629,221 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
   align-items: flex-start !important;
 }
 
+
+
+
+
+/* phase43: conti edit score preview stays inside edit modal */
+#conti-song-modal .sheet{max-width:min(1180px,96vw)!important;}
+#conti-song-modal .conti-score-upload-box .helper-box,
+#conti-song-modal .conti-edit-note-box{display:none!important;}
+.conti-edit-score-preview{margin-top:10px;border:1px solid rgba(255,255,255,.14);border-radius:16px;background:#fff;min-height:220px;max-height:42vh;overflow:auto;color:#64748b;display:flex;align-items:flex-start;justify-content:center;scrollbar-width:thin;}
+.conti-edit-score-preview .score-empty{min-height:220px;width:100%;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:800;color:#6b7280;padding:18px;}
+.conti-edit-score-preview img{display:block;width:100%;height:auto;max-width:none;border-radius:0;background:#fff;}
+.conti-edit-score-toolbar{margin-top:8px;display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;}
+.conti-edit-score-toolbar .page-label{font-size:12px;color:var(--muted);}
+@media(max-width:760px){#conti-song-modal .sheet{max-width:96vw!important}.conti-edit-score-preview{max-height:36vh;min-height:180px}.conti-edit-score-preview .score-empty{min-height:180px}}
+
+/* PHASE45: conti edit compact one-page layout - score scroll only */
+#conti-song-modal{align-items:center!important;justify-content:center!important;padding:10px!important;}
+#conti-song-modal .conti-compact-sheet{
+  width:min(1180px,calc(100vw - 16px))!important;
+  height:min(760px,calc(100vh - 16px))!important;
+  max-height:calc(100vh - 16px)!important;
+  overflow:hidden!important;
+  display:flex!important;
+  flex-direction:column!important;
+  padding:12px!important;
+  border-radius:24px!important;
+}
+#conti-song-modal .conti-compact-head{
+  position:static!important;
+  flex:0 0 auto!important;
+  margin-bottom:8px!important;
+  padding-bottom:6px!important;
+  background:transparent!important;
+}
+#conti-song-modal .conti-compact-head h3{font-size:19px!important;line-height:1.2!important;}
+#conti-song-modal .conti-compact-body{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  display:grid!important;
+  grid-template-columns:minmax(430px,1.06fr) minmax(360px,.94fr)!important;
+  gap:12px!important;
+  overflow:hidden!important;
+}
+#conti-song-modal .conti-compact-score,
+#conti-song-modal .conti-compact-form{
+  min-height:0!important;
+  overflow:hidden!important;
+}
+#conti-song-modal .conti-compact-score{display:flex!important;flex-direction:column!important;}
+#conti-song-modal .conti-panel-label{font-size:11px;color:var(--muted);font-weight:800;margin:0 0 6px;}
+#conti-song-modal .conti-edit-score-preview{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  height:auto!important;
+  margin-top:0!important;
+  border-radius:16px!important;
+  overflow:auto!important;
+}
+#conti-song-modal .conti-edit-score-preview img{width:100%!important;height:auto!important;}
+#conti-song-modal .conti-edit-score-toolbar{flex:0 0 auto!important;margin-top:7px!important;}
+#conti-song-modal .conti-page-buttons{display:flex;gap:8px;flex-wrap:wrap;}
+#conti-song-modal .conti-compact-form{display:flex!important;flex-direction:column!important;gap:9px!important;}
+#conti-song-modal .conti-two-col{display:grid!important;grid-template-columns:1fr 1fr!important;gap:9px!important;}
+#conti-song-modal .field{gap:4px!important;}
+#conti-song-modal .field label{font-size:11px!important;}
+#conti-song-modal .field input,
+#conti-song-modal .field textarea{padding:9px 11px!important;border-radius:12px!important;font-size:14px!important;}
+#conti-song-modal .conti-memo-field{flex:1 1 auto!important;min-height:0!important;}
+#conti-song-modal .conti-memo-field textarea{height:100%!important;min-height:82px!important;resize:none!important;}
+#conti-song-modal .conti-upload-line{display:grid!important;grid-template-columns:1fr auto!important;gap:8px!important;align-items:center!important;}
+#conti-song-modal .conti-upload-line input{min-width:0;width:100%;font-size:12px;color:#dbeafe;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:12px;padding:8px;}
+#conti-song-modal .conti-score-list-hidden{display:none!important;}
+#conti-song-modal .conti-compact-actions{
+  position:static!important;
+  flex:0 0 auto!important;
+  margin-top:8px!important;
+  padding-top:8px!important;
+  background:transparent!important;
+}
+#conti-song-modal .mini-btn{padding:8px 13px!important;border-radius:12px!important;}
+@media(max-width:840px){
+  #conti-song-modal .conti-compact-sheet{height:calc(100vh - 12px)!important;overflow:auto!important;}
+  #conti-song-modal .conti-compact-body{grid-template-columns:1fr!important;overflow:visible!important;}
+  #conti-song-modal .conti-edit-score-preview{height:46vh!important;flex:none!important;}
+  #conti-song-modal .conti-compact-form{overflow:visible!important;}
+}
+
+
+
+/* PHASE47: 찬양곡 수정 모달 한 화면 고정 compact layout */
+#song-modal{
+  padding:6px!important;
+  align-items:center!important;
+  justify-content:center!important;
+  overflow:hidden!important;
+}
+#song-modal .sheet{
+  width:min(1180px,calc(100vw - 12px))!important;
+  height:calc(100dvh - 12px)!important;
+  max-height:calc(100dvh - 12px)!important;
+  overflow:hidden!important;
+  box-sizing:border-box!important;
+  padding:12px 14px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  border-radius:20px!important;
+}
+#song-modal .sheet-head{
+  flex:0 0 auto!important;
+  margin-bottom:8px!important;
+  padding-bottom:6px!important;
+}
+#song-modal .sheet-head h3{font-size:20px!important;line-height:1.1!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+#song-modal .form-grid{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  overflow:hidden!important;
+  display:grid!important;
+  grid-template-columns:minmax(360px,.82fr) minmax(420px,1.18fr)!important;
+  grid-template-areas:
+    "name score"
+    "meta score"
+    "bpm score"
+    "url score"
+    "video score"
+    "tags score"
+    "memo score"!important;
+  grid-auto-rows:min-content!important;
+  column-gap:12px!important;
+  row-gap:7px!important;
+  align-content:start!important;
+}
+#song-modal .field{gap:3px!important;min-width:0!important;}
+#song-modal .field label{font-size:10.5px!important;line-height:1.15!important;}
+#song-modal .field input,
+#song-modal .field select,
+#song-modal .field textarea{
+  padding:8px 10px!important;
+  min-height:34px!important;
+  border-radius:10px!important;
+  font-size:13px!important;
+  box-sizing:border-box!important;
+}
+#song-modal .song-name-field{grid-area:name!important;}
+#song-modal .song-status-field,
+#song-modal .song-count-field,
+#song-modal .song-key-field{grid-area:meta!important;}
+#song-modal .song-bpm-min-field,
+#song-modal .song-bpm-max-field{grid-area:bpm!important;}
+#song-modal .song-url-field{grid-area:url!important;}
+#song-modal .song-video-field{grid-area:video!important;}
+#song-modal .song-tags-field{grid-area:tags!important;}
+#song-modal .song-memo-field{grid-area:memo!important;min-height:0!important;}
+#song-modal .song-edit-score-wrap{grid-area:score!important;min-height:0!important;height:100%!important;}
+#song-modal .song-status-field,
+#song-modal .song-count-field,
+#song-modal .song-key-field,
+#song-modal .song-bpm-min-field,
+#song-modal .song-bpm-max-field{display:block!important;}
+#song-modal .form-grid > .song-status-field,
+#song-modal .form-grid > .song-count-field,
+#song-modal .form-grid > .song-key-field{grid-row:2!important;}
+#song-modal .song-status-field{grid-column:1!important;width:33%!important;justify-self:start!important;}
+#song-modal .song-count-field{grid-column:1!important;width:32%!important;justify-self:center!important;}
+#song-modal .song-key-field{grid-column:1!important;width:32%!important;justify-self:end!important;}
+#song-modal .song-bpm-min-field{grid-column:1!important;width:49%!important;justify-self:start!important;}
+#song-modal .song-bpm-max-field{grid-column:1!important;width:49%!important;justify-self:end!important;}
+#song-modal .edit-video-panel{padding:8px!important;margin-top:0!important;border-radius:12px!important;}
+#song-modal .edit-video-frame{aspect-ratio:16/6.5!important;max-height:138px!important;border-radius:10px!important;}
+#song-modal .edit-video-panel .edit-score-toolbar{margin:5px 0 0!important;}
+#song-modal .memo-tools{margin:0 0 4px!important;}
+#song-modal .memo-history-box{max-height:82px!important;margin-bottom:4px!important;}
+#song-modal #m-song-memo{min-height:76px!important;max-height:100px!important;resize:none!important;}
+#song-modal .edit-score-panel{
+  height:100%!important;
+  min-height:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  padding:8px!important;
+  border-radius:14px!important;
+  box-sizing:border-box!important;
+}
+#song-modal .edit-score-guide{display:none!important;}
+#song-modal .edit-score-panel .score-preview-box{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow:auto!important;
+  margin:4px 0 7px!important;
+  padding:7px!important;
+  align-items:flex-start!important;
+  border-radius:12px!important;
+}
+#song-modal .edit-score-panel .score-preview-box img{
+  width:100%!important;
+  max-width:none!important;
+  max-height:none!important;
+  height:auto!important;
+  object-fit:initial!important;
+}
+#song-modal .edit-score-toolbar{margin:5px 0!important;gap:6px!important;}
+#song-modal .edit-score-file{font-size:11px!important;line-height:1.25!important;max-height:30px!important;overflow:hidden!important;}
+#song-modal #m-song-score-files{font-size:12px!important;max-height:34px!important;}
+#song-modal .sheet-actions{
+  flex:0 0 auto!important;
+  margin-top:8px!important;
+  padding-top:8px!important;
+}
+@media(max-width:860px){
+  #song-modal .sheet{overflow:auto!important;height:auto!important;max-height:96dvh!important;}
+  #song-modal .form-grid{grid-template-columns:1fr!important;grid-template-areas:"name" "meta" "bpm" "url" "video" "tags" "memo" "score"!important;overflow:visible!important;}
+  #song-modal .song-edit-score-wrap{height:48vh!important;min-height:300px!important;}
+}
+
 </style>
 </head>
 <body>
@@ -685,22 +924,45 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
   </section>
 
   <section id="sec-tools" class="section">
-    <div class="db-head"><div><h3>관리도구</h3><small>모바일에서 바로 추가·수정·삭제할 수 있는 관리 화면</small></div></div>
+    <div class="db-head"><div><h3>관리도구</h3><small>자주 쓰는 기능은 위에, 초기정리/고급 기능은 접어두었습니다.</small></div></div>
     <div class="tools">
-      <button class="tool" onclick="openSongEdit()"><span>🎵</span><b>새 찬양곡 추가</b><span>곡명, Key, BPM, 영상 링크, 태그 입력</span></button>
-      <button class="tool" onclick="showSection('songs',document.querySelectorAll('.nav button')[1])"><span>🗂</span><b>찬양곡 수정</b><span>찬양곡 카드에서 바로 수정/삭제</span></button>
-      <button class="tool" onclick="openMobileHistory()"><span>📖</span><b>콘티 기록 추가</b><span>날짜와 콘티 곡 순서를 모바일에서 입력</span></button>
-      <button class="tool" onclick="showSection('history',document.querySelectorAll('.nav button')[2])"><span>🕊</span><b>콘티 기록 수정</b><span>기존 콘티를 열어 편집</span></button>
-      <button class="tool" onclick="openFullScoreManager()"><span>🖼</span><b>한눈보기 관리</b><span>이번 주 콘티용 JPG/PNG 업로드·보기·삭제</span></button>
-      <button class="tool" onclick="openSongScoreManager()"><span>🎼</span><b>곡별 악보 관리</b><span>곡 선택 후 JPG/PNG 업로드·보기·삭제</span></button>
-      <button class="tool" onclick="openMobileToolFrame('score-version-manager.html','악보 버전 관리')"><span>🎚️</span><b>악보 버전 관리</b><span>다중 Key·대표악보·페이지 관리</span></button>
-      <button class="tool" onclick="openMobileToolFrame('score-audit.html','악보 연결 점검')"><span>🧹</span><b>악보 연결 점검</b><span>한 곡에 여러 악보가 붙은 경우만 확인·삭제</span></button>
-      <button class="tool" onclick="openMobileToolFrame('score-reorganizer.html','악보 재배치 / DB 정리')"><span>🧬</span><b>악보 재배치</b><span>전주1·전주2·Key·곡 이동을 DB 기준으로 정리</span></button>
-      <button class="tool" onclick="openMobileToolFrame('performance-cache-cleaner.html','연주/공유 캐시 정리')"><span>🧽</span><b>연주/공유 캐시 정리</b><span>유령 곡명·중복 배열·임시 연주값 정리</span></button>
-      <button class="tool" onclick="openFilenameHelper()"><span>🛠</span><b>파일명 생성 도우미</b><span>일괄등록용 파일명 규칙·복사·다중 생성</span></button>
-      <button class="tool" onclick="openAiSettings()"><span>✨</span><b>AI 콘티 추천 설정</b><span>OpenRouter/Gemini/OpenAI/Grok API 키 저장</span></button>
-      <button class="tool" onclick="openMobileToolFrame('score-upload.html','악보 일괄등록기')"><span>📦</span><b>악보 일괄등록기</b><span>기존 일괄등록기를 모바일 화면 안에서 열기</span></button>
-      <button class="tool" onclick="openMobileToolFrame('song-editor.html','순차 편집기')"><span>✏️</span><b>순차 편집기</b><span>기존 순차편집기를 모바일 화면 안에서 열기</span></button>
+      <div class="mobile-tool-section">
+        <div class="mobile-tool-title">🎼 자주 쓰는 악보 정비</div>
+        <div class="mobile-tool-grid">
+          <button class="tool" onclick="openMobileToolFrame('score-version-manager.html','악보 버전 관리')"><span>🎚️</span><b>악보 버전 관리</b><span>기본·전주1·전주2</span></button>
+          <button class="tool" onclick="openMobileToolFrame('score-reorganizer.html','악보 재배치 / DB 정리')"><span>🧬</span><b>악보 재배치</b><span>곡·Key·버전 연결</span></button>
+          <button class="tool" onclick="openMobileToolFrame('score-audit.html','악보 연결 점검')"><span>🧹</span><b>악보 연결 점검</b><span>깨진 연결·중복 삭제</span></button>
+          <button class="tool" onclick="openMobileToolFrame('score-upload.html','악보 일괄등록기')"><span>📦</span><b>악보 일괄등록</b><span>새 파일 안전 등록</span></button>
+        </div>
+      </div>
+
+      <div class="mobile-tool-section">
+        <div class="mobile-tool-title">🎵 곡/콘티 관리</div>
+        <div class="mobile-tool-grid">
+          <button class="tool" onclick="openSongEdit()"><span>🎵</span><b>새 찬양곡 추가</b><span>곡명, Key, BPM</span></button>
+          <button class="tool" onclick="showSection('songs',document.querySelectorAll('.nav button')[1])"><span>🗂</span><b>찬양곡 수정</b><span>카드에서 바로 수정</span></button>
+          <button class="tool" onclick="openMobileHistory()"><span>📖</span><b>콘티 기록 추가</b><span>날짜와 곡 순서 입력</span></button>
+          <button class="tool" onclick="showSection('history',document.querySelectorAll('.nav button')[2])"><span>🕊</span><b>콘티 기록 수정</b><span>기존 콘티 편집</span></button>
+        </div>
+      </div>
+
+      <div class="mobile-tool-section">
+        <div class="mobile-tool-title">🧽 연주/화면 정리</div>
+        <div class="mobile-tool-grid">
+          <button class="tool" onclick="openMobileToolFrame('performance-cache-cleaner.html','연주/공유 캐시 정리')"><span>🧽</span><b>유령 항목 정리</b><span>찌꺼기·중복 캐시</span></button>
+          <button class="tool" onclick="openFullScoreManager()"><span>🖼</span><b>한눈보기 관리</b><span>콘티 JPG/PNG</span></button>
+          <button class="tool" onclick="openSongScoreManager()"><span>🎼</span><b>곡별 악보 관리</b><span>곡 선택 후 업로드</span></button>
+          <button class="tool" onclick="openMobileToolFrame('song-editor.html','순차 편집기')"><span>✏️</span><b>순차 편집기</b><span>기존 편집기 인뷰</span></button>
+        </div>
+      </div>
+
+      <details class="mobile-tools-advanced">
+        <summary>고급 / 초기정리 / 설정</summary>
+        <div class="mobile-tool-grid" style="margin-top:10px">
+          <button class="tool" onclick="openFilenameHelper()"><span>🛠</span><b>파일명 생성 도우미</b><span>규칙·복사·다중 생성</span></button>
+          <button class="tool" onclick="openAiSettings()"><span>✨</span><b>AI 콘티 추천 설정</b><span>API 키 저장</span></button>
+        </div>
+      </details>
     </div>
   </section>
 </div>
@@ -710,22 +972,22 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
   <div class="sheet">
     <div class="sheet-head"><h3 id="song-modal-title">찬양곡 추가</h3><button class="close" onclick="closeSongEdit()">✕</button></div>
     <div class="form-grid">
-      <div class="field song-form-left"><label>곡명</label><input id="m-song-name" placeholder="예: 예수 열방의 소망"></div>
-      <div class="field song-form-right"><label>상태</label><select id="m-song-status"><option value="used">사용 이력 있음</option><option value="ready">악보 완료</option><option value="plan">작업 예정</option></select></div>
-      <div class="field"><label>사용 횟수</label><input id="m-song-count" type="number" min="0" value="1"></div>
-      <div class="field"><label>Key</label><input id="m-song-key" placeholder="G"></div>
-      <div class="field"><label>템포 최소 BPM</label><input id="m-song-bpm-min" type="number" min="0" max="300" value="0" placeholder="예: 68"></div>
-      <div class="field"><label>템포 최대 BPM</label><input id="m-song-bpm-max" type="number" min="0" max="300" value="0" placeholder="예: 72"></div>
-      <div class="field full"><label>유튜브 링크</label><input id="m-song-url" placeholder="https://youtube.com/..." oninput="renderMobileEditYoutubePreview()"></div>
-      <div class="field full">
+      <div class="field song-name-field song-form-left"><label>곡명</label><input id="m-song-name" placeholder="예: 예수 열방의 소망"></div>
+      <div class="field song-status-field song-form-right"><label>상태</label><select id="m-song-status"><option value="used">사용 이력 있음</option><option value="ready">악보 완료</option><option value="plan">작업 예정</option></select></div>
+      <div class="field song-count-field"><label>사용 횟수</label><input id="m-song-count" type="number" min="0" value="1"></div>
+      <div class="field song-key-field"><label>Key</label><input id="m-song-key" placeholder="G"></div>
+      <div class="field song-bpm-min-field"><label>템포 최소 BPM</label><input id="m-song-bpm-min" type="number" min="0" max="300" value="0" placeholder="예: 68"></div>
+      <div class="field song-bpm-max-field"><label>템포 최대 BPM</label><input id="m-song-bpm-max" type="number" min="0" max="300" value="0" placeholder="예: 72"></div>
+      <div class="field song-url-field"><label>유튜브 링크</label><input id="m-song-url" placeholder="https://youtube.com/..." oninput="renderMobileEditYoutubePreview()"></div>
+      <div class="field song-video-field">
         <label>유튜브 미리보기</label>
         <div class="edit-video-panel">
           <div class="edit-video-frame" id="m-song-youtube-preview">유튜브 링크를 입력하면 이곳에서 바로 확인합니다.</div>
           <div class="edit-score-toolbar"><span class="page-label">watch, youtu.be, shorts, live, embed 주소 지원</span><button type="button" class="mini-btn" onclick="renderMobileEditYoutubePreview(true)">영상 새로고침</button></div>
         </div>
       </div>
-      <div class="field"><label>태그 / 절기</label><input id="m-song-tags" placeholder="쉼표로 구분: 부활절, 묵상, 선포"></div>
-      <div class="field"><label>메모</label><div class="memo-tools"><button type="button" class="mini-btn" onclick="showMobileMemoHistory()">이전 메모 검색</button></div><div id="m-song-memo-history" class="memo-history-box"></div><textarea id="m-song-memo" placeholder="콘티 흐름, 연결 팁, 연주 메모"></textarea></div>
+      <div class="field song-tags-field"><label>태그 / 절기</label><input id="m-song-tags" placeholder="쉼표로 구분: 부활절, 묵상, 선포"></div>
+      <div class="field song-memo-field"><label>메모</label><div class="memo-tools"><button type="button" class="mini-btn" onclick="showMobileMemoHistory()">이전 메모 검색</button></div><div id="m-song-memo-history" class="memo-history-box"></div><textarea id="m-song-memo" placeholder="콘티 흐름, 연결 팁, 연주 메모"></textarea></div>
       <div class="field full song-edit-score-wrap">
         <label>악보 관리</label>
         <div class="edit-score-panel">
@@ -775,25 +1037,42 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
 
 
 <div class="modal" id="conti-song-modal">
-  <div class="sheet">
-    <div class="sheet-head"><h3 id="conti-song-modal-title">콘티 곡 설정</h3><button class="close" onclick="closeContiSongEdit()">✕</button></div>
-    <div class="form-grid">
-      <div class="field full"><label>곡명</label><input id="m-conti-name" readonly></div>
-      <div class="field"><label>이번 콘티 Key</label><input id="m-conti-key" placeholder="예: G, A, Bb"></div>
-      <div class="field"><label>이번 콘티 BPM</label><input id="m-conti-bpm" type="number" min="0" placeholder="예: 72"></div>
-      <div class="field full"><label>악보 버전 / 코드 메모</label><input id="m-conti-score-version" placeholder="예: G 코드버전, A 코드 2페이지, 인트로 포함"></div>
-      <div class="field full"><label>이번 콘티 영상 링크</label><input id="m-conti-url" placeholder="곡별 영상 링크를 이번 콘티에서만 바꿀 때 입력"></div>
-      <div class="field full"><label>이번 콘티 메모</label><textarea id="m-conti-memo" placeholder="예: 2절 후렴 반복, 브릿지 생략, 다음 곡으로 바로 연결"></textarea></div>
-      <div class="field full conti-score-upload-box">
-        <label>현재 곡 악보 업로드</label>
-        <div class="helper-box"><code>현재 선택된 곡의 악보 저장소에 JPG/PNG를 추가합니다. 콘티 설정과 달리 곡별 악보에 실제로 업로드됩니다.</code></div>
-        <input id="m-conti-score-files" type="file" accept="image/png,image/jpeg,image/jpg" multiple>
-        <div class="selected-list" id="m-conti-score-list"><div class="selected-item"><span>곡을 선택하면 악보 목록이 표시됩니다.</span></div></div>
-        <div class="btn-row"><button class="mini-btn" onclick="openContiSongScoreViewer()">악보 보기</button><button class="mini-btn white" onclick="uploadContiSongScores()">악보 업로드</button></div>
-      </div>
-      <div class="field full"><div class="helper-box"><code>Key/BPM/영상/메모 설정은 현재 콘티 안에서만 덮어씁니다. 악보 업로드는 곡별 악보에 저장됩니다.</code></div></div>
+  <div class="sheet conti-compact-sheet">
+    <div class="sheet-head conti-compact-head"><h3 id="conti-song-modal-title">콘티 곡 설정</h3><button class="close" onclick="closeContiSongEdit()">✕</button></div>
+
+    <div class="conti-compact-body">
+      <section class="conti-compact-score conti-score-upload-box">
+        <div class="conti-panel-label">현재 곡 악보</div>
+        <div class="conti-edit-score-preview" id="m-conti-score-preview"><div class="score-empty">곡을 선택하면 악보를 이 화면 안에서 확인합니다.</div></div>
+        <div class="conti-edit-score-toolbar">
+          <span class="page-label" id="m-conti-score-page">0 / 0</span>
+          <div class="conti-page-buttons">
+            <button class="mini-btn" type="button" onclick="moveContiEditScore(-1)">이전</button>
+            <button class="mini-btn" type="button" onclick="moveContiEditScore(1)">다음</button>
+            <button class="mini-btn danger" type="button" onclick="deleteCurrentContiEditScore()">현재 악보 삭제</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="conti-compact-form">
+        <div class="field conti-wide"><label>곡명</label><input id="m-conti-name" readonly></div>
+        <div class="conti-two-col">
+          <div class="field"><label>Key</label><input id="m-conti-key" placeholder="예: G, A, Bb"></div>
+          <div class="field"><label>BPM</label><input id="m-conti-bpm" type="number" min="0" placeholder="예: 72"></div>
+        </div>
+        <div class="field conti-wide"><label>악보 버전 / 코드 메모</label><input id="m-conti-score-version" placeholder="예: 기본, G 코드버전, 인트로 포함"></div>
+        <div class="field conti-wide"><label>영상 링크</label><input id="m-conti-url" placeholder="이번 콘티에서만 영상 링크 변경"></div>
+        <div class="field conti-wide conti-memo-field"><label>콘티 메모</label><div class="memo-tools"><button type="button" class="mini-btn" onclick="showContiMemoHistory()">이전 메모 불러오기</button></div><div id="m-conti-memo-history" class="memo-history-box"></div><textarea id="m-conti-memo" placeholder="예: 2절 후렴 반복, 브릿지 생략, 다음 곡으로 바로 연결"></textarea></div>
+
+        <div class="conti-upload-line">
+          <input id="m-conti-score-files" type="file" accept="image/png,image/jpeg,image/jpg" multiple>
+          <button class="mini-btn white" type="button" onclick="uploadContiSongScores()">악보 업로드</button>
+        </div>
+        <div class="selected-list conti-score-list-hidden" id="m-conti-score-list"><div class="selected-item"><span>곡을 선택하면 악보 목록이 표시됩니다.</span></div></div>
+      </section>
     </div>
-    <div class="sheet-actions"><button class="mini-btn danger" onclick="resetContiSongEdit()">콘티 설정 초기화</button><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="mini-btn" onclick="closeContiSongEdit()">취소</button><button class="mini-btn white" onclick="saveContiSongEdit()">저장</button></div></div>
+
+    <div class="sheet-actions conti-compact-actions"><button class="mini-btn danger" onclick="resetContiSongEdit()">초기화</button><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="mini-btn" onclick="closeContiSongEdit()">취소</button><button class="mini-btn white" onclick="saveContiSongEdit()">저장</button></div></div>
   </div>
 </div>
 
@@ -891,7 +1170,7 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
   <div class="sheet tool-frame-sheet">
     <div class="sheet-head"><h3 id="mobile-tool-title">관리 도구</h3><button class="close" onclick="closeMobileToolFrame()">✕</button></div>
     <iframe id="mobile-tool-frame" title="관리 도구" style="width:100%;height:70vh;border:0;border-radius:16px;background:#fff"></iframe>
-    <div class="sheet-actions"><button class="mini-btn" onclick="closeMobileToolFrame()">닫기</button><button class="mini-btn white" onclick="openMobileToolNewTab()">새 탭으로 열기</button></div>
+    <div class="sheet-actions"><button class="mini-btn" onclick="closeMobileToolFrame()">닫기</button><span class="inview-lock-badge">현재 화면 안에서 열림</span></div>
   </div>
 </div>
 
@@ -903,7 +1182,7 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
     <div class="youtube-frame-wrap">
       <iframe id="youtube-player-frame" title="YouTube player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
     </div>
-    <div class="youtube-fallback">영상이 재생되지 않으면 유튜브 정책 또는 임베드 제한일 수 있습니다. <a id="youtube-open-link" href="#" target="_blank" rel="noopener noreferrer">유튜브에서 열기</a></div>
+    <div class="youtube-fallback">영상은 현재 화면 안의 인플레이어에서만 표시합니다. 새창/팝업 이동은 사용하지 않습니다.</div>
   </div>
 </div>
 
@@ -1254,8 +1533,6 @@ function openYoutubePlayer(url,title){
   document.getElementById('youtube-player-title').textContent = title || '유튜브 보기';
   const frame = document.getElementById('youtube-player-frame');
   frame.src = embed;
-  const link = document.getElementById('youtube-open-link');
-  link.href = url;
   document.getElementById('youtube-player-modal').classList.add('show');
 }
 function closeYoutubePlayer(){
@@ -1463,7 +1740,7 @@ async function goViewerSongPage(i,page='first'){
   }else{
     viewerPage=0;
   }
-  renderPerformanceBodyOnly();
+  await renderPerformanceBodyOnly();
 }
 async function viewerNext(){if(activeIdx<contiSongs.length-1)await goViewerSongPage(activeIdx+1,0)}
 async function viewerPrev(){if(activeIdx>0)await goViewerSongPage(activeIdx-1,'last')}
@@ -1490,12 +1767,12 @@ async function viewerPageStep(delta){
     return false;
   }
   viewerPage=rawNext;
-  renderPerformanceBodyOnly();
+  await renderPerformanceBodyOnly();
   return true;
 }
-function setPageMode(mode){
+async function setPageMode(mode){
   viewerPageMode=mode===2?2:1;
-  renderPerformanceBodyOnly();
+  await renderPerformanceBodyOnly();
 }
 function togglePageMode(){
   setPageMode(viewerPageMode===2?1:2);
@@ -1515,9 +1792,41 @@ async function renderPerformanceViewer(){
   viewerFiles=[];
   if(s.id){viewerFiles=scoreCache[s.id]||await listScores(s.id);scoreCache[s.id]=viewerFiles}
   const max=Math.max(0,viewerFiles.length-1); viewerPage=Math.max(0,Math.min(viewerPage,max));
-  renderPerformanceBodyOnly();
+  await renderPerformanceBodyOnly();
 }
-function renderPerformanceBodyOnly(){
+async function buildPerformanceSpreadPages(song,files,page,mode){
+  const pageCount=files?.length||0;
+  if(!pageCount){
+    return [`<div class="viewer-page empty">⏳ 악보 업로드 예정<small>${esc(song?.name||'곡')} 악보가 준비되면 여기에 표시됩니다.</small></div>`];
+  }
+  const pages=[];
+  const currentFile=files[page];
+  if(currentFile){
+    pages.push(`<div class="viewer-page"><img src="${scoreUrl(scorePath(song.id,currentFile))}" alt="${esc(song.name)} 악보 ${page+1}" onerror="brokenScoreImage(this)"></div>`);
+  }else{
+    pages.push(`<div class="viewer-page empty">악보 페이지 없음<small>${esc(song?.name||'곡')}</small></div>`);
+  }
+  if(mode!==2) return pages;
+  const nextFile=files[page+1];
+  if(nextFile){
+    pages.push(`<div class="viewer-page"><img src="${scoreUrl(scorePath(song.id,nextFile))}" alt="${esc(song.name)} 악보 ${page+2}" onerror="brokenScoreImage(this)"></div>`);
+    return pages;
+  }
+  const nextSong=contiSongs[activeIdx+1];
+  if(nextSong?.id){
+    const nextFiles=scoreCache[nextSong.id]||await listScores(nextSong.id);
+    scoreCache[nextSong.id]=nextFiles||[];
+    const firstNext=nextFiles?.[0];
+    if(firstNext){
+      pages.push(`<div class="viewer-page next-song-page"><div class="next-song-label">다음곡 · ${esc(nextSong.name||'곡')}</div><img src="${scoreUrl(scorePath(nextSong.id,firstNext))}" alt="${esc(nextSong.name||'다음곡')} 악보 1" onerror="brokenScoreImage(this)"></div>`);
+      return pages;
+    }
+  }
+  // 마지막 페이지에서 오른쪽 빈 안내칸을 만들지 않는다.
+  // 2페이지 모드라도 짝 페이지가 없으면 현재 악보를 1페이지 크기로 보여준다.
+  return pages;
+}
+async function renderPerformanceBodyOnly(){
   const s=contiSongs[activeIdx];if(!s)return;
   const prev=contiSongs[activeIdx-1]?.name||'처음';
   const next=contiSongs[activeIdx+1]?.name||'마지막';
@@ -1525,16 +1834,8 @@ function renderPerformanceBodyOnly(){
   const isLandscape=window.PERFORMANCE_LAYOUT==='landscape';
   const mode=viewerPageMode===2?2:1;
   const pageCount=viewerFiles.length||0;
-  const pages=[];
-  if(!pageCount){
-    pages.push(`<div class="viewer-page empty">⏳ 악보 업로드 예정<small>${esc(s.name)} 악보가 준비되면 여기에 표시됩니다.</small></div>`);
-  }else{
-    for(let p=0;p<mode;p++){
-      const file=viewerFiles[viewerPage+p];
-      if(file){pages.push(`<div class="viewer-page"><img src="${scoreUrl(scorePath(s.id,file))}" alt="${esc(s.name)} 악보 ${viewerPage+p+1}" onerror="brokenScoreImage(this)"></div>`)}
-      else if(mode===2){pages.push(`<div class="viewer-page empty">마지막 페이지<small>${viewerPage+p+1}쪽은 없습니다.</small></div>`)}
-    }
-  }
+  const pages=await buildPerformanceSpreadPages(s,viewerFiles,viewerPage,mode);
+  const effectiveMode=(mode===2 && pages.length<2)?1:mode;
   const wakeOk=!!wakeLock;
   contiSongs=uniqueContiSongsByName(contiSongs||[]);
   activeIdx=Math.max(0,Math.min(activeIdx,Math.max(0,contiSongs.length-1)));
@@ -1550,7 +1851,7 @@ function renderPerformanceBodyOnly(){
   const topOverlay=`<div class="performance-top-overlay"><div class="performance-top-left"><button class="performance-chip ${mode===1?'on':''}" onclick="setPageMode(1)">1페이지 보기</button><button class="performance-chip ${mode===2?'on':''}" onclick="setPageMode(2)">2페이지 보기</button></div><div class="performance-top-right"><button class="performance-chip close-chip" onclick="closeViewer()">×</button></div></div>`;
   const bottomLock=`<button class="performance-lock ${wakeOk?'on':''}" onclick="togglePerformanceScreenLock()">화면잠금</button>`;
   const layoutClass=isLandscape?'landscape':'portrait';
-  body.innerHTML=`<div class="viewer-stage ${layoutClass} ${mode===2?'two':'one'}">${pages.join('')}${topOverlay}${memoStrip}<div class="performance-song-strip">${orderStrip}</div>${bottomLock}</div>`;
+  body.innerHTML=`<div class="viewer-stage ${layoutClass} ${effectiveMode===2?'two':'one'}">${pages.join('')}${topOverlay}${memoStrip}<div class="performance-song-strip">${orderStrip}</div>${bottomLock}</div>`;
 }
 async function requestWakeLock(){
   try{ if('wakeLock' in navigator){ wakeLock=await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release',()=>{wakeLock=null}); } }
@@ -1801,20 +2102,81 @@ function openContiSongEdit(idx){
   document.getElementById('m-conti-memo').value=s.memo||s.note||'';
   const scoreInput=document.getElementById('m-conti-score-files');
   if(scoreInput)scoreInput.value='';
+  const memoHist=document.getElementById('m-conti-memo-history');
+  if(memoHist){memoHist.style.display='none';memoHist.innerHTML=''}
   document.getElementById('conti-song-modal').classList.add('show');
   renderContiSongScoreList();
 }
 function closeContiSongEdit(){document.getElementById('conti-song-modal').classList.remove('show')}
+let contiEditScoreFiles=[];
+let contiEditScoreIdx=0;
+function renderContiEditScorePreview(){
+  const box=document.getElementById('m-conti-score-preview');
+  const page=document.getElementById('m-conti-score-page');
+  const song=contiEditingSong()||{};
+  if(!box)return;
+  if(!contiEditScoreFiles.length){
+    box.innerHTML='<div class="score-empty">등록된 악보가 없습니다.</div>';
+    if(page)page.textContent='0 / 0';
+    return;
+  }
+  contiEditScoreIdx=Math.max(0,Math.min(contiEditScoreIdx,contiEditScoreFiles.length-1));
+  const file=contiEditScoreFiles[contiEditScoreIdx];
+  const path=scorePath(song.id,file);
+  box.innerHTML=`<img src="${scoreUrl(path)}" alt="${esc(song.name||'선택곡')} 악보" onerror="brokenScoreImage(this)">`;
+  if(page)page.textContent=`${contiEditScoreIdx+1} / ${contiEditScoreFiles.length}`;
+}
+function moveContiEditScore(delta){
+  if(!contiEditScoreFiles.length)return;
+  contiEditScoreIdx=(contiEditScoreIdx+delta+contiEditScoreFiles.length)%contiEditScoreFiles.length;
+  renderContiEditScorePreview();
+}
+
+async function deleteCurrentContiEditScore(){
+  const song=contiEditingSong();
+  if(!song?.id){toast('연결된 곡 ID가 없어요');return}
+  if(!contiEditScoreFiles.length){toast('삭제할 악보가 없습니다');return}
+  contiEditScoreIdx=Math.max(0,Math.min(contiEditScoreIdx,contiEditScoreFiles.length-1));
+  const file=contiEditScoreFiles[contiEditScoreIdx];
+  const path=scorePath(song.id,file);
+  await deleteContiSongScore(path);
+}
+function contiMemoCandidates(){
+  const song=contiEditingSong()||{};
+  const name=norm(song.name||document.getElementById('m-conti-name')?.value||'');
+  const id=String(song.id||'');
+  const out=[];
+  const push=(label,text)=>{text=String(text||'').trim();if(!text)return;if(out.some(x=>norm(x.text)===norm(text)))return;out.push({label,text});};
+  push('찬양곡 기본 메모',song.memo||song.note);
+  (songs||[]).forEach(s=>{if((id&&String(s.id)===id)||(name&&norm(s.name)===name))push(`찬양곡 메모 · ${s.name}`,s.memo||s.note)});
+  (history||[]).forEach(h=>{
+    const ids=(h.song_ids||[]).map(x=>String(x));
+    const names=(h.song_names||[]).map(x=>norm(x));
+    if((id&&ids.includes(id))||(name&&names.includes(name)))push(`${formatUsageDate(h.worship_date)} 콘티 메모`,h.note||h.memo||h.conti_memo);
+  });
+  return out.slice(0,12);
+}
+function showContiMemoHistory(){
+  const box=document.getElementById('m-conti-memo-history');if(!box)return;
+  const rows=contiMemoCandidates();
+  if(!rows.length){box.style.display='block';box.innerHTML='<div style="color:#94a3b8;font-size:12px;padding:6px">불러올 수 있는 이전 메모가 없습니다.</div>';return}
+  box.style.display='block';
+  box.innerHTML=rows.map((r,i)=>`<button type="button" class="memo-history-item" data-conti-memo-idx="${i}"><small>${esc(r.label)}</small>${esc(r.text)}</button>`).join('');
+  box.querySelectorAll('.memo-history-item').forEach((btn,i)=>btn.onclick=()=>{document.getElementById('m-conti-memo').value=rows[i].text;});
+}
 async function renderContiSongScoreList(){
   const el=document.getElementById('m-conti-score-list');
   if(!el)return;
   const song=contiEditingSong();
-  if(!song?.id){el.innerHTML='<div class="selected-item"><span>DB에 연결된 곡이 아니라 악보 업로드를 할 수 없습니다.</span></div>';return}
+  contiEditScoreFiles=[];contiEditScoreIdx=0;
+  if(!song?.id){el.innerHTML='<div class="selected-item"><span>DB에 연결된 곡이 아니라 악보 업로드를 할 수 없습니다.</span></div>';renderContiEditScorePreview();return}
   el.innerHTML='<div class="selected-item"><span>악보 목록 불러오는 중...</span></div>';
   const files=await listScores(song.id);
   scoreCache[song.id]=files;
+  contiEditScoreFiles=files;
+  renderContiEditScorePreview();
   if(!files.length){el.innerHTML=`<div class="selected-item"><span>⏳ ${esc(song.name||'선택곡')} 악보 업로드 예정</span></div>`;return}
-  el.innerHTML=files.map((f,i)=>{const path=song.id+'/'+f.name;return `<div class="selected-item"><span>${i+1}. ${esc(f.name)}</span><span><button onclick="openSingleScoreImage('${esc(path)}','${esc(song.name||'선택곡')}')">보기</button> <button onclick="deleteContiSongScore('${esc(path)}')">삭제</button></span></div>`}).join('');
+  el.innerHTML=files.map((f,i)=>{const path=scorePath(song.id,f);return `<div class="selected-item"><span>${i+1}. ${esc(f.name||f.path||'악보')}</span><span><button onclick="contiEditScoreIdx=${i};renderContiEditScorePreview()">보기</button> <button onclick="deleteContiSongScore('${esc(path)}')">삭제</button></span></div>`}).join('');
 }
 async function uploadContiSongScores(){
   const song=contiEditingSong();
@@ -1863,8 +2225,14 @@ async function deleteContiSongScore(path){
 async function openContiSongScoreViewer(){
   const song=contiEditingSong();
   if(!song?.id){toast('연결된 곡 ID가 없어요');return}
-  closeContiSongEdit();
-  openDbScoreViewer(song.id);
+  if(!contiEditScoreFiles.length){
+    const files=await listScores(song.id);
+    scoreCache[song.id]=files;
+    contiEditScoreFiles=files;
+  }
+  contiEditScoreIdx=0;
+  renderContiEditScorePreview();
+  document.getElementById('m-conti-score-preview')?.scrollIntoView({block:'nearest',behavior:'smooth'});
 }
 function saveContiSongEdit(){
   if(editingContiSongIdx==null)return;
@@ -1992,8 +2360,10 @@ function openEditSongScoreViewer(){
   const song=editSong();
   if(!song){toast('먼저 곡을 저장하세요');return}
   if(!editSongScoreFiles.length){toast('등록된 악보가 없습니다');return}
-  const f=editSongScoreFiles[editSongScoreIndex];
-  openSingleScoreImage(song.id+'/'+f.name,song.name);
+  const preview=document.getElementById('m-song-score-preview');
+  if(!preview)return;
+  preview.classList.toggle('expanded');
+  toast(preview.classList.contains('expanded')?'악보 미리보기를 크게 표시합니다':'악보 미리보기를 기본 크기로 표시합니다');
 }
 async function uploadEditSongScores(){
   const song=editSong();
@@ -2168,26 +2538,32 @@ async function deleteSongScore(path){
   renderHome();renderSongCards();
   toast('곡별 악보 삭제 완료');
 }
+function closeMobileInlineScorePreview(){document.getElementById('mobile-inline-score-preview')?.remove()}
+function openMobileInlineScorePreview(path,title,anchorId){
+  const url=scoreUrl(path);
+  const anchor=document.getElementById(anchorId)||document.getElementById('song-score-list')||document.getElementById('m-song-score-preview');
+  if(!anchor){toast('미리보기 영역을 찾지 못했어요');return}
+  let box=document.getElementById('mobile-inline-score-preview');
+  if(!box){
+    box=document.createElement('div');
+    box.id='mobile-inline-score-preview';
+    box.className='mobile-inline-score-preview';
+    anchor.insertAdjacentElement(anchorId==='m-song-score-preview'?'afterend':'beforebegin',box);
+  }
+  box.innerHTML=`<div class="inline-score-head"><span>${esc(title||'악보')} 미리보기</span><button type="button" class="mini-btn" onclick="closeMobileInlineScorePreview()">닫기</button></div><div class="inline-score-body"><img src="${url}" alt="${esc(title||'악보')} 악보" onerror="brokenScoreImage(this)"></div>`;
+  box.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
 function openSingleScoreImage(path,title){
-  document.getElementById('viewer').dataset.mode='single-score';
-  document.getElementById('viewer-title').textContent=title+' 악보';
-  document.getElementById('viewer-subtitle').textContent='곡별 악보 미리보기';
-  document.getElementById('viewer-mini').innerHTML='';
-  document.getElementById('viewer-body').innerHTML=`<img src="${scoreUrl(path)}" alt="${esc(title)} 악보" onerror="brokenScoreImage(this)">`;
-  document.getElementById('viewer').classList.add('show');
+  openMobileInlineScorePreview(path,title,'song-score-list');
 }
 async function openSelectedSongScoreViewer(){
   const song=scoreManagerSong();
   if(!song){toast('곡을 먼저 선택하세요');return}
   let files=scoreCache[song.id]||await listScores(song.id);
   scoreCache[song.id]=files;
-  document.getElementById('viewer').dataset.mode='song-score';
-  document.getElementById('viewer-title').textContent=song.name+' 악보';
-  document.getElementById('viewer-subtitle').textContent='곡별 악보 전체 보기';
-  document.getElementById('viewer-mini').innerHTML='';
-  document.getElementById('viewer').classList.add('show');
-  if(!files.length){document.getElementById('viewer-body').innerHTML=`<div class="viewer-empty-big">⏳ 악보 업로드 예정<small>${esc(song.name)} 악보가 준비되면 여기에 표시됩니다.</small></div>`;return}
-  document.getElementById('viewer-body').innerHTML=files.map(f=>`<img src="${scoreUrl(scorePath(song.id,f))}" alt="${esc(song.name)} 악보" onerror="brokenScoreImage(this)">`).join('');
+  if(!files.length){toast('등록된 악보가 없습니다');return}
+  const path=scorePath(song.id,files[0]);
+  openMobileInlineScorePreview(path,song.name,'song-score-list');
 }
 
 
@@ -2207,7 +2583,7 @@ document.addEventListener('visibilitychange',()=>{const v=document.getElementByI
 let mobileToolFrameUrl='';
 function openMobileToolFrame(url,title){mobileToolFrameUrl=url;document.getElementById('mobile-tool-title').textContent=title||'관리 도구';document.getElementById('mobile-tool-frame').src=url;document.getElementById('mobile-tool-frame-modal').classList.add('show')}
 function closeMobileToolFrame(){document.getElementById('mobile-tool-frame-modal').classList.remove('show');document.getElementById('mobile-tool-frame').src='about:blank'}
-function openMobileToolNewTab(){if(mobileToolFrameUrl) window.open(mobileToolFrameUrl,'_blank','noopener')}
+function openMobileToolNewTab(){toast('새 탭 열기는 막아두었습니다. 관리도구는 현재 화면 안에서만 열립니다.')}
 
 ['youtube-player-modal','song-modal','history-modal','full-score-modal','song-score-modal','filename-helper-modal','ai-settings-modal','mobile-tool-frame-modal','performance-orientation-modal'].forEach(id=>{setTimeout(()=>{const el=document.getElementById(id);if(el)el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('show')})},0)})
 
@@ -2502,6 +2878,7 @@ document.addEventListener('DOMContentLoaded',init);
   observer.observe(document.documentElement, { childList: true, subtree: true });
 })();
 </script>
+
 
 </body>
 </html>

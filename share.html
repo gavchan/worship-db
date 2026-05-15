@@ -84,7 +84,12 @@
   }
 }
 
-</style>
+
+
+
+/* Phase 38 compact UI guard */
+button,a{touch-action:manipulation}.viewer-top,.viewer-bottom,.topbar,.header{min-height:44px}.modal,.viewer{overscroll-behavior:contain}
+.viewer-page.next-song-page{position:relative}.next-song-label{position:absolute;left:10px;top:10px;z-index:3;border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.55);color:#fff;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:900;backdrop-filter:blur(10px)}</style>
 </head>
 <body>
 <div class="wrap">
@@ -295,28 +300,55 @@ async function openSharePerformance(i=0){
   const v=document.getElementById('share-viewer');v.classList.add('show');v.classList.toggle('single',singleViewer);await requestShareWakeLock(false);await renderShareViewer();singleViewer=false;
 }
 async function goShareSong(i){normalizeShareSongList();viewerIdx=Math.max(0,Math.min(i,shareSongs.length-1));viewerPage=0;await renderShareViewer()}
-function setSharePageMode(mode){viewerMode=mode===2?2:1;renderShareViewerBody()}
-async function renderShareViewer(){normalizeShareSongList();const s=shareSongs[viewerIdx];viewerFiles=s?.id?await listScores(s.id):[];viewerPage=Math.max(0,Math.min(viewerPage,Math.max(0,viewerFiles.length-1)));renderShareViewerBody()}
-function renderShareViewerBody(){
-  normalizeShareSongList();
-  const s=shareSongs[viewerIdx]||{};const v=document.getElementById('share-viewer');const stage=document.getElementById('share-viewer-stage');v.classList.toggle('two',viewerMode===2);v.classList.toggle('one',viewerMode!==2);
+async function setSharePageMode(mode){viewerMode=mode===2?2:1;await renderShareViewerBody()}
+async function renderShareViewer(){normalizeShareSongList();const s=shareSongs[viewerIdx];viewerFiles=s?.id?await listScores(s.id):[];viewerPage=Math.max(0,Math.min(viewerPage,Math.max(0,viewerFiles.length-1)));await renderShareViewerBody()}
+async function buildShareSpreadPages(song,files,page,mode){
+  const pageCount=files?.length||0;
+  if(!pageCount){return [`<div class="viewer-page empty">악보 업로드 예정<small>${esc(song?.name||'곡')} 악보가 준비되면 여기에 표시됩니다.</small></div>`]}
   const pages=[];
-  if(!viewerFiles.length){pages.push(`<div class="viewer-page empty">악보 업로드 예정<small>${esc(s.name||'곡')} 악보가 준비되면 여기에 표시됩니다.</small></div>`)}
-  else{for(let p=0;p<viewerMode;p++){const file=viewerFiles[viewerPage+p];if(file)pages.push(`<div class="viewer-page"><img src="${scoreUrl(scorePath(s.id,file))}" alt="${esc(s.name||'악보')} ${viewerPage+p+1}" onerror="brokenScoreImage(this)"></div>`);else if(viewerMode===2)pages.push(`<div class="viewer-page empty">마지막 페이지<small>${viewerPage+p+1}쪽은 없습니다.</small></div>`)}}
+  const currentFile=files[page];
+  if(currentFile){pages.push(`<div class="viewer-page"><img src="${scoreUrl(scorePath(song.id,currentFile))}" alt="${esc(song.name||'악보')} ${page+1}" onerror="brokenScoreImage(this)"></div>`)}
+  else{pages.push(`<div class="viewer-page empty">악보 페이지 없음<small>${esc(song?.name||'곡')}</small></div>`)}
+  if(mode!==2) return pages;
+  const nextFile=files[page+1];
+  if(nextFile){pages.push(`<div class="viewer-page"><img src="${scoreUrl(scorePath(song.id,nextFile))}" alt="${esc(song.name||'악보')} ${page+2}" onerror="brokenScoreImage(this)"></div>`);return pages;}
+  const nextSong=shareSongs[viewerIdx+1];
+  if(nextSong?.id){
+    const nextFiles=await listScores(nextSong.id);
+    const firstNext=nextFiles?.[0];
+    if(firstNext){pages.push(`<div class="viewer-page next-song-page"><div class="next-song-label">다음곡 · ${esc(nextSong.name||'곡')}</div><img src="${scoreUrl(scorePath(nextSong.id,firstNext))}" alt="${esc(nextSong.name||'다음곡')} 악보 1" onerror="brokenScoreImage(this)"></div>`);return pages;}
+  }
+  // 마지막 페이지에서 오른쪽 빈 안내칸을 만들지 않는다.
+  // 2페이지 모드라도 짝 페이지가 없으면 현재 악보를 1페이지 크기로 보여준다.
+  return pages;
+}
+async function renderShareViewerBody(){
+  normalizeShareSongList();
+  const s=shareSongs[viewerIdx]||{};const v=document.getElementById('share-viewer');const stage=document.getElementById('share-viewer-stage');v.classList.toggle('two',effectiveMode===2);v.classList.toggle('one',effectiveMode!==2);
+  const pages=await buildShareSpreadPages(s,viewerFiles,viewerPage,viewerMode);
+  const effectiveMode=(viewerMode===2 && pages.length<2)?1:viewerMode;
   const strip=shareSongs.map((song,i)=>`<button class="${i===viewerIdx?'on':''}" onclick="goShareSong(${i})">${esc(`${i+1} ${song.name||'곡'}`)}</button>`).join('');
   stage.innerHTML=`${pages.join('')}<div class="share-top-overlay"><div class="share-top-left"><button class="share-chip ${viewerMode===1?'on':''}" onclick="setSharePageMode(1)">1페이지 보기</button><button class="share-chip ${viewerMode===2?'on':''}" onclick="setSharePageMode(2)">2페이지 보기</button></div><div class="share-top-right"><button class="share-chip close-chip" onclick="closeShareViewer()">×</button></div></div><div class="share-song-strip">${strip}</div><button class="share-lock ${wakeLock?'on':''}" onclick="toggleShareWakeLock()">화면잠금</button>`;
 }
 async function closeShareViewer(){document.getElementById('share-viewer')?.classList.remove('show');await requestShareWakeLock(false)}
 async function requestShareWakeLock(on=true){try{if(!on){if(wakeLock){await wakeLock.release();wakeLock=null}return}if('wakeLock' in navigator){wakeLock=await navigator.wakeLock.request('screen');wakeLock.addEventListener('release',()=>{wakeLock=null;renderShareViewerBody()})}}catch(e){wakeLock=null}}
-async function toggleShareWakeLock(){if(wakeLock){await requestShareWakeLock(false);viewerToast('화면잠금 해제')}else{await requestShareWakeLock(true);viewerToast(wakeLock?'화면잠금 켬':'화면잠금 미지원')}renderShareViewerBody()}
+async function toggleShareWakeLock(){if(wakeLock){await requestShareWakeLock(false);viewerToast('화면잠금 해제')}else{await requestShareWakeLock(true);viewerToast(wakeLock?'화면잠금 켬':'화면잠금 미지원')}await renderShareViewerBody()}
 let touchX=0,touchY=0;
 document.addEventListener('touchstart',e=>{if(!document.getElementById('share-viewer')?.classList.contains('show'))return;touchX=e.changedTouches[0].clientX;touchY=e.changedTouches[0].clientY},{passive:true});
 document.addEventListener('touchend',async e=>{if(!document.getElementById('share-viewer')?.classList.contains('show'))return;const dx=e.changedTouches[0].clientX-touchX;const dy=e.changedTouches[0].clientY-touchY;if(Math.abs(dx)<55||Math.abs(dx)<Math.abs(dy))return;await shareViewerStep(dx<0?1:-1)},{passive:true});
-async function shareViewerStep(dir){const step=viewerMode===2?2:1;const max=Math.max(0,viewerFiles.length-1);const next=viewerPage+(dir*step);if(next>max){if(!document.getElementById('share-viewer')?.classList.contains('single')&&viewerIdx<shareSongs.length-1){await goShareSong(viewerIdx+1);return}viewerToast('마지막입니다');return}if(next<0){if(!document.getElementById('share-viewer')?.classList.contains('single')&&viewerIdx>0){await goShareSong(viewerIdx-1);const files=viewerFiles;viewerPage=Math.max(0,files.length-step);renderShareViewerBody();return}viewerToast('첫 페이지입니다');return}viewerPage=next;renderShareViewerBody()}
+async function shareViewerStep(dir){const step=viewerMode===2?2:1;const max=Math.max(0,viewerFiles.length-1);const next=viewerPage+(dir*step);if(next>max){if(!document.getElementById('share-viewer')?.classList.contains('single')&&viewerIdx<shareSongs.length-1){await goShareSong(viewerIdx+1);return}viewerToast('마지막입니다');return}if(next<0){if(!document.getElementById('share-viewer')?.classList.contains('single')&&viewerIdx>0){await goShareSong(viewerIdx-1);const files=viewerFiles;viewerPage=Math.max(0,files.length-step);await renderShareViewerBody();return}viewerToast('첫 페이지입니다');return}viewerPage=next;await renderShareViewerBody()}
 async function shareThisPage(){const url=location.href;try{if(navigator.share){await navigator.share({title:shareTitle,text:shareTitle,url});return}}catch(e){}try{await navigator.clipboard.writeText(url);alert('공유 링크를 복사했습니다. 카톡에 붙여넣어 보내세요.')}catch(e){prompt('이 링크를 복사해서 공유하세요',url)}}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeShareViewer()});
 document.addEventListener('error',function(e){if(e.target&&e.target.tagName==='IMG'&&String(e.target.src||'').includes('/storage/v1/object/public/scores/'))brokenScoreImage(e.target);},true);
 document.addEventListener('DOMContentLoaded',()=>{try{load()}catch(e){document.getElementById('content').innerHTML='<div class="empty">공유 페이지를 불러오지 못했습니다.</div>'}});
+</script>
+
+<script>
+// Phase 38: prevent external popups/new tabs in worship UI
+document.addEventListener('click',function(e){
+  const a=e.target.closest&&e.target.closest('a[data-blocked-target]');
+  if(a){e.preventDefault();alert('새창 열기는 막아두었습니다. 현재 화면 안에서만 표시합니다.');}
+},true);
 </script>
 </body>
 </html>

@@ -50,6 +50,9 @@ body{font-family:sans-serif;background:#faf8f5;color:#1a1714;min-height:100vh}
 .guide h2{font-size:.95rem}.guide code{display:block;background:#faf8f5;border:1px solid #e8e2d9;border-radius:8px;padding:.7rem;font-size:.78rem;line-height:1.7;white-space:pre-wrap;color:#3d3730}
 .helper-grid{display:grid;grid-template-columns:repeat(5,minmax(90px,1fr));gap:6px}.helper-grid input,.helper-grid select{border:1px solid #d4cec4;background:#faf8f5;border-radius:7px;padding:.45rem;font-size:.78rem}.helper-result{width:100%;min-height:80px;border:1px solid #d4cec4;background:#faf8f5;border-radius:8px;padding:.6rem;font-size:.78rem;font-family:monospace;resize:vertical}
 @media(max-width:700px){.helper-grid{grid-template-columns:1fr 1fr}}
+
+
+
 </style>
 </head>
 <body>
@@ -665,6 +668,7 @@ dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('active');
   observer.observe(document.documentElement, { childList: true, subtree: true });
 })();
 </script>
+
 
 </body>
 </html>

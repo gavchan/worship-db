@@ -39,6 +39,11 @@
   align-items: flex-start !important;
 }
 
+
+
+
+/* Phase 38 compact UI guard */
+button,a{touch-action:manipulation}.viewer-top,.viewer-bottom,.topbar,.header{min-height:44px}.modal,.viewer{overscroll-behavior:contain}
 </style>
 </head><body>모바일 모드로 이동합니다.
 <style>
@@ -280,4 +285,12 @@
 })();
 </script>
 
+
+<script>
+// Phase 38: prevent external popups/new tabs in worship UI
+document.addEventListener('click',function(e){
+  const a=e.target.closest&&e.target.closest('a[data-blocked-target]');
+  if(a){e.preventDefault();alert('새창 열기는 막아두었습니다. 현재 화면 안에서만 표시합니다.');}
+},true);
+</script>
 </body></html>

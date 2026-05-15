@@ -84,7 +84,6 @@ function openEmbeddedTool(url, title) {
   const modal = document.getElementById('tool-frame-modal');
   const frame = document.getElementById('tool-frame');
   document.getElementById('tool-frame-title').textContent = title || '관리 도구';
-  document.getElementById('tool-frame-newtab').href = url;
   frame.src = url;
   modal.classList.add('show');
 }
@@ -638,13 +637,7 @@ function youtubeEmbedUrl(id) {
   return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1`;
 }
 function openExternalUrl(url) {
-  const a = document.createElement('a');
-  a.href = url;
-  a.target = '_blank';
-  a.rel = 'noopener noreferrer';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  showToast('새창 열기는 막아두었습니다. 유튜브/악보는 현재 화면 안에서만 표시합니다.');
 }
 function openYT(url, name) {
   const id = extractYoutubeId(url);
@@ -652,10 +645,8 @@ function openYT(url, name) {
   const modal = document.getElementById('yt-player-modal');
   const title = document.getElementById('yt-player-title');
   const frameWrap = document.getElementById('yt-frame-wrap');
-  const openLink = document.getElementById('yt-player-open');
   if (!modal || !frameWrap) { openExternalUrl(url); return; }
   title.textContent = name ? `영상보기 · ${name}` : '영상보기';
-  openLink.href = `https://www.youtube.com/watch?v=${encodeURIComponent(id)}`;
   frameWrap.innerHTML = `<iframe src="${youtubeEmbedUrl(id)}" title="${String(name||'영상보기').replace(/[&<>"']/g,'')}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
   modal.classList.add('show');
 }
@@ -786,11 +777,11 @@ async function loadExistingScores(songId) {
       const path = songId + '/' + f.name;
       const url = scoreUrl(path);
       return `<div class="existing-score-card" data-score-path="${path}">
-        <img src="${url}" alt="악보 ${i+1}" onclick="openViewer('${songId}', document.getElementById('f-name').value || '악보')">
+        <img src="${url}" alt="악보 ${i+1}" onclick="openEditInlineScorePreview('${path}', document.getElementById('f-name').value || '악보')">
         <div class="existing-score-meta">
           <div class="existing-score-name">${i+1}. ${f.name}</div>
           <div class="existing-score-actions">
-            <button type="button" onclick="openViewer('${songId}', document.getElementById('f-name').value || '악보')">크게보기</button>
+            <button type="button" onclick="openEditInlineScorePreview('${path}', document.getElementById('f-name').value || '악보')">크게보기</button>
             <button type="button" class="danger" onclick="deleteScoreFromModal('${path}', this)">삭제</button>
           </div>
         </div>
@@ -799,6 +790,21 @@ async function loadExistingScores(songId) {
   } catch(e) {
     wrap.innerHTML = '<div style="font-size:.72rem;color:var(--red)">불러오기 실패</div>';
   }
+}
+
+function closeEditInlineScorePreview(){document.getElementById('edit-inline-score-preview')?.remove()}
+function openEditInlineScorePreview(path,title){
+  const wrap=document.getElementById('existing-scores')||document.getElementById('f-score-wrap');
+  if(!wrap){showToast('미리보기 영역을 찾지 못했습니다');return}
+  let box=document.getElementById('edit-inline-score-preview');
+  if(!box){
+    box=document.createElement('div');
+    box.id='edit-inline-score-preview';
+    box.className='edit-inline-score-preview';
+    wrap.insertAdjacentElement('beforebegin',box);
+  }
+  box.innerHTML=`<div class="edit-inline-score-head"><span>${escHtml(title||'악보')} 미리보기</span><button type="button" class="ab" onclick="closeEditInlineScorePreview()">닫기</button></div><div class="edit-inline-score-body"><img src="${scoreUrl(path)}" alt="${escHtml(title||'악보')} 악보" onerror="brokenScoreImage(this)"></div>`;
+  box.scrollIntoView({block:'nearest',behavior:'smooth'});
 }
 
 async function deleteScoreFromModal(path, btn) {

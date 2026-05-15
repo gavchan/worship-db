@@ -138,6 +138,11 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .existing-score-actions{display:flex;gap:5px;margin-top:auto}
 .existing-score-actions button{flex:1;font-size:.65rem;border-radius:7px;padding:5px 6px;cursor:pointer;border:1px solid var(--border2);background:var(--surface);color:var(--text2)}
 .existing-score-actions .danger{color:var(--red);background:var(--red-bg);border-color:rgba(176,40,31,.18)}
+.edit-inline-score-preview{border:1px solid var(--border);background:var(--bg);border-radius:14px;padding:10px;margin:8px 0 12px}
+.edit-inline-score-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-size:.76rem;font-weight:900;color:var(--text2)}
+.edit-inline-score-body{max-height:min(58vh,560px);overflow:auto;background:#fff;border-radius:12px;display:flex;justify-content:center;align-items:flex-start}
+.edit-inline-score-body img{width:100%;max-width:780px;height:auto;display:block;object-fit:contain}
+.existing-score-card img{object-fit:contain!important;background:#fff}
 .edit-video-panel{border:1px solid var(--border);background:var(--bg);border-radius:14px;padding:10px;margin-top:8px}
 .edit-video-frame{width:100%;aspect-ratio:16/9;background:#050816;border-radius:12px;overflow:hidden;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:.72rem;text-align:center}
 .edit-video-frame iframe{width:100%;height:100%;border:0;display:block}
@@ -228,7 +233,7 @@ body.dark .header{background:linear-gradient(135deg,#0f172a,#18233b)}
 .sync-status{margin-top:0;padding:0 10px;height:38px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.09);border-radius:999px;backdrop-filter:blur(10px);font-size:.72rem;color:rgba(255,255,255,.82)}.dot{width:9px;height:9px;box-shadow:0 0 0 4px rgba(76,175,80,.16),0 0 16px rgba(76,175,80,.6)}.dot.off{box-shadow:0 0 0 4px rgba(136,136,136,.14)}.dot.sync{box-shadow:0 0 0 4px rgba(245,158,11,.16),0 0 16px rgba(245,158,11,.7)}
 .stats{grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;padding:12px;background:var(--bg);border-bottom:1px solid var(--border)}.si{border:1px solid var(--border);border-right:1px solid var(--border);border-radius:22px;padding:12px 8px;background:var(--surface);box-shadow:var(--shadow-card);position:relative;overflow:hidden}.si::before{content:attr(data-icon);display:flex;align-items:center;justify-content:center;width:44px;height:44px;margin:0 auto 7px;border-radius:50%;background:var(--stat-bg,var(--blue-bg));color:var(--stat-color,var(--accent));font-size:1.25rem}.si::after{content:'';position:absolute;inset:auto 14px 10px auto;width:8px;height:8px;border-radius:50%;background:var(--stat-color,var(--accent));opacity:.55}.si.used{--stat-bg:var(--blue-bg);--stat-color:var(--accent)}.si.ready{--stat-bg:var(--green-bg);--stat-color:var(--green)}.si.all{--stat-bg:var(--purple-bg);--stat-color:var(--purple)}.si.plan{--stat-bg:var(--amber-bg);--stat-color:var(--accent2)}.si.video{--stat-bg:var(--cyan-bg);--stat-color:var(--cyan)}.sn{font-size:1.28rem}.sl{font-size:.68rem;color:var(--text2);font-weight:600}.stat-filter:hover{transform:translateY(-3px)}.stat-filter.active{box-shadow:0 0 0 2px var(--stat-color,var(--accent)) inset,var(--shadow-card)!important;background:var(--surface)!important}
 .tabs{gap:12px;padding:14px 14px 10px;background:var(--bg);border-bottom:none;justify-content:center;flex-wrap:wrap}.tab{flex:0 1 156px;min-height:94px;border:1px solid var(--border);border-radius:26px;background:var(--surface);box-shadow:var(--shadow-card);padding:.85rem .6rem;color:var(--text2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;font-size:.82rem}.tab .tab-ico{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--blue-bg);font-size:1.35rem}.tab.on{border-color:var(--accent);background:var(--surface);color:var(--accent);box-shadow:0 0 0 2px rgba(45,90,142,.13) inset,var(--shadow-card)}.tab.on .tab-ico{background:var(--accent);color:#fff}.tab:hover{transform:translateY(-3px);border-color:var(--accent)}
-.tools-shell{padding:1rem;max-width:980px;margin:0 auto 2rem}.tools-hero{background:var(--surface);border:1px solid var(--border);border-radius:28px;padding:22px;box-shadow:var(--shadow-soft);margin-bottom:14px}.tools-hero h2{font-family:'Noto Serif KR',serif;font-size:1.18rem;margin-bottom:6px}.tools-hero p{font-size:.78rem;color:var(--text2);line-height:1.6}.tool-section-title{font-size:.76rem;color:var(--text3);font-weight:700;margin:18px 4px 9px;letter-spacing:.02em}.tools-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.tool-card{display:block;text-decoration:none;color:var(--text1);background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:18px 12px;text-align:center;box-shadow:var(--shadow-card);transition:.16s}.tool-card:hover{transform:translateY(-3px);border-color:var(--tool-color,var(--accent))}.tool-icon{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;background:var(--tool-bg,var(--blue-bg));color:var(--tool-color,var(--accent));font-size:1.5rem}.tool-name{font-size:.82rem;font-weight:800;margin-bottom:5px}.tool-desc{font-size:.66rem;color:var(--text3);line-height:1.45}.tool-card.green{--tool-bg:var(--green-bg);--tool-color:var(--green)}.tool-card.blue{--tool-bg:var(--blue-bg);--tool-color:var(--accent)}.tool-card.amber{--tool-bg:var(--amber-bg);--tool-color:var(--accent2)}.tool-card.purple{--tool-bg:var(--purple-bg);--tool-color:var(--purple)}.tool-card.cyan{--tool-bg:var(--cyan-bg);--tool-color:var(--cyan)}
+.tools-shell{padding:.75rem;max-width:1120px;margin:0 auto 2rem}.tools-hero{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:16px 18px;box-shadow:var(--shadow-soft);margin-bottom:10px;display:flex;justify-content:space-between;gap:14px;align-items:center}.tools-hero h2{font-family:'Noto Serif KR',serif;font-size:1.05rem;margin-bottom:4px}.tools-hero p{font-size:.74rem;color:var(--text2);line-height:1.45;margin:0}.tools-hero-note{font-size:.68rem;color:var(--text3);white-space:nowrap}.tool-section{background:rgba(255,255,255,.55);border:1px solid var(--border);border-radius:18px;padding:10px;margin:10px 0}.tool-section-title{font-size:.74rem;color:var(--text2);font-weight:900;margin:0 0 8px;letter-spacing:.01em;display:flex;align-items:center;gap:6px}.tools-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.tool-card{display:grid;grid-template-columns:34px 1fr;grid-template-areas:'icon name' 'icon desc';align-items:center;text-decoration:none;color:var(--text1);background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:10px;text-align:left;box-shadow:none;transition:.14s;min-height:58px}.tool-card:hover{transform:translateY(-1px);border-color:var(--tool-color,var(--accent));box-shadow:0 10px 24px rgba(0,0,0,.06)}.tool-icon{grid-area:icon;width:28px;height:28px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0;background:var(--tool-bg,var(--blue-bg));color:var(--tool-color,var(--accent));font-size:1rem}.tool-name{grid-area:name;font-size:.78rem;font-weight:900;margin:0;line-height:1.15}.tool-desc{grid-area:desc;font-size:.62rem;color:var(--text3);line-height:1.32;margin-top:2px}.tool-card.green{--tool-bg:var(--green-bg);--tool-color:var(--green)}.tool-card.blue{--tool-bg:var(--blue-bg);--tool-color:var(--accent)}.tool-card.amber{--tool-bg:var(--amber-bg);--tool-color:var(--accent2)}.tool-card.purple{--tool-bg:var(--purple-bg);--tool-color:var(--purple)}.tool-card.cyan{--tool-bg:var(--cyan-bg);--tool-color:var(--cyan)}.tools-advanced{border:1px dashed var(--border2);border-radius:18px;background:rgba(255,255,255,.35);padding:8px 10px;margin-top:12px}.tools-advanced summary{cursor:pointer;font-size:.78rem;font-weight:900;color:var(--text2);list-style:none}.tools-advanced summary::-webkit-details-marker{display:none}.tools-advanced summary:after{content:'펼치기';float:right;font-size:.64rem;color:var(--text3)}.tools-advanced[open] summary:after{content:'접기'}
 .footer .fn{color:var(--text3)}
 @media(max-width:760px){.topbar{align-items:center}.header h1{font-size:1.15rem}.header p{font-size:.68rem}.sync-status span:last-child{display:none}.stats{grid-template-columns:repeat(3,1fr)}.tabs{grid-template-columns:repeat(2,1fr)}.tab{flex:1 1 calc(50% - 8px);min-height:86px}.tools-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.tools-shell{padding:.75rem}.tool-card{border-radius:20px}}
 
@@ -402,6 +407,9 @@ body.dark{--bg:#111315;--surface:#191c20;--surface2:#22262b;--border:#2e343b;--b
   align-items: flex-start !important;
 }
 
+
+
+
 </style>
 <!-- 2026 tools password 1955 fix -->
 </head>
@@ -510,37 +518,49 @@ body.dark{--bg:#111315;--surface:#191c20;--surface2:#22262b;--border:#2e343b;--b
 <div id="tab-tools" style="display:none">
   <div class="tools-shell">
     <div class="tools-hero">
-      <h2>관리도구</h2>
-      <p>악보, 데이터, 백업, 점검을 한 화면 안에서 정리합니다. 메인 화면과 같은 카드형 흐름으로 맞췄습니다.</p>
+      <div><h2>관리도구</h2><p>자주 쓰는 정비 기능은 앞에, 위험하거나 가끔 쓰는 기능은 접어두었습니다.</p></div>
+      <div class="tools-hero-note">악보·유튜브는 새창 없이 화면 안에서만 열기</div>
     </div>
 
-    <div class="tool-section-title">악보 관리</div>
-    <div class="tools-grid">
-      <a class="tool-card green" href="#" onclick="openEmbeddedTool('score-version-manager.html','악보 버전 관리');return false;"><div class="tool-icon">🎚️</div><div class="tool-name">악보 버전 관리</div><div class="tool-desc">Key·버전·대표악보<br>페이지 관리</div></a>
-      <a class="tool-card green" href="#" onclick="openEmbeddedTool('score-upload.html','악보 일괄등록기');return false;"><div class="tool-icon">🎼</div><div class="tool-name">악보 일괄등록기</div><div class="tool-desc">새 악보 파일을<br>한 번에 등록</div></a>
-      <a class="tool-card blue" href="#" onclick="openEmbeddedTool('score-sync.html','악보 동기화');return false;"><div class="tool-icon">🔄</div><div class="tool-name">악보 동기화</div><div class="tool-desc">DB와 실제 파일<br>상태 비교</div></a>
-      <a class="tool-card amber" href="#" onclick="openEmbeddedTool('score-audit.html','악보 연결 점검');return false;"><div class="tool-icon">🧹</div><div class="tool-name">악보 연결 점검</div><div class="tool-desc">한 곡 여러 악보<br>미리보기·선택삭제</div></a>
-      <a class="tool-card amber" href="#" onclick="openEmbeddedTool('score-reorganizer.html','악보 재배치 / DB 정리');return false;"><div class="tool-icon">🧬</div><div class="tool-name">악보 재배치</div><div class="tool-desc">버전·Key·곡 이동<br>DB 기록 정리</div></a>
-      <a class="tool-card amber" href="#" onclick="openEmbeddedTool('r2-sync.html','R2 배포 동기화');return false;"><div class="tool-icon">☁️</div><div class="tool-name">R2 배포 동기화</div><div class="tool-desc">앱에서 볼 악보를<br>저장소에 반영</div></a>
+    <div class="tool-section">
+      <div class="tool-section-title">🎼 자주 쓰는 악보 정비</div>
+      <div class="tools-grid">
+        <a class="tool-card green" href="#" onclick="openEmbeddedTool('score-version-manager.html','악보 버전 관리');return false;"><div class="tool-icon">🎚️</div><div class="tool-name">악보 버전 관리</div><div class="tool-desc">기본·전주1·전주2<br>페이지 정리</div></a>
+        <a class="tool-card amber" href="#" onclick="openEmbeddedTool('score-reorganizer.html','악보 재배치 / DB 정리');return false;"><div class="tool-icon">🧬</div><div class="tool-name">악보 재배치</div><div class="tool-desc">곡·Key·버전<br>연결 수정</div></a>
+        <a class="tool-card amber" href="#" onclick="openEmbeddedTool('score-audit.html','악보 연결 점검');return false;"><div class="tool-icon">🧹</div><div class="tool-name">악보 연결 점검</div><div class="tool-desc">깨진 연결·중복<br>선택 삭제</div></a>
+        <a class="tool-card blue" href="#" onclick="openEmbeddedTool('score-sync.html','악보 동기화');return false;"><div class="tool-icon">🔄</div><div class="tool-name">DB/Storage 대조</div><div class="tool-desc">DB 기록과 실제 파일<br>상태 비교</div></a>
+      </div>
     </div>
 
-    <div class="tool-section-title">곡 데이터 정리</div>
-    <div class="tools-grid">
-      <a class="tool-card purple" href="#" onclick="openEmbeddedTool('song-editor.html','순차 편집기');return false;"><div class="tool-icon">✏️</div><div class="tool-name">순차 편집기</div><div class="tool-desc">곡 정보를 하나씩<br>확인하고 정리</div></a>
-      <a class="tool-card blue" href="#" onclick="openEmbeddedTool('tag-update.html','태그 일괄 업데이트');return false;"><div class="tool-icon">🏷️</div><div class="tool-name">태그 일괄 업데이트</div><div class="tool-desc">상황별·절기별<br>태그 반영</div></a>
-      <a class="tool-card cyan" href="#" onclick="openEmbeddedTool('song-merge.html','곡 병합');return false;"><div class="tool-icon">🔀</div><div class="tool-name">곡 병합</div><div class="tool-desc">중복·유사 곡명<br>탐지 및 병합</div></a>
-      <a class="tool-card amber" href="#" onclick="openEmbeddedTool('name-cleanup.html','공백 정리');return false;"><div class="tool-icon">✂️</div><div class="tool-name">공백 정리</div><div class="tool-desc">특수공백·중복공백<br>정규화</div></a>
-      <a class="tool-card purple" href="#" onclick="openEmbeddedTool('status-update.html','사용 횟수 업데이트');return false;"><div class="tool-icon">📊</div><div class="tool-name">사용 횟수 업데이트</div><div class="tool-desc">예배 사용 이력을<br>일괄 반영</div></a>
+    <div class="tool-section">
+      <div class="tool-section-title">🎵 곡 관리</div>
+      <div class="tools-grid">
+        <a class="tool-card purple" href="#" onclick="openEmbeddedTool('song-editor.html','순차 편집기');return false;"><div class="tool-icon">✏️</div><div class="tool-name">순차 편집기</div><div class="tool-desc">곡 정보를 하나씩<br>확인하고 정리</div></a>
+        <a class="tool-card green" href="#" onclick="openEmbeddedTool('score-upload.html','악보 일괄등록기');return false;"><div class="tool-icon">🎼</div><div class="tool-name">악보 일괄등록</div><div class="tool-desc">새 악보 파일<br>안전 등록</div></a>
+        <a class="tool-card blue" href="#" onclick="openEmbeddedTool('tag-update.html','태그 일괄 업데이트');return false;"><div class="tool-icon">🏷️</div><div class="tool-name">태그 정리</div><div class="tool-desc">상황별·절기별<br>태그 반영</div></a>
+        <a class="tool-card cyan" href="#" onclick="openEmbeddedTool('song-merge.html','곡 병합');return false;"><div class="tool-icon">🔀</div><div class="tool-name">곡 병합</div><div class="tool-desc">중복·유사 곡명<br>탐지 및 병합</div></a>
+      </div>
     </div>
 
-    <div class="tool-section-title">점검 / 백업</div>
-    <div class="tools-grid">
-      <a class="tool-card amber" href="#" onclick="openEmbeddedTool('performance-cache-cleaner.html','연주/공유 캐시 정리');return false;"><div class="tool-icon">🧽</div><div class="tool-name">연주/공유 캐시 정리</div><div class="tool-desc">유령 곡명·중복 배열<br>localStorage 정리</div></a>
-      <a class="tool-card blue" href="#" onclick="openEmbeddedTool('db-health-check.html','DB 연결 점검');return false;"><div class="tool-icon">🩺</div><div class="tool-name">DB 연결 점검</div><div class="tool-desc">자료 연결과 테이블<br>상태 확인</div></a>
-      <a class="tool-card purple" href="#" onclick="openEmbeddedTool('launch-check.html','실행 점검');return false;"><div class="tool-icon">🧭</div><div class="tool-name">실행 점검</div><div class="tool-desc">배포 전 필수 파일<br>빠른 확인</div></a>
-      <a class="tool-card green" href="#" onclick="openEmbeddedTool('backup-restore.html','백업 / 복원');return false;"><div class="tool-icon">💾</div><div class="tool-name">백업 / 복원</div><div class="tool-desc">곡·콘티·설정<br>JSON 백업</div></a>
-      <a class="tool-card cyan" href="#" onclick="openEmbeddedTool('db-export.html','DB 내보내기');return false;"><div class="tool-icon">📦</div><div class="tool-name">DB 내보내기</div><div class="tool-desc">전체 데이터를<br>JSON·CSV로 저장</div></a>
+    <div class="tool-section">
+      <div class="tool-section-title">🧽 연주/콘티 정리</div>
+      <div class="tools-grid">
+        <a class="tool-card amber" href="#" onclick="openEmbeddedTool('performance-cache-cleaner.html','연주/공유 캐시 정리');return false;"><div class="tool-icon">🧽</div><div class="tool-name">유령 항목 정리</div><div class="tool-desc">찌꺼기 곡명·중복<br>캐시 정리</div></a>
+        <a class="tool-card purple" href="#" onclick="openEmbeddedTool('status-update.html','사용 횟수 업데이트');return false;"><div class="tool-icon">📊</div><div class="tool-name">사용 이력 반영</div><div class="tool-desc">예배 사용 기록<br>일괄 반영</div></a>
+        <a class="tool-card amber" href="#" onclick="openEmbeddedTool('r2-sync.html','R2 배포 동기화');return false;"><div class="tool-icon">☁️</div><div class="tool-name">R2 동기화</div><div class="tool-desc">앱용 저장소<br>반영</div></a>
+      </div>
     </div>
+
+    <details class="tools-advanced">
+      <summary>고급 / 초기정리 / 백업 도구</summary>
+      <div class="tools-grid" style="margin-top:10px">
+        <a class="tool-card amber" href="#" onclick="openEmbeddedTool('name-cleanup.html','공백 정리');return false;"><div class="tool-icon">✂️</div><div class="tool-name">공백 정리</div><div class="tool-desc">특수공백·중복공백<br>정규화</div></a>
+        <a class="tool-card blue" href="#" onclick="openEmbeddedTool('db-health-check.html','DB 연결 점검');return false;"><div class="tool-icon">🩺</div><div class="tool-name">DB 연결 점검</div><div class="tool-desc">자료 연결과 테이블<br>상태 확인</div></a>
+        <a class="tool-card purple" href="#" onclick="openEmbeddedTool('launch-check.html','실행 점검');return false;"><div class="tool-icon">🧭</div><div class="tool-name">실행 점검</div><div class="tool-desc">배포 전 필수 파일<br>빠른 확인</div></a>
+        <a class="tool-card green" href="#" onclick="openEmbeddedTool('backup-restore.html','백업 / 복원');return false;"><div class="tool-icon">💾</div><div class="tool-name">백업 / 복원</div><div class="tool-desc">곡·콘티·설정<br>JSON 백업</div></a>
+        <a class="tool-card cyan" href="#" onclick="openEmbeddedTool('db-export.html','DB 내보내기');return false;"><div class="tool-icon">📦</div><div class="tool-name">DB 내보내기</div><div class="tool-desc">전체 데이터를<br>JSON·CSV로 저장</div></a>
+      </div>
+    </details>
   </div>
 </div>
 
@@ -750,7 +770,7 @@ body.dark{--bg:#111315;--surface:#191c20;--surface2:#22262b;--border:#2e343b;--b
     <div class="tool-frame-head">
       <strong id="tool-frame-title">관리 도구</strong>
       <div class="tool-frame-actions">
-        <a id="tool-frame-newtab" href="#" target="_blank">새 탭으로 열기</a>
+        <span class="inview-lock-badge">현재 화면 안에서 열림</span>
         <button onclick="closeEmbeddedTool()">닫기</button>
       </div>
     </div>
@@ -764,7 +784,7 @@ body.dark{--bg:#111315;--surface:#191c20;--surface2:#22262b;--border:#2e343b;--b
     <div class="yt-player-head">
       <div class="yt-player-title" id="yt-player-title">영상보기</div>
       <div class="yt-player-actions">
-        <a id="yt-player-open" href="#" target="_blank" rel="noopener noreferrer">유튜브에서 열기</a>
+        <span class="inview-lock-badge">인플레이어</span>
         <button onclick="closeYTPlayer()">닫기</button>
       </div>
     </div>
@@ -880,7 +900,6 @@ function openEmbeddedTool(url, title) {
   const modal = document.getElementById('tool-frame-modal');
   const frame = document.getElementById('tool-frame');
   document.getElementById('tool-frame-title').textContent = title || '관리 도구';
-  document.getElementById('tool-frame-newtab').href = url;
   frame.src = url;
   modal.classList.add('show');
 }
@@ -1434,13 +1453,7 @@ function youtubeEmbedUrl(id) {
   return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1`;
 }
 function openExternalUrl(url) {
-  const a = document.createElement('a');
-  a.href = url;
-  a.target = '_blank';
-  a.rel = 'noopener noreferrer';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  showToast('새창 열기는 막아두었습니다. 유튜브/악보는 현재 화면 안에서만 표시합니다.');
 }
 function openYT(url, name) {
   const id = extractYoutubeId(url);
@@ -1448,10 +1461,8 @@ function openYT(url, name) {
   const modal = document.getElementById('yt-player-modal');
   const title = document.getElementById('yt-player-title');
   const frameWrap = document.getElementById('yt-frame-wrap');
-  const openLink = document.getElementById('yt-player-open');
   if (!modal || !frameWrap) { openExternalUrl(url); return; }
   title.textContent = name ? `영상보기 · ${name}` : '영상보기';
-  openLink.href = `https://www.youtube.com/watch?v=${encodeURIComponent(id)}`;
   frameWrap.innerHTML = `<iframe src="${youtubeEmbedUrl(id)}" title="${String(name||'영상보기').replace(/[&<>"']/g,'')}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
   modal.classList.add('show');
 }
@@ -1644,11 +1655,11 @@ async function loadExistingScores(songId) {
       const path = scorePath(songId, f);
       const url = scoreUrl(path);
       return `<div class="existing-score-card" data-score-path="${path}">
-        <img src="${url}" alt="악보 ${i+1}" onclick="openViewer('${songId}', document.getElementById('f-name').value || '악보')">
+        <img src="${url}" alt="악보 ${i+1}" onclick="openEditInlineScorePreview('${path}', document.getElementById('f-name').value || '악보')">
         <div class="existing-score-meta">
           <div class="existing-score-name">${i+1}. ${f.name}</div>
           <div class="existing-score-actions">
-            <button type="button" onclick="openViewer('${songId}', document.getElementById('f-name').value || '악보')">크게보기</button>
+            <button type="button" onclick="openEditInlineScorePreview('${path}', document.getElementById('f-name').value || '악보')">크게보기</button>
             <button type="button" class="danger" onclick="deleteScoreFromModal('${path}', this)">삭제</button>
           </div>
         </div>
@@ -1657,6 +1668,21 @@ async function loadExistingScores(songId) {
   } catch(e) {
     wrap.innerHTML = '<div style="font-size:.72rem;color:var(--red)">불러오기 실패</div>';
   }
+}
+
+function closeEditInlineScorePreview(){document.getElementById('edit-inline-score-preview')?.remove()}
+function openEditInlineScorePreview(path,title){
+  const wrap=document.getElementById('existing-scores')||document.getElementById('f-score-wrap');
+  if(!wrap){showToast('미리보기 영역을 찾지 못했습니다');return}
+  let box=document.getElementById('edit-inline-score-preview');
+  if(!box){
+    box=document.createElement('div');
+    box.id='edit-inline-score-preview';
+    box.className='edit-inline-score-preview';
+    wrap.insertAdjacentElement('beforebegin',box);
+  }
+  box.innerHTML=`<div class="edit-inline-score-head"><span>${escHtml(title||'악보')} 미리보기</span><button type="button" class="ab" onclick="closeEditInlineScorePreview()">닫기</button></div><div class="edit-inline-score-body"><img src="${scoreUrl(path)}" alt="${escHtml(title||'악보')} 악보" onerror="brokenScoreImage(this)"></div>`;
+  box.scrollIntoView({block:'nearest',behavior:'smooth'});
 }
 
 async function deleteScoreFromModal(path, btn) {
@@ -2749,6 +2775,7 @@ document.addEventListener('error',function(e){if(e.target&&e.target.tagName==='I
   observer.observe(document.documentElement, { childList: true, subtree: true });
 })();
 </script>
+
 
 </body>
 </html>
