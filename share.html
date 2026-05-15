@@ -141,8 +141,10 @@ function songBpm(s){return s?.bpm||s?.tempo||'-'}
 function youtubeId(url){const u=String(url||'').trim();if(!u)return '';let m=u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{6,})/);if(m)return m[1];try{const parsed=new URL(u);return parsed.searchParams.get('v')||''}catch(e){return ''}}
 function youtubeEmbed(url){const id=youtubeId(url);return id?`https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`:''}
 function scoreUrl(path){return `${STORAGE_URL}/object/public/scores/${encodeURIComponent(path).replaceAll('%2F','/')}`}
-function isScoreImageFile(f){const n=String(f?.name||'').toLowerCase();return !!n && !n.endsWith('/') && /\.(png|jpe?g|webp|gif)$/i.test(n)}
-function cleanScoreFiles(files){return (Array.isArray(files)?files:[]).filter(isScoreImageFile)}
+function scorePath(songId,f){if(!f)return'';return String(f.storage_path||f.path||f.fullPath||(songId?`${songId}/${f.name||''}`:(f.name||'')))}
+function isScoreImagePath(path){const n=String(path||'').toLowerCase();return !!n&&!n.endsWith('/')&&/\.(png|jpe?g|webp|gif)$/i.test(n)}
+function isScoreImageFile(f){const n=String(f?.name||f?.storage_path||f?.path||'').toLowerCase();return !!n && !n.endsWith('/') && /\.(png|jpe?g|webp|gif)$/i.test(n)}
+function cleanScoreFiles(files){return (Array.isArray(files)?files:[]).filter(f=>isScoreImageFile(f)||isScoreImagePath(scorePath('',f)))}
 function brokenScoreImage(img){try{const page=img.closest('.viewer-page,.score-scroll,#viewer-body,.score-preview,.score-grid');if(page&&page.classList.contains('viewer-page')){page.remove();setTimeout(()=>{const stage=document.querySelector('.viewer-stage');if(stage&&!stage.querySelector('.viewer-page'))stage.insertAdjacentHTML('afterbegin','<div class="viewer-page empty">악보 파일 확인 필요<small>삭제되었거나 경로가 맞지 않는 페이지입니다.</small></div>');},0);}else{img.style.display='none';}}catch(e){}}
 function contiBaseName(v){
   return norm(v)
@@ -206,7 +208,18 @@ function normalizeShareSongList(){
   viewerIdx=Math.max(0,Math.min(viewerIdx,Math.max(0,shareSongs.length-1)));
   return shareSongs;
 }
-async function listScores(songId){if(!songId)return[];if(scoreCache[songId])return scoreCache[songId];try{const res=await fetch(`${STORAGE_URL}/object/list/scores`,{method:'POST',headers:{...STOR_HEADERS,'Content-Type':'application/json'},body:JSON.stringify({prefix:songId+'/',limit:100,sortBy:{column:'name',order:'asc'}})});if(!res.ok)return[];const files=await res.json();scoreCache[songId]=cleanScoreFiles(files||[]);return scoreCache[songId]}catch(e){return[]}}
+async function storageList(prefix,limit=100){const res=await fetch(`${STORAGE_URL}/object/list/scores`,{method:'POST',headers:{...STOR_HEADERS,'Content-Type':'application/json'},body:JSON.stringify({prefix,limit,sortBy:{column:'name',order:'asc'}})});if(!res.ok)return[];const rows=await res.json().catch(()=>[]);return Array.isArray(rows)?rows:[]}
+async function listDbScoreFiles(songId){if(!songId)return[];try{const res=await fetch(`${SUPABASE_URL}/rest/v1/song_score_files?select=id,song_id,storage_path,file_name,page_no,version_id&song_id=eq.${encodeURIComponent(songId)}&order=page_no.asc,created_at.asc`,{headers:HEADERS});if(!res.ok)return[];const rows=await res.json().catch(()=>[]);return(Array.isArray(rows)?rows:[]).filter(r=>isScoreImagePath(r.storage_path)).map((r,i)=>({id:r.id,song_id:r.song_id,storage_path:r.storage_path,path:r.storage_path,name:r.file_name||String(r.storage_path||'').split('/').pop(),page_no:r.page_no||i+1,version_id:r.version_id,source:'db'}))}catch(e){return[]}}
+async function listStorageScoreFilesRecursive(songId){if(!songId)return[];const out=[];const seen=new Set();async function walk(prefix,depth){if(depth>4||seen.has(prefix))return;seen.add(prefix);const rows=await storageList(prefix,100);for(const row of rows){const name=String(row?.name||'');if(!name||name==='.'||name==='..')continue;const path=prefix+name;if(isScoreImagePath(path))out.push({name,path,storage_path:path,page_no:out.length+1,source:'storage'});else if(!/\.[a-z0-9]{2,6}$/i.test(name))await walk(path.endsWith('/')?path:path+'/',depth+1)}}await walk(`${songId}/`,0);return out}
+function mergeScoreFiles(dbFiles, storageFiles){
+  const storageSet=new Set((storageFiles||[]).map(f=>scorePath('',f)||f.storage_path||f.path).filter(Boolean));
+  const out=[]; const seen=new Set();
+  const add=f=>{const p=scorePath('',f)||f.storage_path||f.path;if(!p||seen.has(p)||!isScoreImagePath(p))return;seen.add(p);out.push({...f,path:p,storage_path:p,name:f.name||String(p).split('/').pop()})};
+  for(const f of (dbFiles||[])){const p=scorePath('',f)||f.storage_path||f.path;if(!storageSet.size || storageSet.has(p))add(f)}
+  for(const f of (storageFiles||[]))add(f);
+  return out.sort((a,b)=>(Number(a.page_no||0)-Number(b.page_no||0))||String(scorePath('',a)).localeCompare(String(scorePath('',b))));
+}
+async function listScores(songId){if(!songId)return[];if(scoreCache[songId])return scoreCache[songId];const dbFiles=await listDbScoreFiles(songId);const storageFiles=await listStorageScoreFilesRecursive(songId);scoreCache[songId]=mergeScoreFiles(dbFiles,storageFiles);return scoreCache[songId]}
 async function load(){
   const params=new URLSearchParams(location.search);const id=params.get('id');
   try{
@@ -259,7 +272,7 @@ async function renderDetail(mode='score'){
   if(mode==='video'){
     preview=embed?`<iframe src="${embed}" title="${esc(s.name)} 유튜브" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`:`<div class="empty-preview">등록된 유튜브 링크가 없습니다.</div>`;
   }else{
-    preview=first?`<div class="score-scroll"><img src="${scoreUrl(s.id+'/'+first.name)}" alt="${esc(s.name)} 악보" onerror="brokenScoreImage(this)"></div>`:`<div class="empty-preview">악보 확인 필요<br><small>악보가 준비되면 여기에 표시됩니다.</small></div>`;
+    preview=first?`<div class="score-scroll"><img src="${scoreUrl(scorePath(s.id,first))}" alt="${esc(s.name)} 악보" onerror="brokenScoreImage(this)"></div>`:`<div class="empty-preview">악보 확인 필요<br><small>악보가 준비되면 여기에 표시됩니다.</small></div>`;
   }
   const info=[songKey(s)!=='-'?`Key ${esc(songKey(s))}`:'',songBpm(s)!=='-'?`BPM ${esc(songBpm(s))}`:'',songSeason(s)?esc(songSeason(s)):'',songSituation(s)?esc(songSituation(s)):''].filter(Boolean).join(' · ');
   document.getElementById('detail').innerHTML=`
@@ -289,7 +302,7 @@ function renderShareViewerBody(){
   const s=shareSongs[viewerIdx]||{};const v=document.getElementById('share-viewer');const stage=document.getElementById('share-viewer-stage');v.classList.toggle('two',viewerMode===2);v.classList.toggle('one',viewerMode!==2);
   const pages=[];
   if(!viewerFiles.length){pages.push(`<div class="viewer-page empty">악보 업로드 예정<small>${esc(s.name||'곡')} 악보가 준비되면 여기에 표시됩니다.</small></div>`)}
-  else{for(let p=0;p<viewerMode;p++){const file=viewerFiles[viewerPage+p];if(file)pages.push(`<div class="viewer-page"><img src="${scoreUrl(s.id+'/'+file.name)}" alt="${esc(s.name||'악보')} ${viewerPage+p+1}" onerror="brokenScoreImage(this)"></div>`);else if(viewerMode===2)pages.push(`<div class="viewer-page empty">마지막 페이지<small>${viewerPage+p+1}쪽은 없습니다.</small></div>`)}}
+  else{for(let p=0;p<viewerMode;p++){const file=viewerFiles[viewerPage+p];if(file)pages.push(`<div class="viewer-page"><img src="${scoreUrl(scorePath(s.id,file))}" alt="${esc(s.name||'악보')} ${viewerPage+p+1}" onerror="brokenScoreImage(this)"></div>`);else if(viewerMode===2)pages.push(`<div class="viewer-page empty">마지막 페이지<small>${viewerPage+p+1}쪽은 없습니다.</small></div>`)}}
   const strip=shareSongs.map((song,i)=>`<button class="${i===viewerIdx?'on':''}" onclick="goShareSong(${i})">${esc(`${i+1} ${song.name||'곡'}`)}</button>`).join('');
   stage.innerHTML=`${pages.join('')}<div class="share-top-overlay"><div class="share-top-left"><button class="share-chip ${viewerMode===1?'on':''}" onclick="setSharePageMode(1)">1페이지 보기</button><button class="share-chip ${viewerMode===2?'on':''}" onclick="setSharePageMode(2)">2페이지 보기</button></div><div class="share-top-right"><button class="share-chip close-chip" onclick="closeShareViewer()">×</button></div></div><div class="share-song-strip">${strip}</div><button class="share-lock ${wakeLock?'on':''}" onclick="toggleShareWakeLock()">화면잠금</button>`;
 }
