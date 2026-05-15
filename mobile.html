@@ -844,6 +844,13 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
   #song-modal .song-edit-score-wrap{height:48vh!important;min-height:300px!important;}
 }
 
+
+/* === Phase49: song add auto score parser / compact admin cleanup === */
+.song-auto-drop{margin:10px 16px 0;border:1px dashed rgba(148,163,184,.55);background:rgba(15,23,42,.04);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;font-size:12px;color:#475569}
+.song-auto-drop b{font-size:13px;color:#0f172a}.song-auto-drop span{line-height:1.35}.song-auto-drop.dragover{border-color:#2563eb;background:rgba(37,99,235,.08)}
+.song-auto-result{margin-top:4px;padding:6px 8px;border-radius:10px;background:rgba(255,255,255,.7);border:1px solid rgba(148,163,184,.28);font-size:12px;color:#334155}
+.song-auto-result .warn{color:#b45309;font-weight:700}.song-auto-result .ok{color:#15803d;font-weight:700}
+
 </style>
 </head>
 <body>
@@ -940,9 +947,7 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
         <div class="mobile-tool-title">🎵 곡/콘티 관리</div>
         <div class="mobile-tool-grid">
           <button class="tool" onclick="openSongEdit()"><span>🎵</span><b>새 찬양곡 추가</b><span>곡명, Key, BPM</span></button>
-          <button class="tool" onclick="showSection('songs',document.querySelectorAll('.nav button')[1])"><span>🗂</span><b>찬양곡 수정</b><span>카드에서 바로 수정</span></button>
           <button class="tool" onclick="openMobileHistory()"><span>📖</span><b>콘티 기록 추가</b><span>날짜와 곡 순서 입력</span></button>
-          <button class="tool" onclick="showSection('history',document.querySelectorAll('.nav button')[2])"><span>🕊</span><b>콘티 기록 수정</b><span>기존 콘티 편집</span></button>
         </div>
       </div>
 
@@ -971,6 +976,11 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
 <div class="modal" id="song-modal">
   <div class="sheet">
     <div class="sheet-head"><h3 id="song-modal-title">찬양곡 추가</h3><button class="close" onclick="closeSongEdit()">✕</button></div>
+    <div class="song-auto-drop" id="m-song-auto-drop">
+      <b>악보 파일 드래그앤드롭 자동등록</b>
+      <span>예: 또 하나의 열매를 바라시며_Bb_기본-1.png → 곡명 / Key / 악보버전 / 페이지 자동 입력</span>
+      <div id="m-song-auto-result" class="song-auto-result">파일을 올리면 기본 정보가 자동으로 채워집니다.</div>
+    </div>
     <div class="form-grid">
       <div class="field song-name-field song-form-left"><label>곡명</label><input id="m-song-name" placeholder="예: 예수 열방의 소망"></div>
       <div class="field song-status-field song-form-right"><label>상태</label><select id="m-song-status"><option value="used">사용 이력 있음</option><option value="ready">악보 완료</option><option value="plan">작업 예정</option></select></div>
@@ -1003,7 +1013,7 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
             </div>
           </div>
           <div class="edit-score-file" id="m-song-score-file">등록된 악보가 없습니다.</div>
-          <input id="m-song-score-files" type="file" accept="image/png,image/jpeg,image/jpg" multiple>
+          <input id="m-song-score-files" type="file" accept="image/png,image/jpeg,image/jpg" multiple onchange="handleSongEditScoreFiles(this.files)">
           <div class="edit-score-toolbar">
             <span class="page-label">여러 장 선택 가능</span>
             <button type="button" class="mini-btn white" onclick="uploadEditSongScores()">악보 추가</button>
@@ -2184,9 +2194,12 @@ async function uploadContiSongScores(){
   if(!song?.id){toast('DB에 연결된 곡만 악보 업로드가 가능해요');return}
   const files=[...(input?.files||[])];
   if(!files.length){toast('업로드할 악보 이미지를 선택하세요');return}
+  let upIdx=0;
   for(const file of files){
     if(!/^image\/(png|jpeg)$/.test(file.type)){toast('JPG/PNG 파일만 가능해요');continue}
-    const path=`${song.id}/${safeFileName(file.name)}`;
+    const meta=parseAutoScoreFileName(file.name);
+    const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+    const path=`${song.id}/${Date.now()}_${upIdx++}.${ext}`;
     const res=await fetch(`${STORAGE_URL}/object/scores/${path}`,{method:'POST',headers:{...STOR_HEADERS,'Content-Type':file.type,'x-upsert':'true'},body:file});
     if(!res.ok){toast('업로드 실패: '+file.name);return}
   }
@@ -2272,7 +2285,7 @@ function resetContiSongEdit(){
 
 let mobileSongId=null, mobileHistoryId=null, mobileSelectedSongs=[];
 function todayISO(){return new Date().toISOString().split('T')[0]}
-function openSongEdit(id){mobileSongId=id||null;editSongScoreFiles=[];editSongScoreIndex=0;const m=document.getElementById('song-modal');document.getElementById('song-modal-title').textContent=id?'찬양곡 수정':'찬양곡 추가';document.getElementById('m-song-delete').style.visibility=id?'visible':'hidden';const s=id?songs.find(x=>String(x.id)===String(id)):null;document.getElementById('m-song-name').value=s?.name||'';document.getElementById('m-song-status').value=s?.status||'used';document.getElementById('m-song-count').value=s?.count||0;document.getElementById('m-song-key').value=s?.key||'';const tp=mobileTempoParts(s);document.getElementById('m-song-bpm-min').value=tp.min||0;document.getElementById('m-song-bpm-max').value=tp.max||0;document.getElementById('m-song-url').value=s?.music_url||'';document.getElementById('m-song-tags').value=(s?.seasons||[]).join(', ');document.getElementById('m-song-memo').value=s?.memo||'';const hist=document.getElementById('m-song-memo-history');if(hist){hist.style.display='none';hist.innerHTML=''}const input=document.getElementById('m-song-score-files');if(input)input.value='';m.classList.add('show');renderMobileEditYoutubePreview();renderEditSongScoreList()}
+function openSongEdit(id){mobileSongId=id||null;editSongScoreFiles=[];editSongScoreIndex=0;pendingSongScoreFiles=[];pendingSongScoreMeta=null;setupSongAutoDrop();const m=document.getElementById('song-modal');document.getElementById('song-modal-title').textContent=id?'찬양곡 수정':'찬양곡 추가';document.getElementById('m-song-delete').style.visibility=id?'visible':'hidden';const s=id?songs.find(x=>String(x.id)===String(id)):null;document.getElementById('m-song-name').value=s?.name||'';document.getElementById('m-song-status').value=s?.status||'used';document.getElementById('m-song-count').value=s?.count||0;document.getElementById('m-song-key').value=s?.key||'';const tp=mobileTempoParts(s);document.getElementById('m-song-bpm-min').value=tp.min||0;document.getElementById('m-song-bpm-max').value=tp.max||0;document.getElementById('m-song-url').value=s?.music_url||'';document.getElementById('m-song-tags').value=(s?.seasons||[]).join(', ');document.getElementById('m-song-memo').value=s?.memo||'';const hist=document.getElementById('m-song-memo-history');if(hist){hist.style.display='none';hist.innerHTML=''}const input=document.getElementById('m-song-score-files');if(input)input.value='';const autoBox=document.getElementById('m-song-auto-result');if(autoBox)autoBox.textContent='파일을 올리면 기본 정보가 자동으로 채워집니다.';m.classList.add('show');renderMobileEditYoutubePreview();renderEditSongScoreList()}
 function closeSongEdit(){document.getElementById('song-modal').classList.remove('show')}
 
 function mobileTempoParts(song){
@@ -2315,15 +2328,65 @@ async function saveMobileSongRecord(method,endpoint,payload){
     throw e;
   }}
 
+
+let pendingSongScoreFiles=[];
+let pendingSongScoreMeta=null;
+function parseAutoScoreFileName(fileName){
+  const original=String(fileName||'');
+  const base=original.normalize('NFC').replace(/\.[a-z0-9]+$/i,'');
+  const parts=base.split('_').map(x=>x.trim()).filter(Boolean);
+  const knownKeys=['C','C#','Db','D','D#','Eb','E','F','F#','Gb','G','G#','Ab','A','A#','Bb','B','Cm','Dm','Em','Fm','Gm','Am','Bm','여성키','남성키','원키'];
+  let songName=base,key='',version='기본',page=1;
+  if(parts.length>=3){
+    const ki=parts.findIndex(x=>knownKeys.some(k=>k.toLowerCase()===x.toLowerCase()));
+    if(ki>0){
+      songName=parts.slice(0,ki).join('_');
+      key=parts[ki];
+      const rest=parts.slice(ki+1).join('_')||'기본';
+      const m=rest.match(/^(.*?)[-_ ]?(\d+)$/);
+      version=(m&&m[1]?m[1]:rest).replace(/[-_ ]+$/,'')||'기본';
+      page=m?parseInt(m[2],10):1;
+    }
+  }
+  return {songName,key,version,page,original};
+}
+function handleSongEditScoreFiles(files){
+  const arr=[...(files||[])].filter(f=>/^image\/(png|jpeg)$/.test(f.type));
+  if(!arr.length)return;
+  pendingSongScoreFiles=arr;
+  pendingSongScoreMeta=parseAutoScoreFileName(arr[0].name);
+  applyParsedScoreMeta(pendingSongScoreMeta,arr);
+}
+function applyParsedScoreMeta(meta,files){
+  if(!meta)return;
+  const nameEl=document.getElementById('m-song-name');
+  const keyEl=document.getElementById('m-song-key');
+  if(nameEl && !mobileSongId) nameEl.value=meta.songName||nameEl.value;
+  if(keyEl && meta.key) keyEl.value=meta.key;
+  const status=document.getElementById('m-song-status');
+  if(status)status.value='ready';
+  const box=document.getElementById('m-song-auto-result');
+  const same=(songs||[]).find(s=>norm(s.name)===norm(meta.songName));
+  const warn=same&&!mobileSongId?`<span class="warn">기존 곡 발견: ${esc(same.name)} · 새 곡이면 이름을 수정하고, 기존 곡 악보 추가면 해당 곡 수정에서 올리세요.</span>`:'<span class="ok">자동 분석 완료</span>';
+  if(box)box.innerHTML=`${warn}<br>곡명: <b>${esc(meta.songName)}</b> · Key: <b>${esc(meta.key||'-')}</b> · 버전: <b>${esc(meta.version||'기본')}</b> · ${files.length}장`;
+}
+function setupSongAutoDrop(){
+  const dz=document.getElementById('m-song-auto-drop');
+  if(!dz||dz.dataset.bound)return;
+  dz.dataset.bound='1';
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('dragover')});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('dragover'));
+  dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('dragover');const input=document.getElementById('m-song-score-files');if(input){try{input.files=e.dataTransfer.files}catch(_){} }handleSongEditScoreFiles(e.dataTransfer.files);});
+}
+
 let editSongScoreFiles=[];
 let editSongScoreIndex=0;
 function editSong(){return songs.find(s=>String(s.id)===String(mobileSongId))}
 function cleanEditScorePart(v){return String(v||'').trim().replace(/\s+/g,'').replace(/[\\/:*?"<>|]/g,'')||'곡명'}
 function editSongScoreFileName(file,index){
   const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
-  const songName=cleanEditScorePart(document.getElementById('m-song-name')?.value||editSong()?.name||'곡명');
-  const key=cleanEditScorePart(document.getElementById('m-song-key')?.value||editSong()?.key||'Key');
-  return `${songName}_${key}_코드_${index+1}.${ext}`;
+  // Storage는 한글/곡명 기반이 아니라 숫자 파일명만 사용합니다. 원본 파일명은 분석용입니다.
+  return `${Date.now()}_${index}.${ext}`;
 }
 async function renderEditSongScoreList(){
   const preview=document.getElementById('m-song-score-preview');
@@ -2365,11 +2428,11 @@ function openEditSongScoreViewer(){
   preview.classList.toggle('expanded');
   toast(preview.classList.contains('expanded')?'악보 미리보기를 크게 표시합니다':'악보 미리보기를 기본 크기로 표시합니다');
 }
-async function uploadEditSongScores(){
+async function uploadEditSongScores(fileOverride){
   const song=editSong();
   const input=document.getElementById('m-song-score-files');
-  if(!song){toast('새 곡은 먼저 저장한 뒤 악보를 추가하세요');return}
-  const files=[...(input?.files||[])];
+  const files=[...(fileOverride||input?.files||pendingSongScoreFiles||[])];
+  if(!song){pendingSongScoreFiles=files;toast('새 곡은 먼저 저장하면 악보까지 이어서 등록합니다');return}
   if(!files.length){toast('업로드할 악보 이미지를 선택하세요');return}
   const existing=await listScores(song.id);
   for(let i=0;i<files.length;i++){
@@ -2411,7 +2474,33 @@ async function deleteEditSongScore(){
   toast('악보를 삭제했어요');
 }
 
-async function saveMobileSong(){const name=document.getElementById('m-song-name').value.replace(/\s+/g,' ').trim();if(!name){toast('곡명을 입력해주세요');return}let bpmMin=parseInt(document.getElementById('m-song-bpm-min').value)||0;let bpmMax=parseInt(document.getElementById('m-song-bpm-max').value)||0;if(bpmMin<0||bpmMax<0||bpmMin>300||bpmMax>300){toast('템포는 0~300 사이로 입력해주세요');return}if(bpmMin&&bpmMax&&bpmMax<bpmMin){const t=bpmMin;bpmMin=bpmMax;bpmMax=t;}if(!bpmMax)bpmMax=bpmMin;const payload={name,status:document.getElementById('m-song-status').value,count:parseInt(document.getElementById('m-song-count').value)||0,key:document.getElementById('m-song-key').value.trim(),bpm:bpmMin,bpm_min:bpmMin,bpm_max:bpmMax,music_url:document.getElementById('m-song-url').value.trim(),seasons:document.getElementById('m-song-tags').value.split(',').map(x=>x.trim()).filter(Boolean),memo:document.getElementById('m-song-memo').value.trim(),updated_at:new Date().toISOString()};try{if(mobileSongId){const updated=await saveMobileSongRecord('PATCH',`songs?id=eq.${mobileSongId}`,payload);const i=songs.findIndex(x=>String(x.id)===String(mobileSongId));if(i>=0&&updated?.[0])songs[i]=updated[0];toast('찬양곡을 수정했어요')}else{const created=await saveMobileSongRecord('POST','songs',payload);if(created?.[0])songs.unshift(created[0]);toast('찬양곡을 추가했어요')}closeSongEdit();renderSongCards();pickCurrentConti();renderHome()}catch(e){toast('저장 실패: '+e.message)}}
+async function saveMobileSong(){
+  const name=document.getElementById('m-song-name').value.replace(/\s+/g,' ').trim();
+  if(!name){toast('곡명을 입력해주세요');return}
+  let bpmMin=parseInt(document.getElementById('m-song-bpm-min').value)||0;
+  let bpmMax=parseInt(document.getElementById('m-song-bpm-max').value)||0;
+  if(bpmMin<0||bpmMax<0||bpmMin>300||bpmMax>300){toast('템포는 0~300 사이로 입력해주세요');return}
+  if(bpmMin&&bpmMax&&bpmMax<bpmMin){const t=bpmMin;bpmMin=bpmMax;bpmMax=t;}
+  if(!bpmMax)bpmMax=bpmMin;
+  const payload={name,status:document.getElementById('m-song-status').value,count:parseInt(document.getElementById('m-song-count').value)||0,key:document.getElementById('m-song-key').value.trim(),bpm:bpmMin,bpm_min:bpmMin,bpm_max:bpmMax,music_url:document.getElementById('m-song-url').value.trim(),seasons:document.getElementById('m-song-tags').value.split(',').map(x=>x.trim()).filter(Boolean),memo:document.getElementById('m-song-memo').value.trim(),updated_at:new Date().toISOString()};
+  try{
+    if(mobileSongId){
+      const updated=await saveMobileSongRecord('PATCH',`songs?id=eq.${mobileSongId}`,payload);
+      const i=songs.findIndex(x=>String(x.id)===String(mobileSongId));
+      if(i>=0&&updated?.[0])songs[i]=updated[0];
+      if(pendingSongScoreFiles.length)await uploadEditSongScores(pendingSongScoreFiles);
+      toast('찬양곡을 수정했어요');
+    }else{
+      const created=await saveMobileSongRecord('POST','songs',payload);
+      if(created?.[0]){songs.unshift(created[0]);mobileSongId=created[0].id;}
+      if(pendingSongScoreFiles.length)await uploadEditSongScores(pendingSongScoreFiles);
+      toast(pendingSongScoreFiles.length?'찬양곡과 악보를 추가했어요':'찬양곡을 추가했어요');
+    }
+    pendingSongScoreFiles=[];pendingSongScoreMeta=null;
+    closeSongEdit();renderSongCards();pickCurrentConti();renderHome();
+  }catch(e){toast('저장 실패: '+e.message)}
+}
+
 async function deleteMobileSong(){if(!mobileSongId)return;if(!confirm('이 찬양곡을 삭제할까요?'))return;try{await api('DELETE',`songs?id=eq.${mobileSongId}`);songs=songs.filter(x=>x.id!==mobileSongId);closeSongEdit();renderSongCards();pickCurrentConti();renderHome();toast('삭제했어요')}catch(e){toast('삭제 실패: '+e.message)}}
 function openCurrentMobileHistory(){openMobileHistory(currentConti?.id||null)}
 function openMobileHistory(id){mobileHistoryId=id||null;const h=id?history.find(x=>x.id===id):null;document.getElementById('history-modal-title').textContent=id?'콘티 기록 수정':'콘티 기록 추가';document.getElementById('m-history-delete').style.visibility=id?'visible':'hidden';document.getElementById('m-history-date').value=h?.worship_date||todayISO();document.getElementById('m-history-note').value=h?.note||'';mobileSelectedSongs=h?uniqueContiSongsByName((h.song_names||[]).map((name,i)=>({id:(h.song_ids||[])[i]||null,name}))):[];renderMobileSelectedSongs();document.getElementById('m-history-q').value='';document.getElementById('m-history-results').style.display='none';document.getElementById('history-modal').classList.add('show')}
@@ -2488,7 +2577,7 @@ async function openSongScoreManager(id){
   await renderSongScoreManagerList();
 }
 function closeSongScoreManager(){document.getElementById('song-score-modal').classList.remove('show')}
-async function changeSongScoreManager(id){songScoreManagerId=id;document.getElementById('song-score-files').value='';await renderSongScoreManagerList()}
+async function changeSongScoreManager(id){songScoreManagerId=id;document.getElementById('song-score-files').value='';const el=document.getElementById('song-score-list');if(el)el.innerHTML='<div class="selected-item"><span>선택한 곡의 악보를 불러오는 중...</span></div>';await renderSongScoreManagerList()}
 function scoreManagerSong(){return songs.find(s=>String(s.id)===String(songScoreManagerId))}
 async function renderSongScoreManagerList(){
   const el=document.getElementById('song-score-list');
@@ -2505,8 +2594,11 @@ async function uploadSongScores(){
   const input=document.getElementById('song-score-files');
   if(!song){toast('곡을 먼저 선택하세요');return}
   if(!input.files||!input.files.length){toast('업로드할 악보 이미지를 선택하세요');return}
+  let upIdx=0;
   for(const file of input.files){
-    const path=`${song.id}/${safeFileName(file.name)}`;
+    const meta=parseAutoScoreFileName(file.name);
+    const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+    const path=`${song.id}/${Date.now()}_${upIdx++}.${ext}`;
     const res=await fetch(`${STORAGE_URL}/object/scores/${path}`,{method:'POST',headers:{...STOR_HEADERS,'Content-Type':file.type,'x-upsert':'true'},body:file});
     if(!res.ok){toast('업로드 실패: '+file.name);return}
   }
