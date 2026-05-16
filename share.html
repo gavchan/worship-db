@@ -324,9 +324,14 @@ async function buildShareSpreadPages(song,files,page,mode){
 }
 async function renderShareViewerBody(){
   normalizeShareSongList();
-  const s=shareSongs[viewerIdx]||{};const v=document.getElementById('share-viewer');const stage=document.getElementById('share-viewer-stage');v.classList.toggle('two',effectiveMode===2);v.classList.toggle('one',effectiveMode!==2);
+  const s=shareSongs[viewerIdx]||{};
+  const v=document.getElementById('share-viewer');
+  const stage=document.getElementById('share-viewer-stage');
+  if(!v||!stage){viewerToast('연주화면을 열 수 없습니다');return}
   const pages=await buildShareSpreadPages(s,viewerFiles,viewerPage,viewerMode);
   const effectiveMode=(viewerMode===2 && pages.length<2)?1:viewerMode;
+  v.classList.toggle('two',effectiveMode===2);
+  v.classList.toggle('one',effectiveMode!==2);
   const strip=shareSongs.map((song,i)=>`<button class="${i===viewerIdx?'on':''}" onclick="goShareSong(${i})">${esc(`${i+1} ${song.name||'곡'}`)}</button>`).join('');
   stage.innerHTML=`${pages.join('')}<div class="share-top-overlay"><div class="share-top-left"><button class="share-chip ${viewerMode===1?'on':''}" onclick="setSharePageMode(1)">1페이지 보기</button><button class="share-chip ${viewerMode===2?'on':''}" onclick="setSharePageMode(2)">2페이지 보기</button></div><div class="share-top-right"><button class="share-chip close-chip" onclick="closeShareViewer()">×</button></div></div><div class="share-song-strip">${strip}</div><button class="share-lock ${wakeLock?'on':''}" onclick="toggleShareWakeLock()">화면잠금</button>`;
 }

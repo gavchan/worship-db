@@ -126,17 +126,55 @@ const SH={'apikey':KEY,'Authorization':'Bearer '+KEY};
 let DB=[], items=[];
 
 async function syncR2Praise(songIds) {
-  try {
-    const r = await fetch('/api/r2-praise-sync', {
+  const ids = Array.isArray(songIds) ? songIds.filter(Boolean) : (songIds ? [songIds] : []);
+
+  async function postJson(payload) {
+    const res = await fetch('/api/r2-praise-sync', {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({songIds, force: true})
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
     });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok || !data.ok) throw new Error(data.error || 'R2 반영 실패');
-    return true;
-  } catch(e) {
-    dbg('R2 반영 실패: ' + e.message);
+    const text = await res.text();
+    let data = {};
+    try { data = text ? JSON.parse(text) : {}; } catch (_) { data = {message: text}; }
+    if (!res.ok || data.ok === false) throw new Error(data.error || data.message || `R2 반영 실패 (${res.status})`);
+    return data;
+  }
+
+  try {
+    if (ids.length) {
+      try {
+        await postJson({songIds: ids, force: true});
+        return true;
+      } catch (targetError) {
+        const oneByOneErrors = [];
+        for (const id of ids) {
+          try {
+            await postJson({songId: id, force: true});
+          } catch (e) {
+            oneByOneErrors.push(e.message || String(e));
+          }
+        }
+        if (!oneByOneErrors.length) return true;
+      }
+    }
+
+    let offset = 0;
+    let guard = 0;
+    while (guard < 100) {
+      const data = await postJson({force: true, batch: true, offset, limit: 50});
+      if (data.done) return true;
+      const processed = Number(data.processedCount || data.limit || 0);
+      const nextOffset = Number(data.nextOffset || 0);
+      if (nextOffset > offset) offset = nextOffset;
+      else if (processed > 0) offset += processed;
+      else return true;
+      guard++;
+    }
+    throw new Error('R2 전체 반영이 너무 오래 걸려 중단됐어요');
+  } catch (e) {
+    if (typeof dbg === 'function') dbg('R2 반영 실패: ' + (e.message || e));
+    console.warn('R2 sync failed', e);
     return false;
   }
 }
@@ -171,29 +209,69 @@ function clean(s){
 
 
 function parseScoreFileName(fileName){
-  const original = fileName.normalize('NFC');
-  const name = original.replace(/\.[a-z0-9]+$/i,'');
+  const original = String(fileName || '').normalize('NFC');
+  const ext = (original.split('.').pop() || '').toLowerCase();
+  const name = original.replace(/\.[a-z0-9]+$/i,'').trim();
   const parts = name.split('_').map(v=>v.trim()).filter(Boolean);
-  const ext = (fileName.split('.').pop() || '').toLowerCase();
-  const knownKeys = ['C','C#','Db','D','D#','Eb','E','F','F#','Gb','G','G#','Ab','A','A#','Bb','B','Cm','Dm','Em','Fm','Gm','Am','Bm','여성키','남성키','원키'];
-  let page = 1, key = '', type = '기본', song = name;
-  const keyIndex = parts.findIndex(x => knownKeys.some(k=>k.toLowerCase()===x.toLowerCase()));
+  const knownKeys = ['C','C#','Db','D','D#','Eb','E','F','F#','Gb','G','G#','Ab','A','A#','Bb','B','Cm','C#m','Dbm','Dm','D#m','Ebm','Em','Fm','F#m','Gbm','Gm','G#m','Abm','Am','A#m','Bbm','Bm','여성키','남성키','원키'];
+  const isKey = v => knownKeys.some(k=>k.toLowerCase()===String(v||'').toLowerCase());
+  const splitVersionPage = raw => {
+    const text = String(raw || '').trim();
+    const m = text.match(/^(.+?)[-_\s]*(\d+)$/);
+    if(!m) return { version:text || '', page:null };
+    return { version:(m[1] || '').replace(/[-_\s]+$/,'').trim(), page:Number(m[2]) || null };
+  };
+  let songName = '', key = '', type = '', page = null;
+  const keyIndex = parts.findIndex(isKey);
   if(keyIndex > 0){
-    song = parts.slice(0,keyIndex).join('_');
+    songName = parts.slice(0,keyIndex).join('_').trim();
     key = parts[keyIndex];
-    const rest = parts.slice(keyIndex+1).join('_') || '기본';
-    const m = rest.match(/^(.*?)[-_ ]?(\d+)$/);
-    type = (m && m[1] ? m[1] : rest).replace(/[-_ ]+$/,'') || '기본';
-    page = m ? parseInt(m[2],10) : 1;
-  } else if(parts.length >= 2){
-    const last=parts[parts.length-1];
-    const m=last.match(/^(.*?)[-_ ]?(\d+)$/);
-    if(m && m[2]) page=parseInt(m[2],10);
-    song=parts.slice(0,-1).join('_') || parts[0];
-    type=(m&&m[1])?m[1]:'기본';
+    const rest = parts.slice(keyIndex+1).join('_').trim();
+    const vp = splitVersionPage(rest || '기본-1');
+    type = vp.version || '기본';
+    page = vp.page;
+  }else if(parts.length >= 2){
+    const vp = splitVersionPage(parts[parts.length-1]);
+    songName = parts.slice(0,-1).join('_').trim() || parts[0];
+    type = vp.version || '';
+    page = vp.page;
+  }else{
+    const vp = splitVersionPage(name);
+    songName = vp.version || name;
+    page = vp.page;
   }
-  return { songName: song, key, type, page, ext, original: fileName };
+  const missing = [];
+  if(!songName) missing.push('곡명');
+  if(!key) missing.push('Key');
+  if(!type) missing.push('버전');
+  if(!page) missing.push('페이지');
+  return { songName, key, type:type || '기본', page:page || 1, ext, original:fileName, missing, isParsed:missing.length===0 };
 }
+
+async function getOrCreateScoreVersion(songId, meta){
+  const vName = meta.type || '기본';
+  const vKey = meta.key || '';
+  const q = `song_score_versions?select=*&song_id=eq.${songId}&version_name=eq.${encodeURIComponent(vName)}&score_key=eq.${encodeURIComponent(vKey)}&limit=1`;
+  const found = await apiGet(q);
+  if(found?.[0]) return found[0];
+  const payload = {song_id:songId,version_name:vName,score_key:vKey,score_type:'코드악보',is_default:vName==='기본',memo:`파일명 자동분석: ${meta.original}`};
+  const created = await apiPost('song_score_versions', payload);
+  return created?.[0];
+}
+
+async function findScorePageConflict(songId, versionId, pageNo){
+  const rows = await apiGet(`song_score_files?select=*&song_id=eq.${songId}&version_id=eq.${versionId}&page_no=eq.${pageNo}&limit=1`);
+  return rows?.[0] || null;
+}
+
+function readConflictRegistry(){
+  try{return JSON.parse(localStorage.getItem('wdb_score_conflicts')||'[]')}catch(_){return []}
+}
+function writeConflictRegistry(list){localStorage.setItem('wdb_score_conflicts', JSON.stringify(list.slice(-500)))}
+function addConflictRegistry(row){const list=readConflictRegistry();list.push({...row, id:Date.now()+'_'+Math.random().toString(36).slice(2), created_at:new Date().toISOString()});writeConflictRegistry(list)}
+async function apiGet(path){const r=await fetch(`${SURL}/rest/v1/${path}`,{headers:RH});if(!r.ok)throw new Error(await r.text());return await r.json()}
+async function apiPost(path,payload){const r=await fetch(`${SURL}/rest/v1/${path}`,{method:'POST',headers:{...JH,'Prefer':'return=representation'},body:JSON.stringify(payload)});if(!r.ok)throw new Error(await r.text());return await r.json()}
+
 
 function match(fileName, songName){
   const f = clean(fileName);
@@ -227,7 +305,7 @@ function debugMatch(fileName) {
 
 async function load(){
   try{
-    const r=await fetch(`${SURL}/rest/v1/songs?select=id,name,status,has_score&limit=2000&order=name`,{headers:RH});
+    const r=await fetch(`${SURL}/rest/v1/songs?select=id,name,status,has_score,key&limit=2000&order=name`,{headers:RH});
     DB=await r.json();
     document.getElementById('stat').textContent=`✓ ${DB.length}곡 로드 완료 — 파일을 선택하세요`;
     document.getElementById('btnFile').disabled=false;
@@ -347,7 +425,10 @@ ${thumb}
     <span class="badge ${bl}">${bt}</span>
     ${it.meta?.key?`<span class="badge b-meta">Key ${it.meta.key}</span>`:''}
     ${it.meta?.type?`<span class="badge b-meta">${it.meta.type}</span>`:''}
+    ${it.meta?.page?`<span class="badge b-meta">시작 ${it.meta.page}p</span>`:''}
     ${it.files?.length?`<span class="badge b-meta">${it.files.length}장</span>`:''}
+    ${it.meta?.missing?.length?`<span class="badge b-err">미분류: ${it.meta.missing.join(', ')}</span>`:''}
+    ${it.conflict?`<span class="badge b-err">충돌 대기</span>`:''}
     ${it.hasScore?'<span class="badge b-has">기존 악보 있음</span>':''}
     ${!it.done&&!it.err?`<select class="sel" onchange="upd(${i},this.value)"><option value="">+ 새 곡으로 등록: ${esc(it.meta.songName)}</option>${opts}</select>`:(it.songName?`<span style="font-size:.78rem;font-weight:500">${it.songName}</span>`:'')}
   </div>
@@ -391,18 +472,29 @@ async function startUpload(){
         const created=await cr.json();
         if(!created?.[0]?.id)throw new Error('새 곡 생성 실패');
         it.songId=created[0].id;it.songName=created[0].name;
-        DB.push({id:created[0].id,name:created[0].name,status:'ready',has_score:true});
+        DB.push({id:created[0].id,name:created[0].name,status:'ready',has_score:true,key:created[0].key||it.meta.key||''});
       }
-      // 기존 파일 수 확인
-      const lr=await fetch(`${SURL}/storage/v1/object/list/scores`,{method:'POST',headers:{...SH,'Content-Type':'application/json'},body:JSON.stringify({prefix:it.songId+'/',limit:50})});
-      const ex=lr.ok?await lr.json():[];
-      const exCount=Array.isArray(ex)?ex.filter(f=>f.name&&!f.name.endsWith('/')).length:0;
+      const version = await getOrCreateScoreVersion(it.songId, it.meta);
+      if(!version?.id) throw new Error('악보 버전 생성/조회 실패');
       for(let i=0;i<it.files.length;i++){
         const f=it.files[i];
-        const ext=f.name.split('.').pop();
-        const path=`${it.songId}/${Date.now()}_${exCount+i}.${ext}`;
-        const r=await fetch(`${SURL}/storage/v1/object/scores/${path}`,{method:'POST',headers:{...SH,'Content-Type':f.type,'x-upsert':'false'},body:f});
+        const fileMeta = parseScoreFileName(f.name);
+        const pageNo = fileMeta.page || (it.meta.page || 1) + i;
+        const conflict = await findScorePageConflict(it.songId, version.id, pageNo);
+        const ext=(f.name.split('.').pop()||'png').toLowerCase();
+        const baseName = `${Date.now()}_${i}.${ext}`;
+        if(conflict){
+          const conflictPath=`${it.songId}/_conflicts/${baseName}`;
+          const cr=await fetch(`${SURL}/storage/v1/object/scores/${conflictPath}`,{method:'POST',headers:{...SH,'Content-Type':f.type||'application/octet-stream','x-upsert':'false'},body:f});
+          if(!cr.ok)throw new Error(await cr.text());
+          addConflictRegistry({song_id:it.songId,song_name:it.songName||it.meta.songName,key:it.meta.key||'',version:it.meta.type||'기본',page:pageNo,storage_path:conflictPath,original_filename:f.name,existing_storage_path:conflict.storage_path,reason:'same_song_key_version_page'});
+          it.conflict=true;
+          continue;
+        }
+        const path=`${it.songId}/${baseName}`;
+        const r=await fetch(`${SURL}/storage/v1/object/scores/${path}`,{method:'POST',headers:{...SH,'Content-Type':f.type||'application/octet-stream','x-upsert':'false'},body:f});
         if(!r.ok)throw new Error(await r.text());
+        await apiPost('song_score_files',{version_id:version.id,song_id:it.songId,storage_path:path,file_name:f.name,page_no:pageNo,mime_type:f.type||'image/*'});
       }
       const song=DB.find(s=>s.id===it.songId);
       const newStatus=song?.status==='plan'?'ready':song?.status;

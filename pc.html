@@ -1568,26 +1568,59 @@ function brokenScoreImage(img){
   }catch(e){}
 }
 
-async function syncR2Praise(songId) {
-  try {
-    setSync('sync', 'R2 반영 중...');
+async function syncR2Praise(songIds) {
+  const ids = Array.isArray(songIds) ? songIds.filter(Boolean) : (songIds ? [songIds] : []);
+
+  async function postJson(payload) {
     const res = await fetch('/api/r2-praise-sync', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({songIds: songId ? [songId] : [], force: true})
+      body: JSON.stringify(payload)
     });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data.ok) throw new Error(data.error || 'R2 반영 실패');
-    setSync('on', 'R2 반영 완료');
-    return true;
-  } catch(e) {
+    const text = await res.text();
+    let data = {};
+    try { data = text ? JSON.parse(text) : {}; } catch (_) { data = {message: text}; }
+    if (!res.ok || data.ok === false) throw new Error(data.error || data.message || `R2 반영 실패 (${res.status})`);
+    return data;
+  }
+
+  try {
+    if (ids.length) {
+      try {
+        await postJson({songIds: ids, force: true});
+        return true;
+      } catch (targetError) {
+        const oneByOneErrors = [];
+        for (const id of ids) {
+          try {
+            await postJson({songId: id, force: true});
+          } catch (e) {
+            oneByOneErrors.push(e.message || String(e));
+          }
+        }
+        if (!oneByOneErrors.length) return true;
+      }
+    }
+
+    let offset = 0;
+    let guard = 0;
+    while (guard < 100) {
+      const data = await postJson({force: true, batch: true, offset, limit: 50});
+      if (data.done) return true;
+      const processed = Number(data.processedCount || data.limit || 0);
+      const nextOffset = Number(data.nextOffset || 0);
+      if (nextOffset > offset) offset = nextOffset;
+      else if (processed > 0) offset += processed;
+      else return true;
+      guard++;
+    }
+    throw new Error('R2 전체 반영이 너무 오래 걸려 중단됐어요');
+  } catch (e) {
+    if (typeof dbg === 'function') dbg('R2 반영 실패: ' + (e.message || e));
     console.warn('R2 sync failed', e);
-    setSync('off', 'R2 반영 실패');
-    showToast('저장은 됐지만 R2 반영은 실패했어요');
     return false;
   }
 }
-
 function safeScoreFilePart(v) {
   return String(v || '')
     .replace(/[\\/:*?"<>|#%{}^~`\[\]]/g, '')
