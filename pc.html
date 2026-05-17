@@ -1722,9 +1722,10 @@ function currentModalScoreBaseName() {
   return `${name}_${key}_코드`;
 }
 async function uploadScore(songId, file, idx, total) {
-  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-  const base = currentModalScoreBaseName();
-  const path = `${songId}/${base}_${idx + 1}.${ext}`;
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+  // Supabase Storage object keys can reject Korean or special-character file names.
+  // Keep the real storage path ASCII-only; song/key meaning stays in the DB and UI.
+  const path = `${songId}/${Date.now()}_${idx + 1}.${ext}`;
   const bar = document.getElementById('upload-bar');
   bar.style.width = Math.round((idx/total)*60)+'%';
   const res = await fetch(`${STORAGE_URL}/object/scores/${path}`, {
