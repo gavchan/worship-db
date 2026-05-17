@@ -200,6 +200,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .hmodal-bg.show{display:flex}
 .hmodal{background:var(--surface);border-radius:12px;width:100%;max-width:440px;padding:1.5rem;box-shadow:0 20px 60px rgba(0,0,0,.2);max-height:90vh;overflow-y:auto}
 .hmodal h2{font-family:'Noto Serif KR',serif;font-size:1.1rem;font-weight:700;margin-bottom:1.2rem}
+.conti2-tools{border:1px solid var(--border2);background:var(--bg);border-radius:9px;padding:.55rem;margin-top:.55rem;display:grid;gap:.45rem}.conti2-row{display:flex;gap:.4rem;align-items:center;flex-wrap:wrap}.conti-tab{border:1px solid var(--border2);background:var(--surface);border-radius:999px;padding:.35rem .65rem;font-size:.72rem;font-weight:700;color:var(--text2);cursor:pointer}.conti-tab.on{background:var(--accent);border-color:var(--accent);color:#fff}.conti-copy-btn{border:1px solid var(--border2);background:var(--surface);border-radius:7px;padding:.35rem .55rem;font-size:.7rem;color:var(--text2);cursor:pointer}.conti2-help{font-size:.68rem;color:var(--text3);line-height:1.45}
 .song-search-results{max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;margin-top:4px}
 .ssr-item{padding:8px 10px;font-size:.8rem;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s}
 .ssr-item:last-child{border-bottom:none}
@@ -642,6 +643,19 @@ body.dark{--bg:#111315;--surface:#191c20;--surface2:#22262b;--border:#2e343b;--b
     <div class="form-group">
       <label>선택된 곡</label>
       <div class="selected-songs" id="h-selected"></div>
+      <div class="conti2-tools">
+        <label class="conti2-row" style="font-size:.74rem;color:var(--text2);font-weight:700">
+          <input type="checkbox" id="h-use-conti2" onchange="toggleHistoryConti2()"> 콘티2 따로 사용
+        </label>
+        <div id="h-conti2-panel" style="display:none">
+          <div class="conti2-row">
+            <button type="button" class="conti-tab on" id="h-tab-conti1" onclick="switchHistoryConti('main')">콘티1</button>
+            <button type="button" class="conti-tab" id="h-tab-conti2" onclick="switchHistoryConti('conti2')">콘티2</button>
+            <button type="button" class="conti-copy-btn" onclick="copyHistoryConti1To2()">콘티1 복사</button>
+          </div>
+          <div class="conti2-help">평소에는 콘티1만 저장합니다. 1부/2부 순서가 다를 때만 콘티2를 켜고 다른 부분만 수정하세요.</div>
+        </div>
+      </div>
     </div>
     <div class="form-group">
       <label>메모</label>
@@ -1174,6 +1188,9 @@ function toggleHistory(id) {
 
 // ── HISTORY MODAL ─────────────────────────────────────────
 let editHistoryId = null;
+let selectedSongs2 = [];
+let historyContiTarget = 'main';
+let historyUseConti2 = false;
 
 function contiBaseName(v){
   return norm(v)
@@ -1195,9 +1212,49 @@ function uniqueContiSongsByName(list){
     return !!(id||nameKey);
   });
 }
+function encodeConti2Payload(data){
+  try{return btoa(unescape(encodeURIComponent(JSON.stringify(data)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}catch(e){return ''}
+}
+function decodeConti2Payload(raw){
+  try{const b64=String(raw||'').replace(/-/g,'+').replace(/_/g,'/');return JSON.parse(decodeURIComponent(escape(atob(b64))))}catch(e){return null}
+}
+function splitHistoryNote(note){
+  const text=String(note||'');
+  const m=text.match(/\[\[WDB_CONTI2:([A-Za-z0-9_-]+)\]\]/);
+  return {visible:text.replace(/\s*\[\[WDB_CONTI2:[A-Za-z0-9_-]+\]\]\s*/,'').trim(),conti2:m?decodeConti2Payload(m[1]):null};
+}
+function buildHistoryNote(visible){
+  const clean=String(visible||'').trim();
+  if(!historyUseConti2)return clean;
+  selectedSongs2=uniqueSelectedSongsByBaseName(selectedSongs2);
+  const payload={label1:'콘티1',label2:'콘티2',song_ids:selectedSongs2.map(s=>s.id||null),song_names:selectedSongs2.map(s=>s.name)};
+  const enc=encodeConti2Payload(payload);
+  return enc ? (clean?clean+' ':'') + '[[WDB_CONTI2:'+enc+']]' : clean;
+}
+function currentHistorySongs(){return historyContiTarget==='conti2'?selectedSongs2:selectedSongs}
+function setCurrentHistorySongs(list){if(historyContiTarget==='conti2')selectedSongs2=list;else selectedSongs=list}
+function toggleHistoryConti2(){
+  historyUseConti2=!!document.getElementById('h-use-conti2')?.checked;
+  const panel=document.getElementById('h-conti2-panel'); if(panel)panel.style.display=historyUseConti2?'block':'none';
+  if(historyUseConti2&&!selectedSongs2.length)selectedSongs2=selectedSongs.map(s=>({...s}));
+  if(!historyUseConti2)historyContiTarget='main';
+  switchHistoryConti(historyContiTarget);
+}
+function switchHistoryConti(target){
+  historyContiTarget=(target==='conti2'&&historyUseConti2)?'conti2':'main';
+  document.getElementById('h-tab-conti1')?.classList.toggle('on',historyContiTarget==='main');
+  document.getElementById('h-tab-conti2')?.classList.toggle('on',historyContiTarget==='conti2');
+  renderSelectedSongs();
+}
+function copyHistoryConti1To2(){selectedSongs2=selectedSongs.map(s=>({...s}));switchHistoryConti('conti2');showToast('콘티1을 콘티2로 복사했어요')}
 async function openHistoryModal(id) {
   editHistoryId = id||null;
   selectedSongs = [];
+  selectedSongs2 = [];
+  historyContiTarget='main';
+  historyUseConti2=false;
+  const use2=document.getElementById('h-use-conti2'); if(use2)use2.checked=false;
+  const panel2=document.getElementById('h-conti2-panel'); if(panel2)panel2.style.display='none';
   document.getElementById('h-song-q').value='';
   document.getElementById('h-song-results').style.display='none';
   document.getElementById('h-note').value='';
@@ -1209,8 +1266,15 @@ async function openHistoryModal(id) {
       if (data&&data[0]) {
         const h=data[0];
         setSelectedDate(h.worship_date);
-        document.getElementById('h-note').value=h.note||'';
+        const noteInfo=splitHistoryNote(h.note||'');
+        document.getElementById('h-note').value=noteInfo.visible||'';
         selectedSongs=uniqueContiSongsByName((h.song_names||[]).map((name,i)=>({id:(h.song_ids||[])[i]||null,name})));
+        if(noteInfo.conti2&&Array.isArray(noteInfo.conti2.song_names)){
+          historyUseConti2=true;
+          selectedSongs2=uniqueContiSongsByName(noteInfo.conti2.song_names.map((name,i)=>({id:(noteInfo.conti2.song_ids||[])[i]||null,name})));
+          const use2=document.getElementById('h-use-conti2'); if(use2)use2.checked=true;
+          const panel2=document.getElementById('h-conti2-panel'); if(panel2)panel2.style.display='block';
+        }
       }
     } catch(e){}
   } else {
@@ -1266,28 +1330,34 @@ function uniqueSelectedSongsByBaseName(list){
 
 function addToSelectedDirect(name) {
   if(!name) return;
-  if(selectedSongs.find(s=>contiBaseName(s.name)===contiBaseName(name))){showToast('같은 곡의 다른 버전이 이미 들어가 있어요');return;}
-  selectedSongs.push({id:null, name});
+  const list=currentHistorySongs();
+  if(list.find(s=>contiBaseName(s.name)===contiBaseName(name))){showToast('같은 곡의 다른 버전이 이미 들어가 있어요');return;}
+  list.push({id:null, name});
+  setCurrentHistorySongs(list);
   renderSelectedSongs();
   document.getElementById('h-song-q').value='';
   document.getElementById('h-song-results').style.display='none';
 }
 
 function addToSelected(id,name) {
-  if(selectedSongs.find(s=>contiBaseName(s.name)===contiBaseName(name))){showToast('같은 곡의 다른 버전이 이미 들어가 있어요');return;}
-  selectedSongs.push({id,name});
+  const list=currentHistorySongs();
+  if(list.find(s=>contiBaseName(s.name)===contiBaseName(name))){showToast('같은 곡의 다른 버전이 이미 들어가 있어요');return;}
+  list.push({id,name});
+  setCurrentHistorySongs(list);
   renderSelectedSongs();
   document.getElementById('h-song-q').value='';
   document.getElementById('h-song-results').style.display='none';
 }
 
-function removeFromSelected(idx) { selectedSongs.splice(idx,1); renderSelectedSongs(); }
-function moveSelectedSong(idx,delta){const next=idx+delta;if(next<0||next>=selectedSongs.length)return;[selectedSongs[idx],selectedSongs[next]]=[selectedSongs[next],selectedSongs[idx]];renderSelectedSongs();}
+function removeFromSelected(idx) { const list=currentHistorySongs(); list.splice(idx,1); setCurrentHistorySongs(list); renderSelectedSongs(); }
+function moveSelectedSong(idx,delta){const list=currentHistorySongs();const next=idx+delta;if(next<0||next>=list.length)return;[list[idx],list[next]]=[list[next],list[idx]];setCurrentHistorySongs(list);renderSelectedSongs();}
 let selectedDragFromIdx=null;
 function reorderSelectedSongs(from,to){
-  if(from===to||from<0||to<0||from>=selectedSongs.length||to>=selectedSongs.length)return;
-  const [item]=selectedSongs.splice(from,1);
-  selectedSongs.splice(to,0,item);
+  const list=currentHistorySongs();
+  if(from===to||from<0||to<0||from>=list.length||to>=list.length)return;
+  const [item]=list.splice(from,1);
+  list.splice(to,0,item);
+  setCurrentHistorySongs(list);
   renderSelectedSongs();
 }
 function startSelectedDrag(e,i){selectedDragFromIdx=i;e.currentTarget.classList.add('dragging');try{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',String(i))}catch(_){}}
@@ -1297,8 +1367,9 @@ function endSelectedDrag(){document.querySelectorAll('#h-selected .sel-song').fo
 
 function renderSelectedSongs() {
   const el=document.getElementById('h-selected');
-  el.innerHTML=selectedSongs.length
-    ?selectedSongs.map((s,i)=>`<div class="sel-song" draggable="true" data-selected-idx="${i}" ondragstart="startSelectedDrag(event,${i})" ondragover="overSelectedDrag(event,${i})" ondrop="dropSelectedDrag(event,${i})" ondragend="endSelectedDrag()"><span class="sel-title">${i+1}. ${s.name}</span><button onclick="removeFromSelected(${i})">✕</button><span class="drag-handle" title="잡고 순서 이동">≡</span></div>`).join('')
+  const list=currentHistorySongs();
+  el.innerHTML=list.length
+    ?list.map((s,i)=>`<div class="sel-song" draggable="true" data-selected-idx="${i}" ondragstart="startSelectedDrag(event,${i})" ondragover="overSelectedDrag(event,${i})" ondrop="dropSelectedDrag(event,${i})" ondragend="endSelectedDrag()"><span class="sel-title">${i+1}. ${s.name}</span><button onclick="removeFromSelected(${i})">✕</button><span class="drag-handle" title="잡고 순서 이동">≡</span></div>`).join('')
     :'<div style="font-size:.72rem;color:var(--text3)">곡을 검색해서 추가하세요</div>';
   enableSelectedTouchSort();
 }
@@ -1334,11 +1405,13 @@ function enableSelectedTouchSort(){
 async function saveHistory() {
   const date=getSelectedDate();
   if(!date){showToast('날짜를 선택해주세요');return;}
-  const note=document.getElementById('h-note').value.trim();
+  const note=buildHistoryNote(document.getElementById('h-note').value.trim());
   // song_names와 song_ids의 순서를 반드시 맞춘다.
   // filter(Boolean)을 쓰면 ID가 없는 항목 때문에 인덱스가 밀려서
   // 같은 제목의 다른 버전 곡이 연주 화면에 섞일 수 있다.
+  historyContiTarget='main';
   selectedSongs=uniqueSelectedSongsByBaseName(selectedSongs);
+  if(historyUseConti2)selectedSongs2=uniqueSelectedSongsByBaseName(selectedSongs2);
   const song_ids=selectedSongs.map(s=>s.id||null);
   const song_names=selectedSongs.map(s=>s.name);
   const btn=document.getElementById('h-btn-save');

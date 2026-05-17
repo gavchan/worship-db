@@ -89,7 +89,76 @@
 
 /* Phase 38 compact UI guard */
 button,a{touch-action:manipulation}.viewer-top,.viewer-bottom,.topbar,.header{min-height:44px}.modal,.viewer{overscroll-behavior:contain}
-.viewer-page.next-song-page{position:relative}.next-song-label{position:absolute;left:10px;top:10px;z-index:3;border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.55);color:#fff;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:900;backdrop-filter:blur(10px)}</style>
+.viewer-page.next-song-page{position:relative}.next-song-label{position:absolute;left:10px;top:10px;z-index:3;border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.55);color:#fff;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:900;backdrop-filter:blur(10px)}
+/* Phase55: mobile share layout + conti1/conti2 entry */
+.hero{display:grid;gap:10px}
+.service-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.service-tab{border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--text);border-radius:999px;padding:8px 12px;font-size:12px;font-weight:900;cursor:pointer}
+.service-tab.on{background:#fff;color:#0b1020;border-color:#fff}
+.service-summary{display:grid;gap:8px;margin-top:2px}
+.service-summary-row{display:grid;gap:6px;padding:8px 10px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.045);border-radius:14px}
+.service-summary-label{font-size:11px;font-weight:900;color:#bfdbfe}
+.service-pill-list{display:flex;gap:6px;flex-wrap:wrap;min-width:0}
+.service-pill{display:inline-flex;align-items:center;max-width:100%;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.055);border-radius:999px;padding:5px 8px;font-size:11px;font-weight:800;color:#e5e7eb;line-height:1.2;word-break:keep-all;overflow-wrap:anywhere}
+.service-pill-num{opacity:.65;margin-right:4px}.share-current-label{font-size:12px;font-weight:900;color:#bfdbfe;margin:-2px 0 8px}
+@media(max-width:760px){.wrap{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}.hero{flex:0 0 auto}.top-tabs{flex:0 0 auto}.layout{flex:1 1 auto;min-height:0}.detail-panel{display:flex;flex-direction:column;min-height:0}.preview{max-height:42vh}.bookmark-panel{max-height:24vh;overflow:auto}.service-summary-row{padding:7px}.service-pill{font-size:10.5px;padding:4px 7px}.footer{display:none}}
+/* Phase55 hardening: keep mobile share inside one viewport, with only content areas scrolling */
+html,body{height:100%;overflow:hidden}
+body{min-height:100vh;min-height:100dvh}
+.wrap{height:100vh;height:100dvh;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;gap:10px;padding-top:14px;padding-bottom:12px;overflow:hidden}
+#content{min-height:0;overflow:hidden}
+.layout{height:100%;min-height:0;align-items:stretch}
+.detail-panel,.bookmark-panel{min-height:0;overflow:hidden}
+.detail-panel{display:flex;flex-direction:column}
+#detail{height:100%;min-height:0;display:flex;flex-direction:column}
+.preview{flex:1 1 auto;min-height:140px;aspect-ratio:auto}
+.memo-bar{flex:0 0 auto;max-height:58px;overflow:auto}
+.bookmark-panel{display:flex;flex-direction:column}
+.bookmark-list{min-height:0;overflow:auto;padding-right:2px}
+.bookmark-name{white-space:normal;overflow:visible;text-overflow:unset;word-break:keep-all;overflow-wrap:anywhere}
+.service-summary{max-height:126px;overflow:auto}
+.viewer-stage{inset:0 0 58px;height:auto}
+.viewer-page{height:100%}
+.viewer-page img{max-height:100%;max-width:100%}
+.share-song-strip{height:42px;overflow-x:auto;overflow-y:hidden;background:rgba(5,8,18,.72)}
+.share-lock{height:42px}
+@media(max-width:760px){
+  .wrap{display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:8px;padding:8px}
+  .hero{padding:10px 12px;border-radius:18px;gap:7px}
+  .hero h1{font-size:21px;letter-spacing:0}
+  .hero p{font-size:12px;line-height:1.35;margin-top:0}
+  .service-tabs{gap:6px;margin-top:0}
+  .service-tab{padding:7px 10px;font-size:11px}
+  .service-summary{max-height:82px}
+  .service-summary-row{gap:4px;padding:6px 7px;border-radius:12px}
+  .service-summary-label{font-size:10px}
+  .service-pill-list{gap:4px;flex-wrap:wrap}
+  .service-pill{font-size:10px;padding:3px 6px}
+  .top-tabs{margin:0;gap:6px}
+  .tab-btn{padding:9px 4px;font-size:12px}
+  .layout{height:100%;display:grid;grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) 118px;gap:8px}
+  .detail-panel{order:1;padding:10px;border-radius:16px}
+  .bookmark-panel{order:2;padding:8px;border-radius:16px;max-height:none}
+  .panel-title{font-size:13px;margin:0 0 6px}
+  .bookmark-list{display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;padding-bottom:2px}
+  .bookmark{min-width:168px;grid-template-columns:30px minmax(0,1fr);grid-template-rows:auto auto;padding:8px}
+  .bookmark-meta{grid-column:2;white-space:normal}
+  .share-current-label{font-size:11px;margin:0 0 5px}
+  .detail-head{display:block;margin-bottom:7px}
+  .song-title{font-size:20px;letter-spacing:0}
+  .song-sub{font-size:11px;margin-top:4px}
+  .view-actions{margin-top:7px}
+  .preview{min-height:110px;border-radius:13px}
+  .memo-bar{font-size:11px;line-height:1.35;max-height:42px;padding:6px 8px}
+  .under-actions,.nav-actions{gap:6px;margin-top:7px}
+  .mini-btn{padding:8px 9px;font-size:11px}
+  .footer,.footer-actions{display:none!important}
+  .viewer-stage{inset:0 0 56px}
+  .share-song-strip{left:8px;right:78px;bottom:7px;height:40px;padding:6px;border-radius:14px}
+  .share-song-strip button{font-size:10.5px;padding:6px 8px}
+  .share-lock{right:8px;bottom:7px;height:40px;border-radius:14px;padding:7px 9px;font-size:10.5px}
+}
+</style>
 </head>
 <body>
 <div class="wrap">
@@ -120,7 +189,7 @@ const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 const HEADERS={'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY};
 const STORAGE_URL=SUPABASE_URL+'/storage/v1';
 const STOR_HEADERS={'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY};
-let shareTitle='지정 콘티', shareSongs=[], shareSongMap={}, selectedIdx=0, viewerIdx=0, viewerPage=0, viewerMode=1, viewerFiles=[], scoreCache={}, wakeLock=null, singleViewer=false;
+let shareTitle='지정 콘티', shareSongs=[], shareSongMap={}, selectedIdx=0, viewerIdx=0, viewerPage=0, viewerMode=1, viewerFiles=[], scoreCache={}, wakeLock=null, singleViewer=false, shareVariants=[], activeVariant=0;
 function esc(s){return String(s||'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function norm(v){return (v||'').normalize('NFC').replace(/\s+/g,' ').trim().toLowerCase()}
 function safeArray(v){
@@ -133,6 +202,48 @@ function safeArray(v){
     return t.split(',').map(x=>x.trim()).filter(Boolean);
   }
   return [];
+}
+function decodeConti2Payload(raw){
+  try{
+    const b64=String(raw||'').replace(/-/g,'+').replace(/_/g,'/');
+    const json=decodeURIComponent(escape(atob(b64)));
+    const data=JSON.parse(json);
+    return data&&typeof data==='object'?data:null;
+  }catch(e){return null}
+}
+function splitContiNote(note){
+  const text=String(note||'');
+  const m=text.match(/\[\[WDB_CONTI2:([A-Za-z0-9_-]+)\]\]/);
+  const conti2=m?decodeConti2Payload(m[1]):null;
+  return {visible:text.replace(/\s*\[\[WDB_CONTI2:[A-Za-z0-9_-]+\]\]\s*/,'').trim(),conti2};
+}
+function songsEqualByBase(a,b){
+  const aa=(a||[]).map(s=>contiBaseName(s?.name||'')||norm(s?.name||'')).join('|');
+  const bb=(b||[]).map(s=>contiBaseName(s?.name||'')||norm(s?.name||'')).join('|');
+  return aa===bb;
+}
+function setActiveVariant(idx){
+  if(!shareVariants.length)return;
+  activeVariant=Math.max(0,Math.min(idx,shareVariants.length-1));
+  shareSongs=shareVariants[activeVariant].songs||[];
+  selectedIdx=0;viewerIdx=0;viewerPage=0;
+  renderServiceNav();
+  renderShell();
+  selectSong(0,false);
+}
+function renderServiceNav(){
+  const hero=document.querySelector('.hero'); if(!hero)return;
+  document.getElementById('service-tabs')?.remove();
+  document.getElementById('service-summary')?.remove();
+  if(shareVariants.length>1){
+    const tabs=document.createElement('div'); tabs.id='service-tabs'; tabs.className='service-tabs';
+    tabs.innerHTML=shareVariants.map((v,i)=>`<button class="service-tab ${i===activeVariant?'on':''}" onclick="setActiveVariant(${i})">${esc(v.label)}</button>`).join('');
+    hero.appendChild(tabs);
+  }
+  const sum=document.createElement('div'); sum.id='service-summary'; sum.className='service-summary';
+  const shown=shareVariants.length>1?shareVariants:[{label:'콘티',songs:shareSongs}];
+  sum.innerHTML=shown.map(v=>`<div class="service-summary-row"><div class="service-summary-label">${esc(v.label)}</div><div class="service-pill-list">${(v.songs||[]).map((s,i)=>`<span class="service-pill"><span class="service-pill-num">${i+1}</span>${esc(s.name||'곡')}</span>`).join('')}</div></div>`).join('');
+  hero.appendChild(sum);
 }
 
 function parseLocalDate(value){const [y,m,d]=String(value||'').split('-').map(Number);return y&&m&&d?new Date(y,m-1,d):new Date(value)}
@@ -234,31 +345,34 @@ async function load(){
     if(!rows.length){document.getElementById('content').innerHTML='<div class="empty">공유할 콘티가 없습니다.</div>';document.getElementById('desc').textContent='콘티가 아직 등록되지 않았습니다.';return}
     const h=rows[0]; const d=parseLocalDate(h.worship_date); shareTitle=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 콘티`;
     document.getElementById('title').textContent=shareTitle;
-    document.getElementById('desc').textContent=h.note||'지정한 콘티의 악보, 영상, 메모를 확인할 수 있는 공유용 페이지입니다.';
+    const noteInfo=splitContiNote(h.note||'');
+    document.getElementById('desc').textContent=noteInfo.visible||'지정한 콘티의 악보, 영상, 메모를 확인할 수 있는 공유용 페이지입니다.';
     const rawIds=safeArray(h.song_ids);
     const names=safeArray(h.song_names);
-    const ids=[...new Set(rawIds.filter(Boolean).map(x=>String(x)))]; let songMap={};
+    const c2Ids=safeArray(noteInfo.conti2?.song_ids);
+    const c2Names=safeArray(noteInfo.conti2?.song_names);
+    const ids=[...new Set([...rawIds,...c2Ids].filter(Boolean).map(x=>String(x)))]; let songMap={};
     if(ids.length){try{const detail=await api(`songs?id=in.(${ids.map(encodeURIComponent).join(',')})&select=*`);detail.forEach(s=>songMap[s.id]=s)}catch(e){}}
     let allSongs=[];
     try{allSongs=await api('songs?select=*&order=name&limit=2000')}catch(e){}
     shareSongMap=songMap;
-    // 예전 콘티는 song_ids 배열이 곡명 배열과 어긋나거나, 다른 곡의 id가 들어간 기록이 있을 수 있다.
-    // 그래서 id가 있어도 저장된 곡명과 DB 곡명이 정확히 맞을 때만 신뢰한다.
-    // 맞지 않으면 저장된 곡명 기준으로 정확히 1곡만 다시 찾아 잘못된 버전/같은 코드 곡이 끼어드는 것을 막는다.
+    const buildSongs=(nms,ids,memos=[])=>uniqueContiSongList(pairHistorySongsBySafeId(nms,ids,songMap,allSongs).map((s,i)=>({...s,conti_memo:memos[i]||''})).filter(s=>s.name));
     const memoList=safeArray(h.memos).length?safeArray(h.memos):safeArray(h.song_memos);
-    const rawShareSongs=pairHistorySongsBySafeId(names,rawIds,songMap,allSongs).map((s,i)=>({...s,conti_memo:memoList[i]||''}));
-    shareSongs=rawShareSongs.filter(s=>s.name);
-    normalizeShareSongList();
-    selectedIdx=0;
+    const conti1Songs=buildSongs(names,rawIds,memoList);
+    const conti2Songs=c2Names.length?buildSongs(c2Names,c2Ids,safeArray(noteInfo.conti2?.memos)):conti1Songs.slice();
+    shareVariants=[{label:noteInfo.conti2?.label1||'콘티1',songs:conti1Songs}];
+    if(c2Names.length && !songsEqualByBase(conti1Songs,conti2Songs))shareVariants.push({label:noteInfo.conti2?.label2||'콘티2',songs:conti2Songs});
+    activeVariant=0;shareSongs=shareVariants[0].songs;normalizeShareSongList();selectedIdx=0;
     document.getElementById('top-tabs').style.display=shareSongs.length?'grid':'none';
     document.getElementById('footer-actions').style.display='none';
+    renderServiceNav();
     renderShell();
     await selectSong(0,false);
   }catch(e){document.getElementById('content').innerHTML='<div class="empty">콘티를 불러오지 못했습니다.<br>'+esc(e.message)+'</div>'}
 }
 function renderShell(){
   if(!shareSongs.length){document.getElementById('content').innerHTML='<div class="empty">등록된 곡이 없습니다.</div>';return}
-  document.getElementById('content').innerHTML=`<div class="layout"><section class="detail-panel"><div id="detail"></div></section><aside class="bookmark-panel"><div class="panel-title">콘티 순서</div><div id="bookmarks" class="bookmark-list"></div></aside></div>`;
+  document.getElementById('content').innerHTML=`<div class="layout"><section class="detail-panel"><div class="share-current-label">${esc(shareVariants[activeVariant]?.label||'콘티')}</div><div id="detail"></div></section><aside class="bookmark-panel"><div class="panel-title">콘티 순서</div><div id="bookmarks" class="bookmark-list"></div></aside></div>`;
   renderBookmarks();
 }
 function renderBookmarks(){
