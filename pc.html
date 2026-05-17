@@ -131,10 +131,10 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 #tab-tools .tool-section.primary-tools{border-top:0;padding-top:4px}
 #tab-tools .tool-section-title{font-size:.72rem;margin-bottom:7px;color:var(--text2)}
 #tab-tools .tools-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
-#tab-tools .tool-card{min-height:0;border-radius:12px;padding:9px 10px;grid-template-columns:26px minmax(0,1fr);background:var(--surface);box-shadow:none}
+#tab-tools .tool-card{min-height:74px;border-radius:12px;padding:10px 11px;grid-template-columns:26px minmax(0,1fr);background:var(--surface);box-shadow:none}
 #tab-tools .tool-icon{width:22px;height:22px;border-radius:8px;font-size:.75rem;font-weight:900}
 #tab-tools .tool-name{font-size:.75rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#tab-tools .tool-desc{font-size:.61rem;line-height:1.25;white-space:normal;word-break:keep-all}
+#tab-tools .tool-desc{font-size:.68rem;line-height:1.38;white-space:normal;word-break:keep-all;color:var(--text2)}
 #tab-tools .tools-advanced{margin-top:4px;border-radius:12px;background:transparent;padding:9px 0 0;border-left:0;border-right:0;border-bottom:0}
 @media(max-width:760px){#tab-tools .tools-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#tab-tools .tools-hero{display:block}.tools-hero-note{margin-top:4px;white-space:normal}}
 
@@ -541,32 +541,32 @@ body.dark{--bg:#111315;--surface:#191c20;--surface2:#22262b;--border:#2e343b;--b
     <div class="tool-section primary-tools">
       <div class="tool-section-title">기본 운영 순서</div>
       <div class="tools-grid">
-        <a class="tool-card blue" href="#" onclick="openEmbeddedTool('backup-restore.html','백업 / 복원');return false;"><div class="tool-icon">1</div><div class="tool-name">백업</div><div class="tool-desc">곡, 콘티, 악보 연결 저장</div></a>
-        <a class="tool-card green" href="#" onclick="openEmbeddedTool('score-upload.html','악보 일괄등록기');return false;"><div class="tool-icon">2</div><div class="tool-name">악보 등록</div><div class="tool-desc">새 파일을 곡에 연결</div></a>
-        <a class="tool-card amber" href="#" onclick="openEmbeddedTool('score-audit.html','악보 연결 점검');return false;"><div class="tool-icon">3</div><div class="tool-name">연결 점검</div><div class="tool-desc">누락, 중복, 깨진 파일 확인</div></a>
-        <a class="tool-card purple" href="#" onclick="openEmbeddedTool('r2-sync.html','R2 배포 동기화');return false;"><div class="tool-icon">4</div><div class="tool-name">최종 반영</div><div class="tool-desc">앱과 공유용 R2 동기화</div></a>
+        <a class="tool-card blue" href="#" onclick="openEmbeddedTool('backup-restore.html','백업 / 복원');return false;"><div class="tool-icon">1</div><div class="tool-name">백업</div><div class="tool-desc">수정 전 곡·콘티·악보 연결을 파일로 저장합니다.</div></a>
+        <a class="tool-card green" href="#" onclick="openEmbeddedTool('score-upload.html','악보 일괄등록기');return false;"><div class="tool-icon">2</div><div class="tool-name">악보 등록</div><div class="tool-desc">새 악보 파일을 선택해 곡과 자동 연결합니다.</div></a>
+        <a class="tool-card amber" href="#" onclick="openEmbeddedTool('score-audit.html','악보 연결 점검');return false;"><div class="tool-icon">3</div><div class="tool-name">연결 점검</div><div class="tool-desc">누락·중복·깨진 악보 연결을 확인합니다.</div></a>
+        <a class="tool-card purple" href="#" onclick="openEmbeddedTool('r2-sync.html','R2 배포 동기화');return false;"><div class="tool-icon">4</div><div class="tool-name">최종 반영</div><div class="tool-desc">정리한 악보와 목록을 앱·공유 화면에 반영합니다.</div></a>
       </div>
     </div>
 
     <div class="tool-section">
       <div class="tool-section-title">필요할 때 쓰는 정리</div>
       <div class="tools-grid compact-tools">
-        <a class="tool-card green" href="#" onclick="openEmbeddedTool('score-version-manager.html','악보 버전 관리');return false;"><div class="tool-icon">A</div><div class="tool-name">악보 버전</div><div class="tool-desc">기본, 전주1, 전주2</div></a>
-        <a class="tool-card amber" href="#" onclick="openEmbeddedTool('score-reorganizer.html','악보 재배치 / DB 정리');return false;"><div class="tool-icon">B</div><div class="tool-name">악보 재배치</div><div class="tool-desc">곡, Key, 버전 연결 수정</div></a>
-        <a class="tool-card cyan" href="#" onclick="openEmbeddedTool('song-merge.html','곡 병합');return false;"><div class="tool-icon">C</div><div class="tool-name">곡 병합</div><div class="tool-desc">중복 곡명 정리</div></a>
-        <a class="tool-card amber" href="#" onclick="openEmbeddedTool('performance-cache-cleaner.html','연주/공유 캐시 정리');return false;"><div class="tool-icon">D</div><div class="tool-name">유령 항목</div><div class="tool-desc">연주 화면 찌꺼기 정리</div></a>
+        <a class="tool-card green" href="#" onclick="openEmbeddedTool('score-version-manager.html','악보 버전 관리');return false;"><div class="tool-icon">A</div><div class="tool-name">악보 버전</div><div class="tool-desc">기본·전주1·전주2와 페이지 순서를 정리합니다.</div></a>
+        <a class="tool-card amber" href="#" onclick="openEmbeddedTool('score-reorganizer.html','악보 재배치 / DB 정리');return false;"><div class="tool-icon">B</div><div class="tool-name">악보 재배치</div><div class="tool-desc">잘못 연결된 곡·Key·버전 정보를 옮깁니다.</div></a>
+        <a class="tool-card cyan" href="#" onclick="openEmbeddedTool('song-merge.html','곡 병합');return false;"><div class="tool-icon">C</div><div class="tool-name">곡 병합</div><div class="tool-desc">같은 곡이 두 개일 때 기록을 합쳐 정리합니다.</div></a>
+        <a class="tool-card amber" href="#" onclick="openEmbeddedTool('performance-cache-cleaner.html','연주/공유 캐시 정리');return false;"><div class="tool-icon">D</div><div class="tool-name">유령 항목</div><div class="tool-desc">삭제된 곡이 연주 화면에 남을 때 정리합니다.</div></a>
       </div>
     </div>
 
     <details class="tools-advanced">
       <summary>고급 / 초기정리 / 점검 도구 <span style="font-weight:600;color:#9ca3af">평소에는 열지 않아도 됩니다</span></summary>
       <div class="tools-grid" style="margin-top:10px">
-        <a class="tool-card purple" href="#" onclick="openEmbeddedTool('song-editor.html','순차 편집기');return false;"><div class="tool-icon">편</div><div class="tool-name">순차 편집기</div><div class="tool-desc">곡 정보를 하나씩 확인</div></a>
-        <a class="tool-card blue" href="#" onclick="openEmbeddedTool('tag-update.html','태그 일괄 업데이트');return false;"><div class="tool-icon">태</div><div class="tool-name">초기 태그 반영</div><div class="tool-desc">전체 태그 덮어쓰기</div></a>
-        <a class="tool-card purple" href="#" onclick="openEmbeddedTool('status-update.html','사용 횟수 업데이트');return false;"><div class="tool-icon">횟</div><div class="tool-name">초기 이력 반영</div><div class="tool-desc">과거 엑셀 기준 재반영</div></a>
-        <a class="tool-card amber" href="#" onclick="openEmbeddedTool('name-cleanup.html','공백 정리');return false;"><div class="tool-icon">✂️</div><div class="tool-name">공백 정리</div><div class="tool-desc">곡명 공백 문제만 정리</div></a>
-        <a class="tool-card blue" href="#" onclick="openEmbeddedTool('db-health-check.html','DB 연결 점검');return false;"><div class="tool-icon">🩺</div><div class="tool-name">DB 연결 점검</div><div class="tool-desc">자료 연결과 테이블<br>상태 확인</div></a>
-        <a class="tool-card purple" href="#" onclick="openEmbeddedTool('launch-check.html','실행 점검');return false;"><div class="tool-icon">🧭</div><div class="tool-name">실행 점검</div><div class="tool-desc">배포 전 필수 파일<br>빠른 확인</div></a>
+        <a class="tool-card purple" href="#" onclick="openEmbeddedTool('song-editor.html','순차 편집기');return false;"><div class="tool-icon">편</div><div class="tool-name">순차 편집기</div><div class="tool-desc">곡 정보를 한 곡씩 열어 직접 수정합니다.</div></a>
+        <a class="tool-card blue" href="#" onclick="openEmbeddedTool('tag-update.html','태그 일괄 업데이트');return false;"><div class="tool-icon">태</div><div class="tool-name">초기 태그 반영</div><div class="tool-desc">준비된 태그 목록으로 전체 태그를 덮어씁니다.</div></a>
+        <a class="tool-card purple" href="#" onclick="openEmbeddedTool('status-update.html','사용 횟수 업데이트');return false;"><div class="tool-icon">횟</div><div class="tool-name">초기 이력 반영</div><div class="tool-desc">과거 엑셀 기준 사용 횟수를 다시 반영합니다.</div></a>
+        <a class="tool-card amber" href="#" onclick="openEmbeddedTool('name-cleanup.html','공백 정리');return false;"><div class="tool-icon">✂️</div><div class="tool-name">공백 정리</div><div class="tool-desc">곡명 앞뒤·중복 공백으로 생긴 문제를 찾습니다.</div></a>
+        <a class="tool-card blue" href="#" onclick="openEmbeddedTool('db-health-check.html','DB 연결 점검');return false;"><div class="tool-icon">🩺</div><div class="tool-name">DB 연결 점검</div><div class="tool-desc">필수 테이블과 데이터 연결 상태를 확인합니다.</div></a>
+        <a class="tool-card purple" href="#" onclick="openEmbeddedTool('launch-check.html','실행 점검');return false;"><div class="tool-icon">🧭</div><div class="tool-name">실행 점검</div><div class="tool-desc">배포 전 주요 화면과 필수 파일을 빠르게 봅니다.</div></a>
       </div>
     </details>
   </div>

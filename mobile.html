@@ -33,10 +33,10 @@ body.performance-landscape .viewer.performance{display:none}body.performance-lan
 #sec-tools .mobile-tool-section{border-radius:14px;padding:9px;background:rgba(255,255,255,.025)}
 #sec-tools .mobile-tool-title{font-size:11.5px;margin-bottom:6px}
 #sec-tools .mobile-tool-grid{gap:6px}
-#sec-tools .tool{min-height:0;border-radius:12px;padding:8px;grid-template-columns:24px minmax(0,1fr);gap:7px}
+#sec-tools .tool{min-height:68px;border-radius:12px;padding:9px;grid-template-columns:24px minmax(0,1fr);gap:7px}
 #sec-tools .tool>span:first-child{width:24px;height:24px;border-radius:8px;font-size:12px;font-weight:900}
 #sec-tools .tool b{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#sec-tools .tool span:last-child{font-size:10px;line-height:1.25;word-break:keep-all}
+#sec-tools .tool span:last-child{font-size:11px;line-height:1.35;word-break:keep-all}
 #sec-tools .mobile-tools-advanced{border-radius:13px;padding:9px;margin-top:2px}
 .orientation-sheet{width:min(560px,100%)}.orientation-help{color:var(--muted);font-size:13px;line-height:1.65;margin:4px 0 14px}.orientation-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.orientation-actions button{border:1px solid var(--line);background:rgba(255,255,255,.06);color:#fff;text-align:left;border-radius:18px;padding:16px;cursor:pointer;transition:.15s}.orientation-actions button:hover{background:#fff;color:#050816;border-color:#fff;transform:translateY(-1px)}.orientation-actions b{display:block;font-size:17px}.orientation-actions span{display:block;font-size:12px;opacity:.72;margin-top:7px;line-height:1.45}.orientation-note{margin-top:12px;border:1px solid rgba(233,194,118,.28);background:rgba(233,194,118,.08);color:#f5dfad;border-radius:14px;padding:10px 12px;font-size:12px;line-height:1.55}@media(max-width:640px){.orientation-actions{grid-template-columns:1fr}}.viewer-stage,.viewer-page{user-select:none;-webkit-user-select:none}.viewer-stage{touch-action:pan-y}
 
@@ -947,38 +947,38 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
       <div class="mobile-tool-section">
         <div class="mobile-tool-title">기본 운영 순서</div>
         <div class="mobile-tool-grid">
-          <button class="tool" onclick="openMobileToolFrame('backup-restore.html','백업 / 복원')"><span>1</span><b>백업</b><span>곡·콘티·악보 연결 저장</span></button>
-          <button class="tool" onclick="openMobileToolFrame('score-upload.html','악보 일괄등록기')"><span>2</span><b>악보 등록</b><span>새 파일을 곡에 연결</span></button>
-          <button class="tool" onclick="openMobileToolFrame('score-audit.html','악보 연결 점검')"><span>3</span><b>연결 점검</b><span>누락·중복·깨진 파일</span></button>
-          <button class="tool" onclick="openMobileToolFrame('r2-sync.html','R2 배포 동기화')"><span>4</span><b>최종 반영</b><span>앱/공유용 R2 동기화</span></button>
+          <button class="tool" onclick="openMobileToolFrame('backup-restore.html','백업 / 복원')"><span>1</span><b>백업</b><span>수정 전 곡·콘티·악보 연결 저장</span></button>
+          <button class="tool" onclick="openMobileToolFrame('score-upload.html','악보 일괄등록기')"><span>2</span><b>악보 등록</b><span>새 악보 파일을 곡과 자동 연결</span></button>
+          <button class="tool" onclick="openMobileToolFrame('score-audit.html','악보 연결 점검')"><span>3</span><b>연결 점검</b><span>누락·중복·깨진 악보 확인</span></button>
+          <button class="tool" onclick="openMobileToolFrame('r2-sync.html','R2 배포 동기화')"><span>4</span><b>최종 반영</b><span>정리한 내용을 앱·공유 화면에 반영</span></button>
         </div>
       </div>
       <div class="mobile-tool-section">
         <div class="mobile-tool-title">필요할 때 쓰는 정리</div>
         <div class="mobile-tool-grid">
-          <button class="tool" onclick="openMobileToolFrame('score-version-manager.html','악보 버전 관리')"><span>A</span><b>악보 버전</b><span>기본·전주1·전주2</span></button>
-          <button class="tool" onclick="openMobileToolFrame('score-reorganizer.html','악보 재배치 / DB 정리')"><span>B</span><b>악보 재배치</b><span>곡·Key·버전 연결</span></button>
-          <button class="tool" onclick="openMobileToolFrame('song-merge.html','곡 병합')"><span>C</span><b>곡 병합</b><span>중복 곡명 정리</span></button>
-          <button class="tool" onclick="openMobileToolFrame('performance-cache-cleaner.html','연주/공유 캐시 정리')"><span>D</span><b>유령 항목</b><span>연주 화면 찌꺼기</span></button>
+          <button class="tool" onclick="openMobileToolFrame('score-version-manager.html','악보 버전 관리')"><span>A</span><b>악보 버전</b><span>기본·전주1·전주2와 페이지 정리</span></button>
+          <button class="tool" onclick="openMobileToolFrame('score-reorganizer.html','악보 재배치 / DB 정리')"><span>B</span><b>악보 재배치</b><span>잘못 연결된 곡·Key·버전 이동</span></button>
+          <button class="tool" onclick="openMobileToolFrame('song-merge.html','곡 병합')"><span>C</span><b>곡 병합</b><span>같은 곡 두 개를 하나로 합침</span></button>
+          <button class="tool" onclick="openMobileToolFrame('performance-cache-cleaner.html','연주/공유 캐시 정리')"><span>D</span><b>유령 항목</b><span>삭제 곡이 남아 보일 때 정리</span></button>
         </div>
       </div>
 
       <div class="mobile-tool-section">
         <div class="mobile-tool-title">🎵 곡/콘티 관리</div>
         <div class="mobile-tool-grid">
-          <button class="tool" onclick="openSongEdit()"><span>🎵</span><b>새 찬양곡 추가</b><span>곡명, Key, BPM</span></button>
-          <button class="tool" onclick="openMobileHistory()"><span>📖</span><b>콘티 기록 추가</b><span>날짜와 곡 순서 입력</span></button>
+          <button class="tool" onclick="openSongEdit()"><span>🎵</span><b>새 찬양곡 추가</b><span>곡명·Key·BPM·악보를 함께 입력</span></button>
+          <button class="tool" onclick="openMobileHistory()"><span>📖</span><b>콘티 기록 추가</b><span>날짜별 곡 순서와 콘티2 저장</span></button>
         </div>
       </div>
 
       <details class="mobile-tools-advanced">
         <summary>고급 / 초기정리 / 설정 <span style="font-weight:600;color:#9ca3af">평소에는 열지 않아도 됩니다</span></summary>
         <div class="mobile-tool-grid" style="margin-top:10px">
-          <button class="tool" onclick="openFullScoreManager()"><span>한</span><b>한눈보기 관리</b><span>콘티 JPG/PNG</span></button>
-          <button class="tool" onclick="openSongScoreManager()"><span>악</span><b>곡별 악보 관리</b><span>곡 선택 후 업로드</span></button>
-          <button class="tool" onclick="openMobileToolFrame('song-editor.html','순차 편집기')"><span>편</span><b>순차 편집기</b><span>기존 편집기 인뷰</span></button>
-          <button class="tool" onclick="openFilenameHelper()"><span>🛠</span><b>파일명 생성 도우미</b><span>규칙·복사·다중 생성</span></button>
-          <button class="tool" onclick="openAiSettings()"><span>✨</span><b>AI 콘티 추천 설정</b><span>API 키 저장</span></button>
+          <button class="tool" onclick="openFullScoreManager()"><span>한</span><b>한눈보기 관리</b><span>콘티용 JPG/PNG 이미지를 관리</span></button>
+          <button class="tool" onclick="openSongScoreManager()"><span>악</span><b>곡별 악보 관리</b><span>한 곡을 선택해 악보만 추가·삭제</span></button>
+          <button class="tool" onclick="openMobileToolFrame('song-editor.html','순차 편집기')"><span>편</span><b>순차 편집기</b><span>곡 정보를 한 곡씩 열어 수정</span></button>
+          <button class="tool" onclick="openFilenameHelper()"><span>🛠</span><b>파일명 생성 도우미</b><span>업로드용 파일명을 규칙대로 생성</span></button>
+          <button class="tool" onclick="openAiSettings()"><span>✨</span><b>AI 콘티 추천 설정</b><span>추천 기능에 쓸 API 키 저장</span></button>
         </div>
       </details>
     </div>
