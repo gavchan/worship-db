@@ -934,6 +934,15 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
     <div class="db-head"><div><h3>관리도구</h3><small>자주 쓰는 기능은 위에, 초기정리/고급 기능은 접어두었습니다.</small></div></div>
     <div class="tools">
       <div class="mobile-tool-section">
+        <div class="mobile-tool-title">권장 관리 순서</div>
+        <div class="mobile-tool-grid">
+          <button class="tool" onclick="openMobileToolFrame('backup-restore.html','백업 / 복원')"><span>1</span><b>먼저 백업</b><span>곡·콘티·악보 연결 저장</span></button>
+          <button class="tool" onclick="openMobileToolFrame('score-upload.html','악보 일괄등록기')"><span>2</span><b>새 악보 등록</b><span>파일명 자동 매칭</span></button>
+          <button class="tool" onclick="openMobileToolFrame('score-audit.html','악보 연결 점검')"><span>3</span><b>연결 점검</b><span>누락·중복·깨진 파일</span></button>
+          <button class="tool" onclick="openMobileToolFrame('r2-sync.html','R2 배포 동기화')"><span>4</span><b>최종 반영</b><span>앱/공유용 R2 동기화</span></button>
+        </div>
+      </div>
+      <div class="mobile-tool-section">
         <div class="mobile-tool-title">🎼 자주 쓰는 악보 정비</div>
         <div class="mobile-tool-grid">
           <button class="tool" onclick="openMobileToolFrame('score-version-manager.html','악보 버전 관리')"><span>🎚️</span><b>악보 버전 관리</b><span>기본·전주1·전주2</span></button>
@@ -2461,6 +2470,7 @@ async function deleteEditSongScore(){
   if(!confirm('현재 보이는 악보 이미지를 삭제할까요?'))return;
   const res=await fetch(`${STORAGE_URL}/object/scores`,{method:'DELETE',headers:{...STOR_HEADERS,'Content-Type':'application/json'},body:JSON.stringify({prefixes:[path]})});
   if(!res.ok){toast('삭제 실패');return}
+  await api('DELETE',`song_score_files?storage_path=eq.${encodeURIComponent(path)}`).catch(()=>{});
   scoreCache[song.id]=null;
   const files=await listScores(song.id);
   if(!files.length){
@@ -2501,7 +2511,11 @@ async function saveMobileSong(){
   }catch(e){toast('저장 실패: '+e.message)}
 }
 
-async function deleteMobileSong(){if(!mobileSongId)return;if(!confirm('이 찬양곡을 삭제할까요?'))return;try{await api('DELETE',`songs?id=eq.${mobileSongId}`);songs=songs.filter(x=>x.id!==mobileSongId);closeSongEdit();renderSongCards();pickCurrentConti();renderHome();toast('삭제했어요')}catch(e){toast('삭제 실패: '+e.message)}}
+async function deleteStorageScore(path){const res=await fetch(`${STORAGE_URL}/object/scores`,{method:'DELETE',headers:{...STOR_HEADERS,'Content-Type':'application/json'},body:JSON.stringify({prefixes:[path]})});if(!res.ok)throw new Error(await res.text())}
+async function deleteScoreRecordByPath(path){await api('DELETE',`song_score_files?storage_path=eq.${encodeURIComponent(path)}`).catch(()=>{})}
+async function cleanupMobileSongScoreData(songId){const files=await listScores(songId).catch(()=>[]);for(const f of files){const path=scorePath(songId,f);if(!path)continue;await deleteStorageScore(path).catch(()=>{});await deleteScoreRecordByPath(path)}await api('DELETE',`song_score_files?song_id=eq.${encodeURIComponent(songId)}`).catch(()=>{});await api('DELETE',`song_score_versions?song_id=eq.${encodeURIComponent(songId)}`).catch(()=>{})}
+async function cleanupMobileSongFromHistories(songId,songName){const rows=await api('GET','worship_history?select=id,song_ids,song_names&limit=5000').catch(()=>[]);const targetId=String(songId);const targetName=norm(songName);for(const h of rows||[]){const ids=Array.isArray(h.song_ids)?h.song_ids:[];const names=Array.isArray(h.song_names)?h.song_names:[];const nextIds=[];const nextNames=[];let changed=false;const len=Math.max(ids.length,names.length);for(let i=0;i<len;i++){const idHit=ids[i]!=null&&String(ids[i])===targetId;const nameHit=targetName&&norm(names[i])===targetName;if(idHit||nameHit){changed=true;continue}nextIds.push(ids[i]??null);if(names[i]!=null)nextNames.push(names[i])}if(changed)await api('PATCH',`worship_history?id=eq.${encodeURIComponent(h.id)}`,{song_ids:nextIds,song_names:nextNames})}}
+async function deleteMobileSong(){if(!mobileSongId)return;const s=songs.find(x=>String(x.id)===String(mobileSongId));const mode=prompt(`이 찬양곡을 삭제할까요?\n\n전체: 곡 + 악보 파일 + 악보 DB 기록 + 콘티 안의 이 곡 제거\n곡만: 곡 DB만 삭제\n\n삭제 방식을 입력하세요.`, '전체');if(mode===null)return;const cleanMode=mode.replace(/\s+/g,'').trim();if(!['전체','곡만'].includes(cleanMode)){toast('삭제가 취소되었어요');return}if(!confirm(cleanMode==='전체'?'연결된 악보와 콘티 기록까지 함께 정리합니다. 계속할까요?':'곡 DB만 삭제합니다. 연결 파일이 남을 수 있습니다. 계속할까요?'))return;try{if(cleanMode==='전체'){await cleanupMobileSongScoreData(mobileSongId);await cleanupMobileSongFromHistories(mobileSongId,s?.name||'')}await api('DELETE',`songs?id=eq.${mobileSongId}`);songs=songs.filter(x=>String(x.id)!==String(mobileSongId));closeSongEdit();renderSongCards();pickCurrentConti();renderHome();toast('삭제했어요')}catch(e){toast('삭제 실패: '+e.message)}}
 function openCurrentMobileHistory(){openMobileHistory(currentConti?.id||null)}
 function openMobileHistory(id){mobileHistoryId=id||null;const h=id?history.find(x=>x.id===id):null;document.getElementById('history-modal-title').textContent=id?'콘티 기록 수정':'콘티 기록 추가';document.getElementById('m-history-delete').style.visibility=id?'visible':'hidden';document.getElementById('m-history-date').value=h?.worship_date||todayISO();document.getElementById('m-history-note').value=h?.note||'';mobileSelectedSongs=h?uniqueContiSongsByName((h.song_names||[]).map((name,i)=>({id:(h.song_ids||[])[i]||null,name}))):[];renderMobileSelectedSongs();document.getElementById('m-history-q').value='';document.getElementById('m-history-results').style.display='none';document.getElementById('history-modal').classList.add('show')}
 function closeMobileHistory(){document.getElementById('history-modal').classList.remove('show')}

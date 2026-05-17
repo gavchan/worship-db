@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
+<script src="admin-guard.js"></script>
 <title>악보 일괄 업로드</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -129,9 +130,12 @@ async function syncR2Praise(songIds) {
   const ids = Array.isArray(songIds) ? songIds.filter(Boolean) : (songIds ? [songIds] : []);
 
   async function postJson(payload) {
+    const syncToken = sessionStorage.getItem('worshipR2SyncToken') || localStorage.getItem('worshipR2SyncToken') || '';
+    const headers = {'Content-Type': 'application/json'};
+    if (syncToken) headers['x-r2-sync-token'] = syncToken;
     const res = await fetch('/api/r2-praise-sync', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers,
       body: JSON.stringify(payload)
     });
     const text = await res.text();

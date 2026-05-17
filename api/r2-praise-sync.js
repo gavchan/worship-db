@@ -27,16 +27,23 @@ function contentType(path) {
   return 'application/octet-stream';
 }
 
+function authorized(req) {
+  const token = process.env.R2_SYNC_TOKEN || process.env.ADMIN_SYNC_TOKEN || '';
+  if (!token) return true;
+  const sent = req.headers['x-r2-sync-token'] || req.headers['x-admin-token'] || '';
+  return String(sent) === String(token);
+}
+
 async function r2Put({ key, body, type }) {
   const accountId = process.env.R2_ACCOUNT_ID;
   const accessKeyId = process.env.R2_ACCESS_KEY_ID;
   const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
-  const bucket = process.env.R2_BUCKET || 'praise-songs';
+  const bucket = process.env.R2_BUCKET || process.env.R2_BUCKET_NAME || 'praise-songs';
   const missing = [];
   if (!accountId) missing.push('R2_ACCOUNT_ID');
   if (!accessKeyId) missing.push('R2_ACCESS_KEY_ID');
   if (!secretAccessKey) missing.push('R2_SECRET_ACCESS_KEY');
-  if (!bucket) missing.push('R2_BUCKET');
+  if (!bucket) missing.push('R2_BUCKET 또는 R2_BUCKET_NAME');
   if (missing.length) throw new Error('R2 환경변수 누락: ' + missing.join(', '));
 
   const service = 's3';
@@ -124,6 +131,7 @@ async function buildManifest(allSongs, allScores) {
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return send(res, 405, { ok: false, error: 'POST만 지원합니다.' });
+  if (!authorized(req)) return send(res, 401, { ok: false, error: 'R2 동기화 권한이 필요합니다.' });
   try {
     const body = typeof req.body === 'object' && req.body ? req.body : JSON.parse(req.body || '{}');
     const allSongs = await supabaseGet('songs?select=*&order=name.asc');

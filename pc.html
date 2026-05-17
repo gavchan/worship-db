@@ -522,6 +522,15 @@ body.dark{--bg:#111315;--surface:#191c20;--surface2:#22262b;--border:#2e343b;--b
       <div><h2>관리도구</h2><p>자주 쓰는 정비 기능은 앞에, 위험하거나 가끔 쓰는 기능은 접어두었습니다.</p></div>
       <div class="tools-hero-note">악보·유튜브는 새창 없이 화면 안에서만 열기</div>
     </div>
+    <div class="tool-section">
+      <div class="tool-section-title">권장 관리 순서</div>
+      <div class="tools-grid">
+        <a class="tool-card blue" href="#" onclick="openEmbeddedTool('backup-restore.html','백업 / 복원');return false;"><div class="tool-icon">1</div><div class="tool-name">먼저 백업</div><div class="tool-desc">곡·콘티·악보 연결<br>JSON 저장</div></a>
+        <a class="tool-card green" href="#" onclick="openEmbeddedTool('score-upload.html','악보 일괄등록기');return false;"><div class="tool-icon">2</div><div class="tool-name">새 악보 등록</div><div class="tool-desc">파일명 자동 매칭<br>중복 확인</div></a>
+        <a class="tool-card amber" href="#" onclick="openEmbeddedTool('score-audit.html','악보 연결 점검');return false;"><div class="tool-icon">3</div><div class="tool-name">연결 상태 점검</div><div class="tool-desc">누락·중복·깨진 파일<br>삭제 정리</div></a>
+        <a class="tool-card purple" href="#" onclick="openEmbeddedTool('r2-sync.html','R2 배포 동기화');return false;"><div class="tool-icon">4</div><div class="tool-name">앱/공유 반영</div><div class="tool-desc">R2 파일과 목록<br>최종 동기화</div></a>
+      </div>
+    </div>
 
     <div class="tool-section">
       <div class="tool-section-title">🎼 자주 쓰는 악보 정비</div>
@@ -1645,9 +1654,12 @@ async function syncR2Praise(songIds) {
   const ids = Array.isArray(songIds) ? songIds.filter(Boolean) : (songIds ? [songIds] : []);
 
   async function postJson(payload) {
+    const syncToken = sessionStorage.getItem('worshipR2SyncToken') || localStorage.getItem('worshipR2SyncToken') || '';
+    const headers = {'Content-Type': 'application/json'};
+    if (syncToken) headers['x-r2-sync-token'] = syncToken;
     const res = await fetch('/api/r2-praise-sync', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers,
       body: JSON.stringify(payload)
     });
     const text = await res.text();
@@ -1723,9 +1735,15 @@ async function uploadScore(songId, file, idx, total) {
 }
 
 async function deleteScore(path) {
-  await fetch(`${STORAGE_URL}/object/scores/${path}`, {
-    method:'DELETE', headers: STOR_HEADERS
+  const res = await fetch(`${STORAGE_URL}/object/scores`, {
+    method:'DELETE',
+    headers: {...STOR_HEADERS, 'Content-Type':'application/json'},
+    body: JSON.stringify({prefixes:[path]})
   });
+  if (!res.ok) throw new Error(await res.text());
+}
+async function deleteScoreRecordByPath(path) {
+  await api('DELETE', `song_score_files?storage_path=eq.${encodeURIComponent(path)}`).catch(()=>{});
 }
 
 // ── THUMBNAIL LOADER ──────────────────────────────────────
@@ -1798,6 +1816,7 @@ async function deleteScoreFromModal(path, btn) {
   btn.disabled = true;
   try {
     await deleteScore(path);
+    await deleteScoreRecordByPath(path);
     delete thumbCache[songId];
     const filesLeft = songId ? await listScores(songId) : [];
     if (!filesLeft || filesLeft.length === 0) {
@@ -1868,6 +1887,38 @@ async function api(method, path, body) {
   if (!res.ok) { const e = await res.text(); throw new Error(e); }
   const text = await res.text();
   return text ? JSON.parse(text) : null;
+}
+async function cleanupSongScoreData(songId) {
+  const files = await listScores(songId).catch(()=>[]);
+  for (const f of files) {
+    const path = scorePath(songId, f);
+    if (!path) continue;
+    await deleteScore(path).catch(()=>{});
+    await deleteScoreRecordByPath(path);
+  }
+  await api('DELETE', `song_score_files?song_id=eq.${encodeURIComponent(songId)}`).catch(()=>{});
+  await api('DELETE', `song_score_versions?song_id=eq.${encodeURIComponent(songId)}`).catch(()=>{});
+}
+async function cleanupSongFromHistories(songId, songName) {
+  const rows = await api('GET', 'worship_history?select=id,song_ids,song_names&limit=5000').catch(()=>[]);
+  const targetId = String(songId);
+  const targetName = norm(songName);
+  for (const h of rows || []) {
+    const ids = Array.isArray(h.song_ids) ? h.song_ids : [];
+    const names = Array.isArray(h.song_names) ? h.song_names : [];
+    const nextIds = [];
+    const nextNames = [];
+    let changed = false;
+    const len = Math.max(ids.length, names.length);
+    for (let i = 0; i < len; i++) {
+      const idHit = ids[i] != null && String(ids[i]) === targetId;
+      const nameHit = targetName && norm(names[i]) === targetName;
+      if (idHit || nameHit) { changed = true; continue; }
+      nextIds.push(ids[i] ?? null);
+      if (names[i] != null) nextNames.push(names[i]);
+    }
+    if (changed) await api('PATCH', `worship_history?id=eq.${encodeURIComponent(h.id)}`, {song_ids:nextIds, song_names:nextNames});
+  }
 }
 
 // ── INIT ──────────────────────────────────────────────────
@@ -2218,9 +2269,17 @@ async function addUseCount(id) {
 
 async function deleteSong(id) {
   const s = songs.find(x=>x.id===id);
-  if (!confirm(`"${s.name}" 을(를) 삭제할까요?`)) return;
+  const mode = prompt(`"${s.name}" 을(를) 삭제할까요?\n\n전체: 곡 + 악보 파일 + 악보 DB 기록 + 콘티 안의 이 곡 제거\n곡만: 곡 DB만 삭제\n\n삭제 방식을 입력하세요.`, '전체');
+  if (mode === null) return;
+  const cleanMode = mode.replace(/\s+/g,'').trim();
+  if (!['전체','곡만'].includes(cleanMode)) { showToast('삭제가 취소되었습니다'); return; }
+  if (!confirm(cleanMode === '전체' ? '연결된 악보와 콘티 기록까지 함께 정리합니다. 계속할까요?' : '곡 DB만 삭제합니다. 연결 파일이 남을 수 있습니다. 계속할까요?')) return;
   setSync('sync', '삭제 중...');
   try {
+    if (cleanMode === '전체') {
+      await cleanupSongScoreData(id);
+      await cleanupSongFromHistories(id, s.name);
+    }
     await api('DELETE', `songs?id=eq.${id}`);
     songs = songs.filter(x=>x.id!==id);
     exp = null;
