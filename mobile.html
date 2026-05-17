@@ -600,6 +600,38 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
   #sec-home .hero .actions{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
 }
 
+/* Final guard: keep current conti actions visible for both conti1 and conti2. */
+@media (max-width:900px), (max-height:720px){
+  #sec-home .hero{
+    display:block!important;
+    visibility:visible!important;
+    opacity:1!important;
+  }
+  #sec-home .hero .actions{
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:6px!important;
+    overflow:visible!important;
+  }
+  #sec-home .hero .action{
+    min-width:0!important;
+    white-space:normal!important;
+  }
+}
+@media (max-width:520px){
+  #sec-home .hero .actions{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  #sec-home .hero .action{
+    min-height:40px!important;
+  }
+  #sec-home .hero .action b{
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+}
+
 
 /* === Phase12 codefix: prevent shared/conti titles from being cut off === */
 .share-title,
@@ -893,14 +925,14 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
           <button class="action primary" onclick="openCurrentYoutube()"><b>🎧 유튜브 보기</b><span>지정된 찬양콘티 플레이리스트 열기</span></button>
           <button class="action" onclick="openSongViewer()"><b>🎼 연주화면</b><span>악보 중심 연주 화면으로 들어갑니다</span></button>
           <button class="action" onclick="openFullScore()"><b>🖼 한눈에보기</b><span>콘티 악보를 한눈에 확인합니다</span></button>
-          <button class="action" onclick="shareCurrentConti()"><b>💬 콘티 공유</b><span>공유 전용 페이지 링크 보내기</span></button>
+          <button class="action" onclick="shareCurrentConti()"><b id="current-share-label">💬 콘티 공유</b><span>공유 전용 페이지 링크 보내기</span></button>
         </div>
       </div>
     </div>
 
     <div class="grid">
       <div class="card">
-        <div class="card-head"><div><h3>콘티 순서</h3><small>선택한 콘티의 곡 순서입니다</small></div><div class="btn-row conti-head-actions"><button class="mini-btn white" onclick="shareCurrentConti()">공유</button><button class="mini-btn" onclick="openCurrentMobileHistory()">콘티 수정</button></div></div>
+        <div class="card-head"><div><h3>콘티 순서</h3><small>선택한 콘티의 곡 순서입니다</small></div><div class="btn-row conti-head-actions"><button class="mini-btn white" id="current-head-share-label" onclick="shareCurrentConti()">공유</button><button class="mini-btn" onclick="openCurrentMobileHistory()">콘티 수정</button></div></div>
         <div class="flow-list" id="flow-list"><div class="loading">불러오는 중...</div></div>
       </div>
       <div class="card" id="score-panel">
@@ -1461,6 +1493,11 @@ function contiMainSubject(s){
   return '주성';
 }
 function renderHome(){
+  const activeContiNo=currentConti?currentConti._active_conti==='conti2'?2:1:1;
+  const shareLabel=document.getElementById('current-share-label');
+  if(shareLabel)shareLabel.textContent=`💬 콘티${activeContiNo} 공유`;
+  const headShareLabel=document.getElementById('current-head-share-label');
+  if(headShareLabel)headShareLabel.textContent=`콘티${activeContiNo} 공유`;
   if(currentConti){
     const d=parseLocalDate(currentConti.worship_date);
     const title=currentConti.title||currentConti.name||currentConti.worship_name||'';
