@@ -2112,7 +2112,7 @@ function editMemoCandidates(){
   const out=[];
   const push=(label,text)=>{text=String(text||'').trim();if(!text)return;if(out.some(x=>norm(x.text)===norm(text)))return;out.push({label,text});};
   (songs||[]).forEach(s=>{if((id&&String(s.id)===id)||(name&&norm(s.name)===name))push(`찬양곡 메모 · ${s.name}`,s.memo)});
-  (history||[]).forEach(h=>{const ids=(h.song_ids||[]).map(x=>String(x));const names=(h.song_names||[]).map(x=>norm(x));if((id&&ids.includes(id))||(name&&names.includes(name)))push(`${formatUsageDate(h.worship_date)} 콘티 메모`,h.note||h.memo||h.conti_memo)});
+  (history||[]).forEach(h=>{const ids=(h.song_ids||[]).map(x=>String(x));const names=(h.song_names||[]).map(x=>norm(x));const noteInfo=splitHistoryNote(h.note||h.memo||h.conti_memo||'');if((id&&ids.includes(id))||(name&&names.includes(name)))push(`${formatUsageDate(h.worship_date)} 콘티 메모`,noteInfo.visible)});
   return out.slice(0,12);
 }
 function showEditMemoHistory(){

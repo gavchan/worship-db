@@ -1466,7 +1466,8 @@ function renderHome(){
     const title=currentConti.title||currentConti.name||currentConti.worship_name||'';
     document.getElementById('today-badge').textContent=`✨ ${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 지정 콘티`;
     document.getElementById('hero-title').textContent=title?`${title} · ${(currentConti.song_names||[]).length}곡`:`${(currentConti.song_names||[]).length}곡 콘티`;
-    document.getElementById('hero-desc').textContent=currentConti.note||'선택한 콘티의 순서와 곡별 악보를 보여줍니다.';
+    const noteInfo=splitHistoryNote(currentConti.note||'');
+    document.getElementById('hero-desc').textContent=noteInfo.visible||'선택한 콘티의 순서와 곡별 악보를 보여줍니다.';
   }else{
     document.getElementById('today-badge').textContent='✨ 지정 콘티';
     document.getElementById('hero-title').textContent='아직 콘티 기록이 없습니다';
@@ -2191,7 +2192,8 @@ function contiMemoCandidates(){
   (history||[]).forEach(h=>{
     const ids=(h.song_ids||[]).map(x=>String(x));
     const names=(h.song_names||[]).map(x=>norm(x));
-    if((id&&ids.includes(id))||(name&&names.includes(name)))push(`${formatUsageDate(h.worship_date)} 콘티 메모`,h.note||h.memo||h.conti_memo);
+    const noteInfo=splitHistoryNote(h.note||h.memo||h.conti_memo||'');
+    if((id&&ids.includes(id))||(name&&names.includes(name)))push(`${formatUsageDate(h.worship_date)} 콘티 메모`,noteInfo.visible);
   });
   return out.slice(0,12);
 }
@@ -2346,7 +2348,7 @@ function mobileMemoCandidates(){
   const out=[];
   const push=(label,text)=>{text=String(text||'').trim();if(!text)return;if(out.some(x=>norm(x.text)===norm(text)))return;out.push({label,text});};
   (songs||[]).forEach(s=>{if((id&&String(s.id)===id)||(name&&norm(s.name)===name))push(`찬양곡 메모 · ${s.name}`,s.memo)});
-  (history||[]).forEach(h=>{const ids=(h.song_ids||[]).map(x=>String(x));const names=(h.song_names||[]).map(x=>norm(x));if((id&&ids.includes(id))||(name&&names.includes(name)))push(`${formatUsageDate(h.worship_date)} 콘티 메모`,h.note||h.memo||h.conti_memo)});
+  (history||[]).forEach(h=>{const ids=(h.song_ids||[]).map(x=>String(x));const names=(h.song_names||[]).map(x=>norm(x));const noteInfo=splitHistoryNote(h.note||h.memo||h.conti_memo||'');if((id&&ids.includes(id))||(name&&names.includes(name)))push(`${formatUsageDate(h.worship_date)} 콘티 메모`,noteInfo.visible)});
   return out.slice(0,12);
 }
 function showMobileMemoHistory(){
