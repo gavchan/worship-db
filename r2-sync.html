@@ -20,7 +20,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 </head>
 <body>
 <h1>R2 배포 동기화</h1>
-<p>Supabase에 악보가 있는 찬양단 곡을 R2 서버로 옮기고, 앱에서 읽을 <code>praise_songs.json</code>을 다시 만듭니다.</p>
+<p>업로드와 점검이 끝난 뒤 마지막에 실행합니다. Supabase 악보를 R2로 복사하고 앱/공유에서 읽을 <code>praise_songs.json</code>을 다시 만듭니다.</p>
 <p><input id="sync-token" type="password" placeholder="R2 보호 토큰이 있으면 입력" style="width:100%;padding:.7rem;border:1px solid #ddd;border-radius:8px;margin-bottom:.5rem"></p>
 <button id="btn" onclick="syncAll()">전체 동기화 시작</button>
 <div id="log">버튼을 누르면 시작합니다.</div>
