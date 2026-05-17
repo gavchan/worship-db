@@ -231,6 +231,12 @@ function setActiveVariant(idx){
   renderShell();
   selectSong(0,false);
 }
+function requestedVariantIndex(){
+  const params=new URLSearchParams(location.search);
+  const raw=params.get('conti')||params.get('c')||params.get('variant')||'';
+  if(raw==='2'||norm(raw)==='conti2'||norm(raw)==='second')return 1;
+  return 0;
+}
 function renderServiceNav(){
   const hero=document.querySelector('.hero'); if(!hero)return;
   document.getElementById('service-tabs')?.remove();
@@ -362,7 +368,8 @@ async function load(){
     const conti2Songs=c2Names.length?buildSongs(c2Names,c2Ids,safeArray(noteInfo.conti2?.memos)):conti1Songs.slice();
     shareVariants=[{label:noteInfo.conti2?.label1||'콘티1',songs:conti1Songs}];
     if(c2Names.length && !songsEqualByBase(conti1Songs,conti2Songs))shareVariants.push({label:noteInfo.conti2?.label2||'콘티2',songs:conti2Songs});
-    activeVariant=0;shareSongs=shareVariants[0].songs;normalizeShareSongList();selectedIdx=0;
+    activeVariant=Math.min(requestedVariantIndex(),Math.max(0,shareVariants.length-1));
+    shareSongs=shareVariants[activeVariant].songs;normalizeShareSongList();selectedIdx=0;
     document.getElementById('top-tabs').style.display=shareSongs.length?'grid':'none';
     document.getElementById('footer-actions').style.display='none';
     renderServiceNav();

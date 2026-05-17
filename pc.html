@@ -994,7 +994,9 @@ async function loadHistory() {
     }
     el.innerHTML = data.map(h=>{
       const isOpen = historyExp===h.id;
+      const noteInfo = splitHistoryNote(h.note||'');
       const names = h.song_names||[];
+      const hasConti2 = !!(noteInfo.conti2?.song_names||[]).length;
       return `<div class="history-card ${isOpen?'open':''}">
         <button class="history-delete-mini" title="삭제" onclick="event.stopPropagation();deleteHistory('${h.id}')">🗑</button>
         <div class="history-head" onclick="toggleHistory('${h.id}')">
@@ -1003,16 +1005,18 @@ async function loadHistory() {
             <div class="history-date">${h.worship_date}</div>
           </div>
           <div class="history-songs">${names.length?names.join(' · '):'곡 없음'}</div>
-          ${h.note?`<span style="font-size:.63rem;color:var(--text3);white-space:nowrap">${h.note}</span>`:''}
+          ${noteInfo.visible?`<span style="font-size:.63rem;color:var(--text3);white-space:nowrap">${noteInfo.visible}</span>`:''}
           <span class="chev">${isOpen?'▲':'▼'}</span>
         </div>
         <div class="history-body">
           <div style="padding-top:8px;display:flex;flex-direction:column;gap:2px">
             ${names.map(n=>`<div class="history-song-item"><span class="history-song-name" style="cursor:pointer;color:var(--accent);text-decoration:underline" onclick="goToSong('${n.replace(/'/g,"\\'")}')">🎵 ${n}</span></div>`).join('')}
-            ${h.note?`<div style="margin-top:6px;font-size:.72rem;color:var(--text3)">메모: ${h.note}</div>`:''}
+            ${noteInfo.visible?`<div style="margin-top:6px;font-size:.72rem;color:var(--text3)">메모: ${noteInfo.visible}</div>`:''}
+            ${hasConti2?`<div style="margin-top:6px;font-size:.72rem;color:var(--accent)">콘티2: ${(noteInfo.conti2.song_names||[]).join(' · ')}</div>`:''}
           </div>
           <div style="display:flex;gap:5px;margin-top:10px;flex-wrap:wrap">
-            <button class="ab" onclick="shareHistory('${h.id}')">💬 공유</button>
+            <button class="ab" onclick="shareHistory('${h.id}',1)">💬 콘티1 공유</button>
+            ${hasConti2?`<button class="ab" onclick="shareHistory('${h.id}',2)">💬 콘티2 공유</button>`:''}
             <button class="ab" onclick="openHistoryModal('${h.id}')">✏️ 수정</button>
             <button class="ab red" onclick="deleteHistory('${h.id}')">🗑 삭제</button>
           </div>
@@ -2290,13 +2294,14 @@ async function deleteSong(id) {
 }
 
 
-function shareUrlForHistory(id){
+function shareUrlForHistory(id, conti){
   const url=new URL('share.html', location.href);
   if(id) url.searchParams.set('id',id);
+  if(conti) url.searchParams.set('conti',String(conti));
   return url.toString();
 }
-async function shareHistory(id){
-  const url=shareUrlForHistory(id);
+async function shareHistory(id, conti){
+  const url=shareUrlForHistory(id, conti);
   let text='콘티 공유';
   try{
     const row=await api('GET',`worship_history?id=eq.${id}&select=worship_date,song_names`);

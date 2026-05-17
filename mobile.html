@@ -1044,6 +1044,17 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
       <div class="field"><label>예배 날짜</label><input id="m-history-date" type="date"></div>
       <div class="field"><label>곡 검색 후 추가</label><input id="m-history-q" placeholder="곡명 검색" oninput="searchMobileHistorySongs()"><div class="result-list" id="m-history-results"></div></div>
       <div class="field full"><label>선택된 콘티 순서</label><div class="selected-list" id="m-history-selected"></div></div>
+      <div class="field full">
+        <label style="display:flex;align-items:center;gap:8px"><input id="m-use-conti2" type="checkbox" style="width:auto" onchange="toggleMobileHistoryConti2()"> 콘티2 따로 사용</label>
+        <div id="m-conti2-panel" style="display:none;margin-top:8px">
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button type="button" class="mini-btn white" id="m-tab-conti1" onclick="switchMobileHistoryConti('main')">콘티1</button>
+            <button type="button" class="mini-btn" id="m-tab-conti2" onclick="switchMobileHistoryConti('conti2')">콘티2</button>
+            <button type="button" class="mini-btn" onclick="copyMobileHistoryConti1To2()">콘티1 복사</button>
+          </div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.45;margin-top:6px">같은 날짜에 1부/2부 순서나 곡 수가 다를 때만 켜서 따로 수정합니다.</div>
+        </div>
+      </div>
       <div class="field full"><label>메모</label><textarea id="m-history-note" placeholder="예배 흐름 메모"></textarea></div>
     </div>
     <div class="sheet-actions">
@@ -1401,12 +1412,16 @@ function uniqueContiSongsByName(list){
     return !!(id||nameKey);
   });
 }
-function buildContiSongsFromHistory(h){
+function buildContiSongsFromHistory(h, conti='main'){
   // 예전 콘티는 song_ids가 song_names와 어긋난 기록이 있을 수 있다.
   // id가 있어도 저장된 곡명과 DB 곡명이 정확히 같을 때만 신뢰한다.
   // 다르면 저장된 곡명으로 정확히 1곡만 다시 찾고, 애매하면 이름만 표시한다.
-  const ids=Array.isArray(h?.song_ids)?h.song_ids.map(x=>x?String(x):null):[];
-  const list=(h?.song_names||[]).map((name,i)=>{
+  const noteInfo=splitHistoryNote(h?.note||'');
+  const use2=conti==='conti2'&&noteInfo.conti2?.song_names?.length;
+  const sourceIds=use2?noteInfo.conti2.song_ids:h?.song_ids;
+  const sourceNames=use2?noteInfo.conti2.song_names:h?.song_names;
+  const ids=Array.isArray(sourceIds)?sourceIds.map(x=>x?String(x):null):[];
+  const list=(sourceNames||[]).map((name,i)=>{
     const id=ids[i]||null;
     const byId=id?songs.find(s=>String(s.id)===String(id)):null;
     const safe=byId && namesCompatible(name,byId.name) ? byId : findSongByExactName(name);
@@ -2074,18 +2089,19 @@ async function moveSingleScoreSong(delta){
   if(next) await openDbScoreViewer(next.id);
 }
 
-function renderHistory(){const el=document.getElementById('history-grid');el.innerHTML=(history||[]).map(h=>{const d=parseLocalDate(h.worship_date);return `<div class="history-card"><div class="history-date">${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}</div><div class="history-title">주일예배</div><div class="pill-row" style="margin-top:10px">${(h.song_names||[]).map(n=>`<span class="pill">${esc(n)}</span>`).join('')}</div><div class="btn-row"><button class="mini-btn" onclick="loadHistoryAsConti('${h.id}')">이 콘티 보기</button><button class="mini-btn" onclick="shareHistory('${h.id}')">카톡공유</button><button class="mini-btn white" onclick="openMobileHistory('${h.id}')">수정</button></div></div>`}).join('')||'<div class="loading">콘티 기록이 없습니다.</div>'}
-function loadHistoryAsConti(id){const h=history.find(x=>x.id===id);if(!h)return;currentConti=h;contiSongs=buildContiSongsFromHistory(h);applyContiOverrides();showSection('home',document.querySelector('.nav button'));renderHome();toast('선택한 콘티 기록을 열었어요')}
+function renderHistory(){const el=document.getElementById('history-grid');el.innerHTML=(history||[]).map(h=>{const d=parseLocalDate(h.worship_date);const noteInfo=splitHistoryNote(h.note||'');const has2=!!noteInfo.conti2?.song_names?.length;return `<div class="history-card"><div class="history-date">${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}</div><div class="history-title">주일예배</div><div class="pill-row" style="margin-top:10px">${(h.song_names||[]).map(n=>`<span class="pill">${esc(n)}</span>`).join('')}</div>${has2?`<div class="pill-row" style="margin-top:6px">${(noteInfo.conti2.song_names||[]).map(n=>`<span class="pill">2부 ${esc(n)}</span>`).join('')}</div>`:''}<div class="btn-row"><button class="mini-btn" onclick="loadHistoryAsConti('${h.id}','main')">콘티1 보기</button>${has2?`<button class="mini-btn" onclick="loadHistoryAsConti('${h.id}','conti2')">콘티2 보기</button>`:''}<button class="mini-btn" onclick="shareHistory('${h.id}',1)">콘티1 공유</button>${has2?`<button class="mini-btn" onclick="shareHistory('${h.id}',2)">콘티2 공유</button>`:''}<button class="mini-btn white" onclick="openMobileHistory('${h.id}')">수정</button></div></div>`}).join('')||'<div class="loading">콘티 기록이 없습니다.</div>'}
+function loadHistoryAsConti(id,conti='main'){const h=history.find(x=>x.id===id);if(!h)return;currentConti={...h,_active_conti:conti};contiSongs=buildContiSongsFromHistory(h,conti);applyContiOverrides();showSection('home',document.querySelector('.nav button'));renderHome();toast(conti==='conti2'?'콘티2를 열었어요':'콘티1을 열었어요')}
 
 
-function shareUrlForHistory(id){
+function shareUrlForHistory(id,conti){
   const url=new URL('share.html', location.href);
   if(id) url.searchParams.set('id',id);
+  if(conti) url.searchParams.set('conti',String(conti));
   return url.toString();
 }
-async function shareHistory(id){
+async function shareHistory(id,conti){
   const h=(history||[]).find(x=>String(x.id)===String(id));
-  const url=shareUrlForHistory(id);
+  const url=shareUrlForHistory(id,conti);
   const title='콘티 공유';
   const text=h?`${h.worship_date} 콘티`:title;
   try{
@@ -2100,7 +2116,7 @@ async function shareHistory(id){
 }
 function shareCurrentConti(){
   if(!currentConti?.id){toast('공유할 콘티가 없습니다');return}
-  shareHistory(currentConti.id);
+  shareHistory(currentConti.id,currentConti._active_conti==='conti2'?2:1);
 }
 
 
@@ -2292,7 +2308,16 @@ function resetContiSongEdit(){
   toast('콘티 곡 설정을 초기화했어요');
 }
 
-let mobileSongId=null, mobileHistoryId=null, mobileSelectedSongs=[];
+let mobileSongId=null, mobileHistoryId=null, mobileSelectedSongs=[], mobileSelectedSongs2=[], mobileHistoryUseConti2=false, mobileHistoryTarget='main';
+function encodeConti2Payload(data){try{return btoa(unescape(encodeURIComponent(JSON.stringify(data)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}catch(e){return''}}
+function decodeConti2Payload(raw){try{const b64=String(raw||'').replace(/-/g,'+').replace(/_/g,'/');return JSON.parse(decodeURIComponent(escape(atob(b64))))}catch(e){return null}}
+function splitHistoryNote(note){const text=String(note||'');const m=text.match(/\[\[WDB_CONTI2:([A-Za-z0-9_-]+)\]\]/);return{visible:text.replace(/\s*\[\[WDB_CONTI2:[A-Za-z0-9_-]+\]\]\s*/,'').trim(),conti2:m?decodeConti2Payload(m[1]):null}}
+function buildMobileHistoryNote(visible){const clean=String(visible||'').trim();if(!mobileHistoryUseConti2)return clean;mobileSelectedSongs2=uniqueContiSongsByName(mobileSelectedSongs2);const payload={label1:'콘티1',label2:'콘티2',song_ids:mobileSelectedSongs2.map(s=>s.id||null),song_names:mobileSelectedSongs2.map(s=>s.name)};const enc=encodeConti2Payload(payload);return enc?(clean?clean+' ':'')+'[[WDB_CONTI2:'+enc+']]':clean}
+function currentMobileHistorySongs(){return mobileHistoryTarget==='conti2'?mobileSelectedSongs2:mobileSelectedSongs}
+function setCurrentMobileHistorySongs(list){if(mobileHistoryTarget==='conti2')mobileSelectedSongs2=list;else mobileSelectedSongs=list}
+function toggleMobileHistoryConti2(){mobileHistoryUseConti2=!!document.getElementById('m-use-conti2')?.checked;const panel=document.getElementById('m-conti2-panel');if(panel)panel.style.display=mobileHistoryUseConti2?'block':'none';if(mobileHistoryUseConti2&&!mobileSelectedSongs2.length)mobileSelectedSongs2=mobileSelectedSongs.map(s=>({...s}));if(!mobileHistoryUseConti2)mobileHistoryTarget='main';switchMobileHistoryConti(mobileHistoryTarget)}
+function switchMobileHistoryConti(target){mobileHistoryTarget=(target==='conti2'&&mobileHistoryUseConti2)?'conti2':'main';document.getElementById('m-tab-conti1')?.classList.toggle('white',mobileHistoryTarget==='main');document.getElementById('m-tab-conti2')?.classList.toggle('white',mobileHistoryTarget==='conti2');renderMobileSelectedSongs()}
+function copyMobileHistoryConti1To2(){mobileSelectedSongs2=mobileSelectedSongs.map(s=>({...s}));switchMobileHistoryConti('conti2');toast('콘티1을 콘티2로 복사했어요')}
 function todayISO(){return new Date().toISOString().split('T')[0]}
 function openSongEdit(id){mobileSongId=id||null;editSongScoreFiles=[];editSongScoreIndex=0;pendingSongScoreFiles=[];pendingSongScoreMeta=null;setupSongAutoDrop();const m=document.getElementById('song-modal');document.getElementById('song-modal-title').textContent=id?'찬양곡 수정':'찬양곡 추가';document.getElementById('m-song-delete').style.visibility=id?'visible':'hidden';const s=id?songs.find(x=>String(x.id)===String(id)):null;document.getElementById('m-song-name').value=s?.name||'';document.getElementById('m-song-status').value=s?.status||'used';document.getElementById('m-song-count').value=s?.count||0;document.getElementById('m-song-key').value=s?.key||'';const tp=mobileTempoParts(s);document.getElementById('m-song-bpm-min').value=tp.min||0;document.getElementById('m-song-bpm-max').value=tp.max||0;document.getElementById('m-song-url').value=s?.music_url||'';document.getElementById('m-song-tags').value=(s?.seasons||[]).join(', ');document.getElementById('m-song-memo').value=s?.memo||'';const hist=document.getElementById('m-song-memo-history');if(hist){hist.style.display='none';hist.innerHTML=''}const input=document.getElementById('m-song-score-files');if(input)input.value='';const autoBox=document.getElementById('m-song-auto-result');if(autoBox)autoBox.textContent='파일을 올리면 기본 정보가 자동으로 채워집니다.';m.classList.add('show');renderMobileEditYoutubePreview();renderEditSongScoreList()}
 function closeSongEdit(){document.getElementById('song-modal').classList.remove('show')}
@@ -2517,19 +2542,22 @@ async function cleanupMobileSongScoreData(songId){const files=await listScores(s
 async function cleanupMobileSongFromHistories(songId,songName){const rows=await api('GET','worship_history?select=id,song_ids,song_names&limit=5000').catch(()=>[]);const targetId=String(songId);const targetName=norm(songName);for(const h of rows||[]){const ids=Array.isArray(h.song_ids)?h.song_ids:[];const names=Array.isArray(h.song_names)?h.song_names:[];const nextIds=[];const nextNames=[];let changed=false;const len=Math.max(ids.length,names.length);for(let i=0;i<len;i++){const idHit=ids[i]!=null&&String(ids[i])===targetId;const nameHit=targetName&&norm(names[i])===targetName;if(idHit||nameHit){changed=true;continue}nextIds.push(ids[i]??null);if(names[i]!=null)nextNames.push(names[i])}if(changed)await api('PATCH',`worship_history?id=eq.${encodeURIComponent(h.id)}`,{song_ids:nextIds,song_names:nextNames})}}
 async function deleteMobileSong(){if(!mobileSongId)return;const s=songs.find(x=>String(x.id)===String(mobileSongId));const mode=prompt(`이 찬양곡을 삭제할까요?\n\n전체: 곡 + 악보 파일 + 악보 DB 기록 + 콘티 안의 이 곡 제거\n곡만: 곡 DB만 삭제\n\n삭제 방식을 입력하세요.`, '전체');if(mode===null)return;const cleanMode=mode.replace(/\s+/g,'').trim();if(!['전체','곡만'].includes(cleanMode)){toast('삭제가 취소되었어요');return}if(!confirm(cleanMode==='전체'?'연결된 악보와 콘티 기록까지 함께 정리합니다. 계속할까요?':'곡 DB만 삭제합니다. 연결 파일이 남을 수 있습니다. 계속할까요?'))return;try{if(cleanMode==='전체'){await cleanupMobileSongScoreData(mobileSongId);await cleanupMobileSongFromHistories(mobileSongId,s?.name||'')}await api('DELETE',`songs?id=eq.${mobileSongId}`);songs=songs.filter(x=>String(x.id)!==String(mobileSongId));closeSongEdit();renderSongCards();pickCurrentConti();renderHome();toast('삭제했어요')}catch(e){toast('삭제 실패: '+e.message)}}
 function openCurrentMobileHistory(){openMobileHistory(currentConti?.id||null)}
-function openMobileHistory(id){mobileHistoryId=id||null;const h=id?history.find(x=>x.id===id):null;document.getElementById('history-modal-title').textContent=id?'콘티 기록 수정':'콘티 기록 추가';document.getElementById('m-history-delete').style.visibility=id?'visible':'hidden';document.getElementById('m-history-date').value=h?.worship_date||todayISO();document.getElementById('m-history-note').value=h?.note||'';mobileSelectedSongs=h?uniqueContiSongsByName((h.song_names||[]).map((name,i)=>({id:(h.song_ids||[])[i]||null,name}))):[];renderMobileSelectedSongs();document.getElementById('m-history-q').value='';document.getElementById('m-history-results').style.display='none';document.getElementById('history-modal').classList.add('show')}
+function openMobileHistory(id){mobileHistoryId=id||null;const h=id?history.find(x=>x.id===id):null;mobileSelectedSongs=[];mobileSelectedSongs2=[];mobileHistoryUseConti2=false;mobileHistoryTarget='main';const use2=document.getElementById('m-use-conti2');if(use2)use2.checked=false;const panel=document.getElementById('m-conti2-panel');if(panel)panel.style.display='none';document.getElementById('history-modal-title').textContent=id?'콘티 기록 수정':'콘티 기록 추가';document.getElementById('m-history-delete').style.visibility=id?'visible':'hidden';document.getElementById('m-history-date').value=h?.worship_date||todayISO();const noteInfo=splitHistoryNote(h?.note||'');document.getElementById('m-history-note').value=noteInfo.visible||'';mobileSelectedSongs=h?uniqueContiSongsByName((h.song_names||[]).map((name,i)=>({id:(h.song_ids||[])[i]||null,name}))):[];if(noteInfo.conti2?.song_names?.length){mobileHistoryUseConti2=true;mobileSelectedSongs2=uniqueContiSongsByName((noteInfo.conti2.song_names||[]).map((name,i)=>({id:(noteInfo.conti2.song_ids||[])[i]||null,name})));if(use2)use2.checked=true;if(panel)panel.style.display='block'}renderMobileSelectedSongs();document.getElementById('m-history-q').value='';document.getElementById('m-history-results').style.display='none';document.getElementById('history-modal').classList.add('show')}
 function closeMobileHistory(){document.getElementById('history-modal').classList.remove('show')}
 let mobileDragFromIdx=null;
 function renderMobileSelectedSongs(){
   const el=document.getElementById('m-history-selected');
-  el.innerHTML=mobileSelectedSongs.length?mobileSelectedSongs.map((s,i)=>`<div class="selected-item" draggable="true" data-mobile-song-idx="${i}" ondragstart="startMobileSelectedDrag(event,${i})" ondragover="overMobileSelectedDrag(event,${i})" ondrop="dropMobileSelectedDrag(event,${i})" ondragend="endMobileSelectedDrag(event)"><div class="selected-main"><span class="selected-title">${i+1}. ${esc(s.name)}</span></div><span class="selected-actions"><button onclick="removeMobileSelected(${i})">✕</button><span class="drag-handle" title="잡고 순서 이동" aria-label="순서 이동">≡</span></span></div>`).join(''):'<div class="selected-item"><span>곡을 검색해서 추가하세요</span></div>';
+  const list=currentMobileHistorySongs();
+  el.innerHTML=list.length?list.map((s,i)=>`<div class="selected-item" draggable="true" data-mobile-song-idx="${i}" ondragstart="startMobileSelectedDrag(event,${i})" ondragover="overMobileSelectedDrag(event,${i})" ondrop="dropMobileSelectedDrag(event,${i})" ondragend="endMobileSelectedDrag(event)"><div class="selected-main"><span class="selected-title">${i+1}. ${esc(s.name)}</span></div><span class="selected-actions"><button onclick="removeMobileSelected(${i})">✕</button><span class="drag-handle" title="잡고 순서 이동" aria-label="순서 이동">≡</span></span></div>`).join(''):'<div class="selected-item"><span>곡을 검색해서 추가하세요</span></div>';
   enableMobileSelectedTouchSort();
 }
-function moveMobileSong(i,d){const j=i+d;if(j<0||j>=mobileSelectedSongs.length)return;[mobileSelectedSongs[i],mobileSelectedSongs[j]]=[mobileSelectedSongs[j],mobileSelectedSongs[i]];renderMobileSelectedSongs()}
+function moveMobileSong(i,d){const list=currentMobileHistorySongs();const j=i+d;if(j<0||j>=list.length)return;[list[i],list[j]]=[list[j],list[i]];setCurrentMobileHistorySongs(list);renderMobileSelectedSongs()}
 function reorderMobileSelectedSongs(from,to){
-  if(from===to||from<0||to<0||from>=mobileSelectedSongs.length||to>=mobileSelectedSongs.length)return;
-  const [item]=mobileSelectedSongs.splice(from,1);
-  mobileSelectedSongs.splice(to,0,item);
+  const list=currentMobileHistorySongs();
+  if(from===to||from<0||to<0||from>=list.length||to>=list.length)return;
+  const [item]=list.splice(from,1);
+  list.splice(to,0,item);
+  setCurrentMobileHistorySongs(list);
   renderMobileSelectedSongs();
 }
 function startMobileSelectedDrag(e,i){mobileDragFromIdx=i;e.currentTarget.classList.add('dragging');try{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',String(i))}catch(_){}}
@@ -2564,11 +2592,11 @@ function enableMobileSelectedTouchSort(){
     },{passive:false});
   });
 }
-function removeMobileSelected(i){mobileSelectedSongs.splice(i,1);renderMobileSelectedSongs()}
+function removeMobileSelected(i){const list=currentMobileHistorySongs();list.splice(i,1);setCurrentMobileHistorySongs(list);renderMobileSelectedSongs()}
 function searchMobileHistorySongs(){const q=norm(document.getElementById('m-history-q').value);const el=document.getElementById('m-history-results');if(!q){el.style.display='none';return}const found=songs.filter(s=>norm(s.name).includes(q)).slice(0,12);el.style.display='block';el.innerHTML=(found.map(s=>`<button onclick="addMobileHistorySong('${s.id}')">🎵 ${esc(s.name)}</button>`).join('')||'<button disabled>검색 결과 없음</button>')+`<button onclick="addMobileHistoryDirect()">➕ 입력한 이름 직접 추가</button>`}
-function addMobileHistorySong(id){const s=songs.find(x=>x.id===id);if(!s)return;const key=contiBaseName(s.name);if(mobileSelectedSongs.find(x=>contiBaseName(x.name)===key)){toast('같은 곡의 다른 버전이 이미 들어가 있어요');return}mobileSelectedSongs.push({id:s.id,name:s.name});document.getElementById('m-history-q').value='';document.getElementById('m-history-results').style.display='none';renderMobileSelectedSongs()}
-function addMobileHistoryDirect(){const name=document.getElementById('m-history-q').value.replace(/\s+/g,' ').trim();if(!name)return;const key=contiBaseName(name);if(mobileSelectedSongs.find(x=>contiBaseName(x.name)===key)){toast('같은 곡의 다른 버전이 이미 들어가 있어요');return}mobileSelectedSongs.push({id:null,name});document.getElementById('m-history-q').value='';document.getElementById('m-history-results').style.display='none';renderMobileSelectedSongs()}
-async function saveMobileHistory(){const worship_date=document.getElementById('m-history-date').value;if(!worship_date){toast('날짜를 선택해주세요');return}mobileSelectedSongs=uniqueContiSongsByName(mobileSelectedSongs);const payload={worship_date,song_ids:mobileSelectedSongs.map(s=>s.id||null),song_names:mobileSelectedSongs.map(s=>s.name),note:document.getElementById('m-history-note').value.trim()};try{if(mobileHistoryId){const updated=await api('PATCH',`worship_history?id=eq.${mobileHistoryId}`,payload);const i=history.findIndex(x=>x.id===mobileHistoryId);if(i>=0&&updated?.[0])history[i]=updated[0];toast('콘티 기록을 수정했어요')}else{const created=await api('POST','worship_history',payload);if(created?.[0])history.unshift(created[0]);toast('콘티 기록을 추가했어요')}history.sort((a,b)=>String(b.worship_date).localeCompare(String(a.worship_date)));closeMobileHistory();renderHistory();pickCurrentConti();renderHome()}catch(e){toast('저장 실패: '+e.message)}}
+function addMobileHistorySong(id){const s=songs.find(x=>x.id===id);if(!s)return;const list=currentMobileHistorySongs();const key=contiBaseName(s.name);if(list.find(x=>contiBaseName(x.name)===key)){toast('같은 곡의 다른 버전이 이미 들어가 있어요');return}list.push({id:s.id,name:s.name});setCurrentMobileHistorySongs(list);document.getElementById('m-history-q').value='';document.getElementById('m-history-results').style.display='none';renderMobileSelectedSongs()}
+function addMobileHistoryDirect(){const name=document.getElementById('m-history-q').value.replace(/\s+/g,' ').trim();if(!name)return;const list=currentMobileHistorySongs();const key=contiBaseName(name);if(list.find(x=>contiBaseName(x.name)===key)){toast('같은 곡의 다른 버전이 이미 들어가 있어요');return}list.push({id:null,name});setCurrentMobileHistorySongs(list);document.getElementById('m-history-q').value='';document.getElementById('m-history-results').style.display='none';renderMobileSelectedSongs()}
+async function saveMobileHistory(){const worship_date=document.getElementById('m-history-date').value;if(!worship_date){toast('날짜를 선택해주세요');return}mobileHistoryTarget='main';mobileSelectedSongs=uniqueContiSongsByName(mobileSelectedSongs);if(mobileHistoryUseConti2)mobileSelectedSongs2=uniqueContiSongsByName(mobileSelectedSongs2);const payload={worship_date,song_ids:mobileSelectedSongs.map(s=>s.id||null),song_names:mobileSelectedSongs.map(s=>s.name),note:buildMobileHistoryNote(document.getElementById('m-history-note').value.trim())};try{if(mobileHistoryId){const updated=await api('PATCH',`worship_history?id=eq.${mobileHistoryId}`,payload);const i=history.findIndex(x=>x.id===mobileHistoryId);if(i>=0&&updated?.[0])history[i]=updated[0];toast('콘티 기록을 수정했어요')}else{const created=await api('POST','worship_history',payload);if(created?.[0])history.unshift(created[0]);toast('콘티 기록을 추가했어요')}history.sort((a,b)=>String(b.worship_date).localeCompare(String(a.worship_date)));closeMobileHistory();renderHistory();pickCurrentConti();renderHome()}catch(e){toast('저장 실패: '+e.message)}}
 async function deleteMobileHistory(){if(!mobileHistoryId)return;if(!confirm('이 콘티 기록을 삭제할까요?'))return;try{await api('DELETE',`worship_history?id=eq.${mobileHistoryId}`);history=history.filter(x=>x.id!==mobileHistoryId);closeMobileHistory();renderHistory();pickCurrentConti();renderHome();toast('삭제했어요')}catch(e){toast('삭제 실패: '+e.message)}}
 
 let songScoreManagerId = null;
