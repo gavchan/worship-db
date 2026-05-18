@@ -405,7 +405,7 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
 .expanded-song-viewer .score-empty{width:100%;height:100%;min-height:0;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;color:#6b7280;font-weight:800;padding:12px}
 .expanded-actions{grid-column:1/-1;display:flex!important;justify-content:flex-start!important;align-items:center!important;gap:7px!important;flex-wrap:wrap!important;margin-top:2px!important}
 .expanded-actions .mini-btn{min-width:0!important;justify-content:center!important}
-@media(max-width:760px){.expanded-song-deck{grid-template-columns:1fr!important}.expanded-song-viewer{max-height:none!important;aspect-ratio:16/10!important}.expanded-actions{display:flex!important}}
+@media(max-width:760px){.expanded-song-deck{grid-template-columns:1fr!important}.expanded-song-viewer{height:auto!important;max-height:260px!important;aspect-ratio:16/10!important}.expanded-actions{display:flex!important}}
 
 
 /* PHASE12-11: DB detail inline video + fuller left panel */
@@ -420,6 +420,8 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
 .expanded-song-viewer iframe{width:100%!important;height:100%!important;border:0!important;display:block!important;border-radius:0!important;background:#000!important}
 .expanded-song-viewer.video-mode{overflow:hidden!important;background:#000!important}
 .expanded-song-viewer.video-mode .score-empty{color:#fff;background:#000}
+.expanded-song-viewer:not(.video-mode){height:auto!important;max-height:260px!important;overflow-y:auto!important;overflow-x:hidden!important;background:#fff!important}
+.expanded-song-viewer:not(.video-mode) img{display:block!important;width:100%!important;max-width:none!important;height:auto!important;object-fit:initial!important}
 @media(max-width:760px){.expanded-song-deck{grid-template-columns:1fr!important}.expanded-song-left{min-height:0}.expanded-song-left h4{font-size:21px!important}.expanded-actions{margin-top:4px!important}}
 
 
@@ -2089,7 +2091,7 @@ function renderDbSongCard(s){
         ${renderExpandedUsage(s)}
         <div class="expanded-actions">
           <button class="mini-btn" onclick="event.stopPropagation();openSongEdit('${esc(s.id)}')">수정</button>
-          <button class="mini-btn" onclick="event.stopPropagation();openDbScoreViewer('${esc(s.id)}')">악보보기</button>
+          <button class="mini-btn" onclick="event.stopPropagation();showDbInlineScore('${esc(s.id)}')">악보보기</button>
           <button class="mini-btn" onclick="event.stopPropagation();openDbYoutube('${esc(s.id)}')">영상보기</button>
           <button class="mini-btn white" onclick="event.stopPropagation();openSongScoreManager('${esc(s.id)}')">다른버전 악보추가</button>
         </div>
@@ -2159,6 +2161,24 @@ function openDbYoutube(id){
   box.classList.add('video-mode');
   box.scrollTop=0;
   box.innerHTML=`<iframe class="mobile-inline-youtube" src="${embed}" title="${esc(s.name)} 영상보기" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+}
+async function showDbInlineScore(id){
+  const s=songs.find(x=>String(x.id)===String(id));
+  const box=document.getElementById('db-score-preview-'+String(id))||document.querySelector('[data-song-id="'+CSS.escape(String(id))+'"]');
+  if(!s||!box){toast('악보 영역을 찾지 못했어요');return}
+  box.classList.remove('video-mode');
+  box.scrollTop=0;
+  box.innerHTML='<div class="score-empty"><b>🎼 작은 악보</b><span>악보를 불러오는 중입니다</span></div>';
+  if(!s.has_score){box.innerHTML='<div class="score-empty"><b>🎼 작은 악보</b><span>등록된 악보가 없어요</span></div>';return}
+  try{
+    let files=scoreCache[s.id];
+    if(!files){files=await listScores(s.id);scoreCache[s.id]=files}
+    if(!files||!files.length){box.innerHTML='<div class="score-empty"><b>🎼 작은 악보</b><span>악보 파일을 찾지 못했어요</span></div>';return}
+    const url=scoreUrl(scorePath(s.id,files[0]));
+    box.innerHTML=`<img src="${url}" alt="${esc(s.name)} 작은 악보" loading="lazy" onerror="brokenScoreImage(this)">`;
+  }catch(e){
+    box.innerHTML='<div class="score-empty"><b>🎼 작은 악보</b><span>악보를 불러오지 못했어요</span></div>';
+  }
 }
 async function openDbScoreViewer(id){
   const s=songs.find(x=>String(x.id)===String(id));
