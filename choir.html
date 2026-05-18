@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>성가대 자료실</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0f172a;color:#f8fafc;font-family:'Noto Sans KR',system-ui,sans-serif}
+.wrap{max-width:1120px;margin:0 auto;padding:28px 16px 56px}
+.hero{display:grid;grid-template-columns:1fr minmax(280px,420px);gap:18px;align-items:end;border:1px solid rgba(255,255,255,.14);background:linear-gradient(135deg,rgba(255,255,255,.08),rgba(37,99,235,.08));border-radius:26px;padding:24px;margin-bottom:18px}
+h1{font-size:clamp(34px,6vw,64px);letter-spacing:0;margin:0 0 10px}
+p{color:#cbd5e1;line-height:1.65;margin:0}
+.search{display:grid;gap:10px}
+input,select{width:100%;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;border-radius:14px;padding:13px 14px;font:inherit;outline:none}
+select option{color:#111827}
+.grid{display:grid;grid-template-columns:1fr 1.25fr;gap:18px}
+.panel{border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.055);border-radius:22px;padding:16px;min-height:180px}
+.panel h2{font-size:1.05rem;margin:0 0 12px}
+.list{display:grid;gap:9px}
+.item{border:1px solid rgba(255,255,255,.1);background:#111c33;color:#fff;border-radius:16px;padding:13px;text-align:left;cursor:pointer}
+.item.on{background:#fff;color:#111827}
+.item strong{display:block;font-size:1rem;margin-bottom:4px}
+.item span{font-size:.78rem;color:#aab4c7}
+.item.on span{color:#64748b}
+.empty{color:#94a3b8;padding:18px;text-align:center}
+.detail-title{font-size:1.6rem;font-weight:900;margin:0 0 5px}
+.badges{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0 14px}
+.badge{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);border-radius:999px;padding:6px 9px;font-size:.75rem;color:#dbeafe}
+.score-pages{display:grid;gap:12px}
+.score-box{background:white;border-radius:18px;min-height:360px;display:flex;align-items:center;justify-content:center;overflow:hidden;color:#64748b}
+.score-box img{display:block;max-width:100%;height:auto}
+.score-box iframe{width:100%;height:520px;border:0;background:white}
+.part-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.part{border:1px solid rgba(255,255,255,.1);background:#111c33;border-radius:15px;padding:12px}
+.part strong{display:block;margin-bottom:8px}
+.links{display:grid;gap:7px}
+a{color:#bfdbfe;text-decoration:none;word-break:break-all;font-size:.84rem}
+.memo{margin-top:12px;border-radius:14px;background:#020617;padding:12px;color:#e2e8f0;font-size:.9rem;line-height:1.55}
+@media(max-width:820px){.hero,.grid{grid-template-columns:1fr}.part-grid{grid-template-columns:1fr}.score-box{min-height:260px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero">
+    <div>
+      <h1>성가대 자료실</h1>
+      <p>4성부 악보를 기본으로 보고, 소프라노·알토·테너·베이스 연습 영상과 자료를 함께 확인하는 준비 화면입니다.</p>
+    </div>
+    <div class="search">
+      <input id="q" placeholder="악보 이름으로 검색" oninput="renderList()">
+      <select id="kind" onchange="renderList()">
+        <option value="all">전체</option>
+        <option value="service">이번 주일 할 곡</option>
+        <option value="practice">앞으로 연습할 곡</option>
+        <option value="archive">자료만 보관</option>
+      </select>
+    </div>
+  </section>
+
+  <div class="grid">
+    <section class="panel">
+      <h2>성가곡 목록</h2>
+      <div id="list" class="list"><div class="empty">자료를 불러오는 중입니다.</div></div>
+    </section>
+    <section class="panel">
+      <div id="detail" class="empty">왼쪽에서 성가곡을 선택하세요.</div>
+    </section>
+  </div>
+</div>
+
+<script>
+let choirSongs=[];
+let selectedId='';
+const labels={service:'이번 주일 할 곡',practice:'앞으로 연습할 곡',archive:'자료만 보관'};
+const partLabels={soprano:'소프라노',alto:'알토',tenor:'테너',bass:'베이스'};
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function norm(v){return String(v||'').replace(/\s+/g,'').toLowerCase()}
+async function loadChoir(){
+  try{
+    const res=await fetch('/api/r2-choir-upload',{cache:'no-store'});
+    const data=await res.json();
+    if(!res.ok || !data.ok) throw new Error(data.error || '목록을 불러오지 못했습니다.');
+    choirSongs=(data.manifest.groups||[]).filter(item=>item && item.type==='choir_song');
+    renderList();
+  }catch(e){
+    document.getElementById('list').innerHTML=`<div class="empty">${esc(e.message||e)}</div>`;
+  }
+}
+function filtered(){
+  const q=norm(document.getElementById('q').value);
+  const kind=document.getElementById('kind').value;
+  return choirSongs.filter(song=>{
+    const okTitle=!q || norm(song.title).includes(q) || norm(song.search_title).includes(q);
+    const okKind=kind==='all' || song.schedule?.type===kind;
+    return okTitle && okKind;
+  }).sort((a,b)=>String(a.schedule?.date||'9999').localeCompare(String(b.schedule?.date||'9999')));
+}
+function renderList(){
+  const list=filtered();
+  const box=document.getElementById('list');
+  if(!list.length){box.innerHTML='<div class="empty">검색 결과가 없습니다.</div>';return}
+  if(!selectedId || !list.some(item=>item.id===selectedId)) selectedId=list[0].id;
+  box.innerHTML=list.map(song=>`<button class="item ${song.id===selectedId?'on':''}" onclick="selectSong('${esc(song.id)}')"><strong>${esc(song.title)}</strong><span>${esc(song.schedule?.date||'날짜 미정')} · ${esc(labels[song.schedule?.type]||song.schedule?.type||'자료')}</span></button>`).join('');
+  renderDetail(list.find(item=>item.id===selectedId));
+}
+function selectSong(id){selectedId=id;renderList()}
+function fileLink(file){return `<a href="${esc(file.url)}" target="_blank">${esc(file.file_name||file.r2_path)}</a>`}
+function videoLink(label,url){return url ? `<a href="${esc(url)}" target="_blank">${esc(label)} 영상 열기</a>` : ''}
+function renderScore(song){
+  const pages=song.scores?.full||[];
+  if(!pages.length) return '<div class="score-box">4성부 악보가 아직 없습니다.</div>';
+  return `<div class="score-pages">${pages.map((file,index)=>{
+    if(String(file.content_type||'').startsWith('image/')) return `<div class="score-box"><img src="${esc(file.url)}" alt="${esc(song.title)} 4성부 악보 ${index+1}쪽"></div>`;
+    return `<div class="score-box">${fileLink(file)}</div>`;
+  }).join('')}</div>`;
+}
+function renderDetail(song){
+  if(!song){document.getElementById('detail').innerHTML='<div class="empty">왼쪽에서 성가곡을 선택하세요.</div>';return}
+  const parts=['soprano','alto','tenor','bass'].map(part=>{
+    const files=(song.scores?.[part]||[]).map(fileLink).join('');
+    const video=videoLink(partLabels[part], song.videos?.[part]);
+    return `<div class="part"><strong>${partLabels[part]}</strong><div class="links">${video}${files || (!video ? '<span class="empty">자료 없음</span>' : '')}</div></div>`;
+  }).join('');
+  document.getElementById('detail').innerHTML=`
+    <div class="detail-title">${esc(song.title)}</div>
+    <p>${esc(song.schedule?.date||'날짜 미정')} · ${esc(labels[song.schedule?.type]||song.schedule?.type||'자료')}</p>
+    <div class="badges"><span class="badge">4성부 기본 악보</span><span class="badge">파트별 영상</span><span class="badge">악보 이름 검색</span></div>
+    ${renderScore(song)}
+    <div class="part-grid">${parts}</div>
+    ${song.videos?.full ? `<div class="memo">${videoLink('전체 / 참고', song.videos.full)}</div>` : ''}
+    ${song.memo ? `<div class="memo">${esc(song.memo)}</div>` : ''}
+  `;
+}
+loadChoir();
+</script>
+</body>
+</html>
