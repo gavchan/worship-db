@@ -632,6 +632,80 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
   }
 }
 
+/* Final mobile home layout: keep action buttons, but let score and conti list stay visible. */
+@media (max-width:900px){
+  #sec-home .hero{
+    display:block!important;
+    padding:0!important;
+    margin:0 0 8px!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    overflow:visible!important;
+  }
+  #sec-home .hero:after{display:none!important}
+  #sec-home .hero-in{
+    display:block!important;
+    padding:0!important;
+  }
+  #sec-home .hero-in>div:first-child{
+    display:none!important;
+  }
+  #sec-home .hero .actions{
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:6px!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:visible!important;
+  }
+  #sec-home .hero .action{
+    min-height:40px!important;
+    padding:6px 5px!important;
+    border-radius:999px!important;
+    text-align:center!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+  }
+  #sec-home .hero .action b{
+    font-size:11px!important;
+    line-height:1.1!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  #sec-home .hero .action span{display:none!important}
+}
+@media (max-width:520px){
+  #sec-home .hero .actions{
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  }
+}
+@media (max-width:360px){
+  #sec-home .hero .actions{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+}
+@media (orientation:landscape) and (max-width:1100px){
+  #sec-home .hero{
+    display:block!important;
+    padding:0!important;
+    margin:0 0 8px!important;
+    border:0!important;
+    background:transparent!important;
+  }
+  #sec-home .hero-in>div:first-child{
+    display:none!important;
+  }
+  #sec-home .hero .actions{
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  }
+}
+
 
 /* === Phase12 codefix: prevent shared/conti titles from being cut off === */
 .share-title,
