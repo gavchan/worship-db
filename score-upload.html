@@ -55,6 +55,8 @@ body{font-family:sans-serif;background:#faf8f5;color:#1a1714;min-height:100vh}
 
 
 </style>
+<link rel="stylesheet" href="tool-theme.css">
+<script src="tool-theme.js" defer></script>
 </head>
 <body>
 <div style="margin:12px 0;padding:12px;border:1px solid #ddd;border-radius:10px;background:#f8fafc;color:#111;font-size:14px;line-height:1.6">
@@ -117,7 +119,16 @@ body{font-family:sans-serif;background:#faf8f5;color:#1a1714;min-height:100vh}
 function helperClean(v){return String(v||'').trim().replace(/\s+/g,'').replace(/[\/:*?"<>|]/g,'')}
 function makeHelperNames(){const song=helperClean(document.getElementById('fh-song').value)||'은혜';const key=helperClean(document.getElementById('fh-key').value)||'G';const type=helperClean(document.getElementById('fh-type').value)||'코드';const pages=Math.max(1,parseInt(document.getElementById('fh-pages').value||'1',10));const ext=document.getElementById('fh-ext').value||'jpg';document.getElementById('fh-result').value=Array.from({length:pages},(_,i)=>`${song}_${key}_${type}_${i+1}.${ext}`).join('\n')}
 async function copyHelperNames(){makeHelperNames();try{await navigator.clipboard.writeText(document.getElementById('fh-result').value);alert('파일명을 복사했어요')}catch(e){alert('복사 실패: 직접 선택해서 복사하세요')}}
-setTimeout(makeHelperNames,0);
+const presetParams=new URLSearchParams(location.search);
+function applyPresetSong(){
+  const songName=(presetParams.get('song')||'').trim();
+  if(songName){
+    document.getElementById('fh-song').value=songName;
+    document.getElementById('stat').textContent=`${songName} 악보를 등록할 준비 중입니다.`;
+  }
+  makeHelperNames();
+}
+setTimeout(applyPresetSong,0);
 
 const SURL='https://rmtysrytveexshwzenxj.supabase.co';
 const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdHlzcnl0dmVleHNod3plbnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjQ3OTYsImV4cCI6MjA5MjEwMDc5Nn0.5FzzJ1rg-uRG4jAGZ75xVT3i3NH0m6J_tDeOS4GxyT8';
@@ -312,7 +323,17 @@ async function load(){
   try{
     const r=await fetch(`${SURL}/rest/v1/songs?select=id,name,status,has_score,key&limit=2000&order=name`,{headers:RH});
     DB=await r.json();
-    document.getElementById('stat').textContent=`✓ ${DB.length}곡 로드 완료 — 파일을 선택하세요`;
+    const presetId=presetParams.get('songId');
+    const presetName=(presetParams.get('song')||'').trim();
+    const preset=DB.find(s=>String(s.id)===String(presetId))||DB.find(s=>clean(s.name)===clean(presetName));
+    if(preset){
+      document.getElementById('fh-song').value=preset.name;
+      document.getElementById('fh-key').value=preset.key||document.getElementById('fh-key').value;
+      makeHelperNames();
+      document.getElementById('stat').textContent=`✓ ${preset.name} 악보 등록 준비 완료 — 파일을 선택하세요`;
+    }else{
+      document.getElementById('stat').textContent=`✓ ${DB.length}곡 로드 완료 — 파일을 선택하세요`;
+    }
     document.getElementById('btnFile').disabled=false;
     document.getElementById('dz').style.opacity='1';
     document.getElementById('dz').style.pointerEvents='auto';

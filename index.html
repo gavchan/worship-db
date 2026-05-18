@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>드림찬양단</title>
+<title>예배 자료실</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
 :root{--gold:#b99545;--gold2:#d7b765;--ink:#07111f;--panel:rgba(5,10,18,.68);--line:rgba(255,255,255,.16);--muted:#c3cad8}
@@ -36,6 +36,8 @@ h1{font-size:clamp(42px,4.7vw,76px);line-height:1.02;letter-spacing:-.055em;text
 .date{font-size:13px;color:var(--muted);white-space:nowrap}
 .conti-list{display:grid;padding:4px 20px 12px}
 .song-row{display:grid;grid-template-columns:38px 1fr auto;gap:13px;align-items:center;padding:13px 0;border-bottom:1px solid rgba(255,255,255,.1)}
+a.song-row{color:#fff;text-decoration:none}
+a.song-row:hover .song-title{text-decoration:underline}
 .song-row:last-child{border-bottom:0}
 .num{width:34px;height:34px;border-radius:12px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-weight:900}
 .song-title{font-size:17px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -85,76 +87,40 @@ h1{font-size:clamp(42px,4.7vw,76px);line-height:1.02;letter-spacing:-.055em;text
 <div class="page">
   <div class="stars"></div>
   <header class="top">
-    <div class="brand">드림찬양단</div>
+    <div class="brand">예배 자료실</div>
     <nav class="nav">
       <a class="on" href="index.html">홈</a>
-      <a href="test-conti.html">찬양콘티</a>
-      <a href="test-songs.html">악보</a>
+      <a href="test-main.html">찬양단</a>
       <a href="test-choir.html">성가대</a>
-      <a href="test-tools.html">관리도구</a>
     </nav>
   </header>
   <main class="hero">
     <section class="copy">
-      <div class="eyebrow">✦ 찬양콘티 · 악보 · 성가대 자료</div>
-      <h1>드림찬양단</h1>
-      <p class="lead">주일 콘티와 악보, 연주 화면, 성가대 연습 자료를 한 곳에서 준비합니다.</p>
+      <div class="eyebrow">✦ 찬양단 · 성가대 통합 입구</div>
+      <h1>예배 자료실</h1>
+      <p class="lead">찬양단 콘티와 성가대 연습 자료를 같은 테마 안에서 나누어 관리합니다.</p>
       <div class="cta">
-        <a class="btn primary" href="test-conti.html">찬양콘티 보기</a>
-        <a class="btn" href="test-songs.html">곡 데이터베이스</a>
-        <a class="btn" href="test-choir.html">성가대 자료실</a>
+        <a class="btn primary" href="test-main.html">찬양단 들어가기</a>
+        <a class="btn" href="test-choir.html">성가대 들어가기</a>
       </div>
     </section>
     <section class="panel-stack">
       <div class="card">
-        <div class="card-head"><h2>이번 주 콘티</h2><span class="date" id="conti-date">불러오는 중</span></div>
-        <div class="conti-list" id="conti-list">
-          <div class="song-row"><div class="num">1</div><div><div class="song-title">콘티를 불러오고 있습니다</div><div class="song-meta">잠시만 기다려주세요</div></div><span class="pill">준비중</span></div>
+        <div class="card-head"><h2>찬양단</h2><span class="date">콘티 · 찬양곡</span></div>
+        <div class="conti-list">
+          <a class="song-row" href="test-main.html"><div class="num">1</div><div><div class="song-title">주일 찬양콘티</div><div class="song-meta">콘티1·콘티2, 공유, 연주 화면</div></div><span class="pill">열기</span></a>
+          <a class="song-row" href="test-songs.html"><div class="num">2</div><div><div class="song-title">찬양곡 데이터베이스</div><div class="song-meta">곡 검색, 수정, 악보·영상 관리</div></div><span class="pill">관리</span></a>
         </div>
       </div>
-      <div class="quick">
-        <a class="mini share-link" href="test-conti.html"><b>콘티 공유</b><span>선택한 콘티를 공유 화면으로 확인합니다.</span></a>
-        <a class="mini" href="test-choir.html"><b>성가대 연습</b><span>앞으로 연습할 성가곡 자료를 봅니다.</span></a>
-        <a class="mini" href="test-songs.html"><b>악보 관리</b><span>곡별 악보와 영상 링크를 정리합니다.</span></a>
-        <a class="mini" href="test-tools.html"><b>관리도구</b><span>백업, 점검, R2 반영을 실행합니다.</span></a>
+      <div class="card">
+        <div class="card-head"><h2>성가대</h2><span class="date">4성부 · 파트별 영상</span></div>
+        <div class="conti-list">
+          <a class="song-row" href="test-choir.html"><div class="num">1</div><div><div class="song-title">성가대 자료실</div><div class="song-meta">4성부 악보와 파트별 연습 자료</div></div><span class="pill">열기</span></a>
+          <a class="song-row" href="choir-upload.html"><div class="num">2</div><div><div class="song-title">성가곡 등록</div><div class="song-meta">PDF/이미지 업로드와 R2 저장</div></div><span class="pill">등록</span></a>
+        </div>
       </div>
     </section>
   </main>
-  <section class="player">
-    <div class="player-inner">
-      <div class="now"><b id="now-title">오늘의 첫 곡</b><span id="now-sub">콘티가 연결되면 자동으로 표시됩니다.</span></div>
-      <div class="wave"></div>
-      <a class="more" href="mobile.html">바로 보기 →</a>
-    </div>
-  </section>
 </div>
-<script>
-const SUPABASE_URL='https://rmtysrytveexshwzenxj.supabase.co';
-function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-function fallback(){
-  const names=['기대','가서 제자 삼으라','많은 사람들','내 마음에 주를 향한 사랑이'];
-  document.getElementById('conti-date').textContent='최근 콘티';
-  document.getElementById('conti-list').innerHTML=names.map((name,i)=>`<div class="song-row"><div class="num">${i+1}</div><div><div class="song-title">${esc(name)}</div><div class="song-meta">찬양콘티</div></div><span class="pill">악보</span></div>`).join('');
-  document.getElementById('now-title').textContent=names[0];
-  document.getElementById('now-sub').textContent='찬양콘티';
-}
-async function loadConti(){
-  try{
-    const key='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdHlzcnl0dmVleHNod3plbnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjQ3OTYsImV4cCI6MjA5MjEwMDc5Nn0.5FzzJ1rg-uRG4jAGZ75xVT3i3NH0m6J_tDeOS4GxyT8';
-    const res=await fetch(`${SUPABASE_URL}/rest/v1/worship_history?select=id,worship_date,song_names,song_ids&order=worship_date.desc&limit=1`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});
-    if(!res.ok) throw new Error('load failed');
-    const row=(await res.json())[0];
-    const names=(row?.song_names||[]).filter(Boolean);
-    if(!names.length) return fallback();
-    document.getElementById('conti-date').textContent=row.worship_date||'최근 콘티';
-    document.getElementById('conti-list').innerHTML=names.slice(0,5).map((name,i)=>`<div class="song-row"><div class="num">${i+1}</div><div><div class="song-title">${esc(name)}</div><div class="song-meta">주일 찬양</div></div><span class="pill">준비</span></div>`).join('');
-    document.getElementById('now-title').textContent=names[0];
-    document.getElementById('now-sub').textContent=`${row.worship_date||'최근 콘티'} · ${names.length}곡`;
-    const share=document.querySelector('.share-link');
-    if(share) share.href=`share.html?id=${encodeURIComponent(row.id)}`;
-  }catch(e){fallback();}
-}
-loadConti();
-</script>
 </body>
 </html>

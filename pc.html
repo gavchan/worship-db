@@ -12,8 +12,10 @@
 :root{--bg:#faf8f5;--surface:#fff;--surface2:#f4f1eb;--border:#e8e2d9;--border2:#d4cec4;--text1:#1a1714;--text2:#6b6560;--text3:#9e9891;--accent:#2d5a8e;--accent2:#c4913a;--green:#3a7a52;--green-bg:#edf5f0;--blue-bg:#eaf0f8;--amber-bg:#fdf4e7;--red:#b0281f;--red-bg:#fdeaea}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text1);min-height:100vh}
+body:before{content:'';position:fixed;inset:0;z-index:-2;background:linear-gradient(90deg,rgba(2,6,16,.82),rgba(2,6,16,.48)),linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.74)),url("assets/main-church-bg.png");background-size:cover;background-position:left center}
+body:after{content:'';position:fixed;inset:0;z-index:-1;background:radial-gradient(circle at 82% 70%,rgba(255,166,69,.20),transparent 24%);pointer-events:none}
 
-.header{background:var(--text1);color:#fff;padding:1.75rem 1.5rem 1.4rem;position:relative;overflow:hidden}
+.header{background:rgba(5,10,18,.62);color:#fff;padding:1.75rem 1.5rem 1.4rem;position:relative;overflow:hidden;border-bottom:1px solid rgba(255,255,255,.16);backdrop-filter:blur(18px)}
 .header::before{content:'♪';position:absolute;right:1.5rem;top:50%;transform:translateY(-50%);font-size:6rem;opacity:.05;font-family:serif}
 .header h1{font-family:'Noto Serif KR',serif;font-size:1.4rem;font-weight:700;margin-bottom:.2rem}
 .header p{font-size:.73rem;color:rgba(255,255,255,.45);letter-spacing:.04em}
@@ -23,7 +25,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .dot.sync{background:#f59e0b;animation:pulse .8s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
-.stats{display:grid;grid-template-columns:repeat(5,1fr);background:var(--surface);border-bottom:1px solid var(--border)}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);background:rgba(5,10,18,.38);border-bottom:1px solid rgba(255,255,255,.14);backdrop-filter:blur(14px)}
 .si{padding:.85rem .4rem;text-align:center;border-right:1px solid var(--border)}
 .si:last-child{border-right:none}
 .sn{font-family:'Noto Serif KR',serif;font-size:1.5rem;font-weight:700;color:var(--accent);display:block}
@@ -481,7 +483,7 @@ body.dark{--bg:#111315;--surface:#191c20;--surface2:#22262b;--border:#2e343b;--b
     </div>
     <div class="top-actions">
       <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="주간/야간 모드 전환">☀️</button>
-      <a class="android-download android-download-visible" href="https://pub-a62ecaff5aa54055be3c5d01d98ed78f.r2.dev/releases/app-release.apk" title="안드로이드 앱 다운로드" aria-label="안드로이드 앱 다운로드" download>📱<span>앱</span></a>
+      <a class="android-download android-download-visible" href="index.html" title="통합 홈으로 이동" aria-label="통합 홈으로 이동">홈</a>
       <div class="sync-status led-only" title="자료 연결 상태">
         <span class="dot" id="dot"></span>
         <span id="sync-txt">자료 확인 중...</span>
@@ -491,12 +493,13 @@ body.dark{--bg:#111315;--surface:#191c20;--surface2:#22262b;--border:#2e343b;--b
 </div>
 
 <div class="tabs">
-  <button class="tab on" onclick="switchTab('songs',this)"><span class="tab-ico">🎵</span><span>찬양곡</span></button>
-  <button class="tab" onclick="switchTab('history',this)"><span class="tab-ico">📅</span><span>콘티기록</span></button>
-  <button class="tab tools-tab" id="tools-tab" onclick="guardToolsClick(event,this)"><span class="tab-ico">🛠</span><span>관리도구</span></button>
-  <button class="tab" onclick="location.href='mobile.html'"><span class="tab-ico">📱</span><span>모바일보기</span></button>
+  <button class="tab on" data-tab="songs" onclick="switchTab('songs',this)"><span class="tab-ico">🎵</span><span>찬양곡</span></button>
+  <button class="tab" data-tab="history" onclick="switchTab('history',this)"><span class="tab-ico">📅</span><span>콘티기록</span></button>
+  <button class="tab tools-tab" data-tab="tools" id="tools-tab" onclick="guardToolsClick(event,this)"><span class="tab-ico">🛠</span><span>관리도구</span></button>
 </div>
 
+
+<div class="mobile-work-note">휴대폰에서도 확인은 가능하지만, 곡 수정·악보 업로드·콘티 편집은 PC나 태블릿에서 작업하는 것을 권장합니다.</div>
 
 <div id="tab-songs">
 <div class="controls desktop-controls">
@@ -634,10 +637,6 @@ body.dark{--bg:#111315;--surface:#191c20;--surface2:#22262b;--border:#2e343b;--b
   <div class="fn">자료 연결 상태 기반 · 모든 기기에서 반영<br>2003–2026년 예배 사용 이력 기반</div>
 </div>
 
-<a class="add-fab" href="https://pub-a62ecaff5aa54055be3c5d01d98ed78f.r2.dev/releases/app-release.apk" download title="안드로이드 앱 다운로드" style="bottom:5.5rem;background:#16754c;font-size:.55rem;flex-direction:column;gap:1px;width:52px;height:52px;text-decoration:none">
-  <span style="font-size:1rem">📱</span>
-  <span style="font-size:.5rem;line-height:1.2;text-align:center;color:#fff">앱<br>다운</span>
-</a>
 <button class="add-fab" id="fab" onclick="openModal()" title="곡 추가">＋</button>
 
 <!-- 콘티기록 모달 -->
@@ -2803,6 +2802,20 @@ function render() {
 }
 
 init();
+function openInitialSection(){
+  const target=String(location.hash||'').replace('#','');
+  if(!['songs','history','tools'].includes(target))return;
+  const btn=document.querySelector(`.tab[data-tab="${target}"]`);
+  if(!btn)return;
+  btn.click();
+}
+setTimeout(openInitialSection, 350);
+window.addEventListener('hashchange', openInitialSection);
+window.addEventListener('message',function(e){
+  if(!e.data||e.data.type!=='song-search')return;
+  const q=document.getElementById('q');
+  if(q){q.value=e.data.name||'';render();}
+});
 document.addEventListener('error',function(e){if(e.target&&e.target.tagName==='IMG'&&String(e.target.src||'').includes('/storage/v1/object/public/scores/'))brokenScoreImage(e.target);},true);
 </script>
 
@@ -2896,6 +2909,24 @@ document.addEventListener('error',function(e){if(e.target&&e.target.tagName==='I
   background: rgba(255,255,255,0.92);
   color: #111;
   cursor: pointer;
+}
+
+/* 2026 unified church theme */
+.mobile-work-note{display:none;margin:0 14px 10px;padding:12px 14px;border:1px solid rgba(255,255,255,.16);border-radius:16px;background:rgba(5,10,18,.58);color:#e8ecf6;font-size:.82rem;line-height:1.5;backdrop-filter:blur(14px)}
+.header,.stats,.tabs,.controls,.footer{max-width:1280px;margin-left:auto;margin-right:auto}
+.controls,.tabs,.footer,.list,.history-wrap,#tab-tools{background:rgba(5,10,18,.48);backdrop-filter:blur(16px)}
+.tabs{border:1px solid rgba(255,255,255,.13);border-radius:28px;margin-top:14px}
+.controls{border:1px solid rgba(255,255,255,.13);border-radius:24px;margin-top:12px}
+.list,.history-wrap,#tab-tools{max-width:1280px;margin-left:auto;margin-right:auto}
+.card,.history-card,.tools-hero,.tool-card,.tool-section,.tools-advanced{background:rgba(255,255,255,.92)}
+body.dark .card,body.dark .history-card,body.dark .tools-hero,body.dark .tool-card,body.dark .tool-section,body.dark .tools-advanced{background:rgba(18,26,44,.88)}
+.android-download-visible{min-width:46px!important}
+@media(max-width:760px){
+  .mobile-work-note{display:block}
+  .header{margin:0 10px;border-radius:0 0 22px 22px}
+  .stats,.tabs,.controls{margin-left:10px;margin-right:10px}
+  .tabs{position:sticky;top:0;z-index:40}
+  .tab{min-height:72px}
 }
 </style>
 

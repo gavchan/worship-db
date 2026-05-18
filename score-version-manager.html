@@ -11,6 +11,8 @@
 
 
 </style>
+<link rel="stylesheet" href="tool-theme.css">
+<script src="tool-theme.js" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -107,6 +109,7 @@ const STORAGE=SUPABASE_URL+'/storage/v1';
 const HEADERS={'Content-Type':'application/json','apikey':KEY,'Authorization':'Bearer '+KEY,'Prefer':'return=representation'};
 const STOR_HEADERS={'apikey':KEY,'Authorization':'Bearer '+KEY};
 let songs=[], selected=null, versions=[], dbFiles=[], storageFiles=[], activeTab='versions';
+const presetSongId=new URLSearchParams(location.search).get('songId');
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function norm(s){return String(s||'').normalize('NFC').replace(/\s+/g,' ').trim().toLowerCase()}
 function isImagePath(p){return /\.(png|jpe?g|webp|gif)$/i.test(String(p||''))}
@@ -116,7 +119,7 @@ function log(t){const el=document.getElementById('log');el.textContent=(new Date
 async function api(method,path,body){const r=await fetch(REST+path,{method,headers:HEADERS,body:body?JSON.stringify(body):undefined});if(!r.ok)throw new Error(await r.text());const txt=await r.text();return txt?JSON.parse(txt):null}
 async function storageList(prefix=''){const r=await fetch(`${STORAGE}/object/list/scores`,{method:'POST',headers:{...STOR_HEADERS,'Content-Type':'application/json'},body:JSON.stringify({prefix,limit:1000,offset:0,sortBy:{column:'name',order:'asc'}})});if(!r.ok)throw new Error(await r.text());return await r.json()}
 async function storageRemove(paths){if(!paths.length)return;const r=await fetch(`${STORAGE}/object/scores`,{method:'DELETE',headers:{...STOR_HEADERS,'Content-Type':'application/json'},body:JSON.stringify({prefixes:paths})});if(!r.ok)throw new Error(await r.text());return await r.json()}
-async function loadSongs(){try{document.getElementById('schemaNotice').textContent='곡 목록을 불러오는 중...';songs=await api('GET','songs?select=*&order=name.asc');await api('GET','song_score_versions?select=id&limit=1');await api('GET','song_score_files?select=id&limit=1');document.getElementById('schemaNotice').innerHTML='✅ 악보 버전 관리 DB 연결 완료. Storage 파일명은 그대로 두고 DB 연결만 정리합니다.';renderSongs()}catch(e){document.getElementById('schemaNotice').innerHTML='⚠️ 악보 버전관리 테이블 확인 실패. <b>phase2b_schema.sql</b> 실행 여부를 확인하세요.<br><small>'+esc(e.message)+'</small>';renderSongs()}}
+async function loadSongs(){try{document.getElementById('schemaNotice').textContent='곡 목록을 불러오는 중...';songs=await api('GET','songs?select=*&order=name.asc');await api('GET','song_score_versions?select=id&limit=1');await api('GET','song_score_files?select=id&limit=1');document.getElementById('schemaNotice').innerHTML='✅ 악보 버전 관리 DB 연결 완료. Storage 파일명은 그대로 두고 DB 연결만 정리합니다.';renderSongs();if(presetSongId&&songs.some(s=>String(s.id)===String(presetSongId)))selectSong(presetSongId)}catch(e){document.getElementById('schemaNotice').innerHTML='⚠️ 악보 버전관리 테이블 확인 실패. <b>phase2b_schema.sql</b> 실행 여부를 확인하세요.<br><small>'+esc(e.message)+'</small>';renderSongs()}}
 function renderSongs(){const q=norm(document.getElementById('q').value);const list=songs.filter(s=>!q||norm(s.name).includes(q)).slice(0,400);document.getElementById('songList').innerHTML=list.map(s=>`<button class="song ${selected&&String(selected.id)===String(s.id)?'on':''}" onclick="selectSong('${s.id}')"><b>${esc(s.name)}</b><small>Key ${esc(s.key||'-')} · BPM ${esc(s.bpm_min||s.bpm||'-')}${s.bpm_max?'~'+esc(s.bpm_max):''} · ${s.has_score?'악보 있음':'악보 없음'}</small></button>`).join('')||'<div class="empty">검색 결과 없음</div>'}
 async function selectSong(id){selected=songs.find(s=>String(s.id)===String(id));versions=[];dbFiles=[];storageFiles=[];activeTab='versions';renderSongs();document.getElementById('workArea').style.display='block';document.getElementById('selectedHead').innerHTML=`<h2 style="margin:0 0 4px">${esc(selected.name)}</h2><p>Key ${esc(selected.key||'-')} · BPM ${esc(selected.bpm_min||selected.bpm||'-')}${selected.bpm_max?'~'+esc(selected.bpm_max):''} · song_id: <span class="mini">${esc(selected.id)}</span></p>`;document.getElementById('tabVersions').innerHTML='<div class="empty">불러오는 중...</div>';document.getElementById('tabConflicts').innerHTML='';document.getElementById('tabUnlinked').innerHTML='';document.getElementById('tabRepair').innerHTML='';await reloadSelected()}
 async function reloadSelected(){if(!selected)return;try{versions=await api('GET',`song_score_versions?select=*&song_id=eq.${selected.id}&order=is_default.desc,created_at.asc`)}catch(e){versions=[];log('버전 조회 실패: '+e.message)}try{dbFiles=await api('GET',`song_score_files?select=*&song_id=eq.${selected.id}&order=page_no.asc,created_at.asc`)}catch(e){dbFiles=[];log('DB 파일 조회 실패: '+e.message)}try{storageFiles=await collectStorageFiles(selected.id)}catch(e){storageFiles=[];log('Storage 조회 실패: '+e.message)}renderAll()}

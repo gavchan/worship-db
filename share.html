@@ -159,6 +159,15 @@ body{min-height:100vh;min-height:100dvh}
   .share-lock{right:8px;bottom:7px;height:40px;border-radius:14px;padding:7px 9px;font-size:10.5px}
   .share-memo-strip{bottom:54px;width:calc(100vw - 24px);max-height:58px;font-size:12px;padding:7px 10px}
 }
+@media(max-width:760px){
+  .layout{grid-template-rows:minmax(0,1fr) auto}
+  .bookmark-panel{max-height:31vh;overflow:auto;padding:8px}
+  .bookmark-list{display:grid;grid-template-columns:1fr;gap:6px;overflow:visible;padding:0}
+  .bookmark{min-width:0;grid-template-columns:28px minmax(0,1fr) auto;grid-template-rows:auto;border-radius:12px;padding:7px 9px;gap:8px}
+  .bookmark-num{width:26px;height:26px;border-radius:9px;font-size:12px}
+  .bookmark-name{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bookmark-meta{grid-column:auto;font-size:11px;white-space:nowrap}
+}
 </style>
 </head>
 <body>
@@ -192,7 +201,7 @@ const STORAGE_URL=SUPABASE_URL+'/storage/v1';
 const STOR_HEADERS={'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY};
 let shareTitle='지정 콘티', shareSongs=[], shareSongMap={}, selectedIdx=0, viewerIdx=0, viewerPage=0, viewerMode=1, viewerFiles=[], scoreCache={}, wakeLock=null, singleViewer=false, shareVariants=[], activeVariant=0;
 function esc(s){return String(s||'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
-function norm(v){return (v||'').normalize('NFC').replace(/\s+/g,' ').trim().toLowerCase()}
+function norm(v){return String(v??'').normalize('NFC').replace(/\s+/g,' ').trim().toLowerCase()}
 function safeArray(v){
   if(Array.isArray(v))return v;
   if(v==null||v==='')return [];
@@ -219,8 +228,8 @@ function splitContiNote(note){
   return {visible:text.replace(/\s*\[\[WDB_CONTI2:[A-Za-z0-9_-]+\]\]\s*/,'').trim(),conti2};
 }
 function songsEqualByBase(a,b){
-  const aa=(a||[]).map(s=>contiBaseName(s?.name||'')||norm(s?.name||'')).join('|');
-  const bb=(b||[]).map(s=>contiBaseName(s?.name||'')||norm(s?.name||'')).join('|');
+  const aa=(a||[]).map(s=>`${contiBaseName(s?.name||'')||norm(s?.name||'')}@${norm(songKey(s))}@${norm(songBpm(s))}@${norm(songMemo(s))}`).join('|');
+  const bb=(b||[]).map(s=>`${contiBaseName(s?.name||'')||norm(s?.name||'')}@${norm(songKey(s))}@${norm(songBpm(s))}@${norm(songMemo(s))}`).join('|');
   return aa===bb;
 }
 function setActiveVariant(idx){
@@ -368,7 +377,7 @@ async function load(){
     const conti1Songs=buildSongs(names,rawIds,memoList);
     const conti2Songs=c2Names.length?buildSongs(c2Names,c2Ids,safeArray(noteInfo.conti2?.memos)):conti1Songs.slice();
     shareVariants=[{label:'1번 콘티',songs:conti1Songs}];
-    if(c2Names.length)shareVariants.push({label:'2번 콘티',songs:conti2Songs});
+    if(c2Names.length&&!songsEqualByBase(conti1Songs,conti2Songs))shareVariants.push({label:'2번 콘티',songs:conti2Songs});
     activeVariant=Math.min(requestedVariantIndex(),Math.max(0,shareVariants.length-1));
     shareSongs=shareVariants[activeVariant].songs;normalizeShareSongList();selectedIdx=0;
     document.getElementById('top-tabs').style.display=shareSongs.length?'grid':'none';
@@ -376,6 +385,7 @@ async function load(){
     renderServiceNav();
     renderShell();
     await selectSong(0,false);
+    if(params.get('performance')==='1'||params.get('view')==='performance')setTimeout(()=>openSharePerformance(0),120);
   }catch(e){document.getElementById('content').innerHTML='<div class="empty">콘티를 불러오지 못했습니다.<br>'+esc(e.message)+'</div>'}
 }
 function renderShell(){
