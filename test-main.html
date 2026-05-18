@@ -59,13 +59,15 @@ h1{font-size:clamp(42px,4.7vw,76px);line-height:1.02;letter-spacing:-.055em;text
 @media(max-width:900px){.nav{display:none}}
 @media(max-width:720px){
   body{background:#06101f}
-  .page{min-height:100dvh;background:
-    linear-gradient(180deg,rgba(2,6,16,.34) 0%,rgba(2,6,16,.74) 46%,rgba(2,6,16,.94) 100%),
+  .page{min-height:100dvh;background:linear-gradient(180deg,#071326 0%,#06101f 58%,#030712 100%)}
+  .page:before{content:'';position:absolute;z-index:1;left:16px;right:16px;top:62px;height:210px;border-radius:24px;border:1px solid rgba(255,255,255,.16);background:
+    linear-gradient(90deg,rgba(1,5,13,.08),rgba(1,5,13,.58)),
+    linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.26)),
     url("assets/main-church-bg.png");
-    background-size:auto 100%,auto 100%;background-position:left center,left center;background-repeat:no-repeat}
-  .stars{background:radial-gradient(circle at 70% 80%,rgba(255,166,69,.18),transparent 28%)}
+    background-size:cover,cover,auto 118%;background-position:center,center,left center;background-repeat:no-repeat;box-shadow:0 22px 70px rgba(0,0,0,.36);overflow:hidden}
+  .stars{background:radial-gradient(circle at 72% 30%,rgba(255,166,69,.16),transparent 28%)}
   .top{padding:18px 16px 0}.brand{font-size:18px}
-  .hero{padding:34vh 16px 28px;min-height:auto;display:block}
+  .hero{padding:282px 16px 28px;min-height:auto;display:block}
   .copy{padding:0}.eyebrow{font-size:12px;padding:7px 11px;margin-bottom:12px}
   h1{font-size:42px;white-space:normal;letter-spacing:-.05em}
   .lead{font-size:16px;line-height:1.55;margin-top:10px;max-width:310px}
