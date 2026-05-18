@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>드림찬양단 예배 시스템</title><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800&display=swap" rel="stylesheet"><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Noto Sans KR',sans-serif;min-height:100vh;background:#0b1020;color:white;display:flex;align-items:center;justify-content:center;padding:24px;overflow:hidden}.bg:before,.bg:after{content:'';position:fixed;width:520px;height:520px;border-radius:50%;filter:blur(75px);pointer-events:none}.bg:before{left:-130px;top:-160px;background:rgba(99,102,241,.16)}.bg:after{right:-150px;bottom:-180px;background:rgba(14,165,233,.13)}.wrap{position:relative;width:min(980px,100%)}.badge{display:inline-flex;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);border-radius:999px;padding:8px 13px;font-size:13px;color:#dce4f8}h1{font-size:48px;line-height:1.12;letter-spacing:-.04em;margin-top:22px}p{color:#a7adbd;margin-top:14px;line-height:1.7}.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:32px}.card{display:block;text-decoration:none;color:white;border:1px solid rgba(255,255,255,.12);border-radius:28px;padding:26px;background:rgba(255,255,255,.06);backdrop-filter:blur(16px);transition:.18s;min-height:210px}.card:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.09)}.card.primary{background:white;color:#050816;border-color:white}.icon{font-size:38px}.card h2{font-size:26px;margin-top:18px}.card p{font-size:14px;margin-top:10px}.sub{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.sub span{border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:6px 10px;color:#dce4f8;font-size:12px}.primary .sub span{border-color:rgba(0,0,0,.1);color:#4b5563;background:rgba(0,0,0,.04)}.note{font-size:13px;color:#858ca0;margin-top:22px}@media(max-width:760px){body{align-items:flex-start;overflow:auto}.cards{grid-template-columns:1fr}h1{font-size:36px}.card{padding:22px;border-radius:23px;min-height:0}}
+/* === Phase12 codefix: prevent shared/conti titles from being cut off === */
+.share-title,
+.share-card-title,
+.share-video-title,
+.shared-video-title,
+.shareItemTitle,
+.share-item-title,
+.conti-title,
+.conti-card-title,
+.conti-name,
+.conti-card .title,
+.share-card .title,
+.shared-card .title,
+.video-share-card .title,
+[class*="share"][class*="title"],
+[class*="conti"][class*="title"] {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  display: block !important;
+  line-height: 1.45 !important;
+  word-break: keep-all !important;
+  overflow-wrap: anywhere !important;
+  -webkit-line-clamp: unset !important;
+  line-clamp: unset !important;
+  max-height: none !important;
+}
+
+.share-card,
+.shared-card,
+.video-share-card,
+.conti-card,
+.conti-list-card,
+[class*="share"][class*="card"],
+[class*="conti"][class*="card"] {
+  height: auto !important;
+  align-items: flex-start !important;
+}
+
+
+
+
+/* Phase 38 compact UI guard */
+button,a{touch-action:manipulation}.viewer-top,.viewer-bottom,.topbar,.header{min-height:44px}.modal,.viewer{overscroll-behavior:contain}
+</style></head><body><div class="bg"></div><main class="wrap"><div class="badge">🌌 드림찬양단 예배 시스템</div><h1>사용할 화면을 선택하세요</h1><p>이제 입구는 단순하게 정리합니다. PC는 관리와 편집, 모바일은 화면 방향에 따라 세로/가로 배치가 자동으로 정리됩니다.</p><div class="cards"><a class="card" href="pc.html"><div class="icon">💻</div><h2>PC 모드</h2><p>찬양곡 관리, 주일기록, 악보/영상 확인, 관리도구를 책갈피형 화면으로 사용합니다.</p><div class="sub"><span>곡 목록</span><span>악보/영상 뷰어</span><span>관리도구</span></div></a><a class="card primary" href="mobile.html"><div class="icon">📱</div><h2>모바일 모드</h2><p>세로/가로 버튼을 따로 고르지 않고, 기기 화면 상태에 맞춰 목록과 뷰어를 자동 배치합니다.</p><div class="sub"><span>자동 레이아웃</span><span>전체화면 연주</span><span>앱 다운로드</span></div></a></div><div class="note">기존 세로/가로 전용 파일은 모바일 모드로 연결됩니다.</div></main>
+<script>
+// Phase 38: prevent external popups/new tabs in worship UI
+document.addEventListener('click',function(e){
+  const a=e.target.closest&&e.target.closest('a[data-blocked-target]');
+  if(a){e.preventDefault();alert('새창 열기는 막아두었습니다. 현재 화면 안에서만 표시합니다.');}
+},true);
+</script>
+</body></html>

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<script src="admin-guard.js"></script>
+<title>악보 상태 동기화</title>
+<style>
+body{font-family:sans-serif;max-width:640px;margin:2rem auto;padding:1rem;background:#faf8f5}
+h1{font-size:1.3rem;margin-bottom:.5rem}
+p{font-size:.85rem;color:#6b6560;margin-bottom:1rem;line-height:1.6}
+.btn{padding:.7rem 1.5rem;background:#2d5a8e;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;width:100%;margin-bottom:.5rem}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+#log{margin-top:1rem;padding:1rem;background:#f4f1eb;border-radius:8px;font-size:.78rem;line-height:1.8;white-space:pre-wrap;max-height:500px;overflow-y:auto}
+.ok{color:#3a7a52}.err{color:#b0281f}.info{color:#2d5a8e}.warn{color:#c4913a}
+#summary{background:#eaf0f8;border-radius:8px;padding:10px 14px;font-size:.82rem;margin-bottom:1rem;display:none;line-height:1.8}
+
+
+
+</style>
+</head>
+<body>
+<h1>🎼 악보 상태 동기화</h1>
+<p>Storage 실제 파일 기준으로 <code>has_score</code> 업데이트 + <br>
+<b>악보 완료인데 파일 없는 곡 → 작업 예정으로 자동 변경</b>합니다.</p>
+<p style="padding:.7rem .8rem;border:1px solid #fed7aa;background:#fff7ed;border-radius:10px;color:#7c2d12">레거시 점검 도구입니다. 평소에는 <b>악보 연결 점검</b>을 먼저 사용하세요. 이 화면은 상태값만 일괄 보정할 때 사용합니다.</p>
+<button class="btn" id="btn" onclick="syncScores()">🔄 동기화 시작</button>
+<div id="summary"></div>
+<div id="log">버튼을 눌러 시작하세요</div>
+<script>
+const SB_URL = 'https://rmtysrytveexshwzenxj.supabase.co';
+const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdHlzcnl0dmVleHNod3plbnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjQ3OTYsImV4cCI6MjA5MjEwMDc5Nn0.5FzzJ1rg-uRG4jAGZ75xVT3i3NH0m6J_tDeOS4GxyT8';
+const RH = {'apikey':KEY,'Authorization':'Bearer '+KEY};
+const JH = {'Content-Type':'application/json','apikey':KEY,'Authorization':'Bearer '+KEY,'Prefer':'return=minimal'};
+
+function log(msg, cls='') {
+  const el = document.getElementById('log');
+  el.innerHTML += `<span class="${cls}">${msg}</span>\n`;
+  el.scrollTop = el.scrollHeight;
+}
+
+async function listScores(songId) {
+  const res = await fetch(`${SB_URL}/storage/v1/object/list/scores`, {
+    method:'POST',
+    headers:{...RH,'Content-Type':'application/json'},
+    body: JSON.stringify({prefix: songId+'/', limit:10})
+  });
+  if (!res.ok) return [];
+  const data = await res.json();
+  return Array.isArray(data) ? data.filter(f => f.name && !f.name.endsWith('/')) : [];
+}
+
+async function patch(id, body) {
+  await fetch(`${SB_URL}/rest/v1/songs?id=eq.${id}`, {
+    method:'PATCH', headers: JH,
+    body: JSON.stringify({...body, updated_at: new Date().toISOString()})
+  });
+}
+
+async function syncScores() {
+  const btn = document.getElementById('btn');
+  btn.disabled = true;
+  document.getElementById('log').innerHTML = '';
+
+  log('📋 전체 곡 불러오는 중...', 'info');
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/songs?select=id,name,status,has_score&limit=2000`, {headers: RH});
+    const songs = await res.json();
+    log(`✓ 총 ${songs.length}곡\n`, 'ok');
+
+    let cntHas=0, cntNo=0, cntFixed=0, cntStatusFixed=0, cntOk=0;
+
+    for (let i = 0; i < songs.length; i++) {
+      const s = songs[i];
+      const files = await listScores(s.id);
+      const actualHasScore = files.length > 0;
+
+      let updates = {};
+      let changed = false;
+
+      // 1. has_score 불일치 수정
+      if (actualHasScore !== !!s.has_score) {
+        updates.has_score = actualHasScore;
+        changed = true;
+      }
+
+      // 2. 악보 완료인데 파일 없음 → 작업 예정으로
+      if (!actualHasScore && s.status === 'ready') {
+        updates.status = 'plan';
+        changed = true;
+        log(`🔄 "${s.name}" — 악보 완료 → 작업 예정 (파일 없음)`, 'warn');
+        cntStatusFixed++;
+      }
+
+      // 3. 파일 있는데 작업 예정 → 악보 완료로
+      if (actualHasScore && s.status === 'plan') {
+        updates.status = 'ready';
+        updates.has_score = true;
+        changed = true;
+        log(`✓ "${s.name}" — 작업 예정 → 악보 완료 (파일 있음)`, 'ok');
+        cntStatusFixed++;
+      }
+
+      if (changed) {
+        await patch(s.id, updates);
+        if (!updates.status) log(`✓ has_score 수정: "${s.name}"`, 'ok');
+        cntFixed++;
+      } else {
+        cntOk++;
+      }
+
+      if (actualHasScore) cntHas++; else cntNo++;
+
+      if ((i+1) % 20 === 0) {
+        log(`... ${i+1}/${songs.length}곡 처리 중`, 'info');
+      }
+    }
+
+    log('');
+    log(`✅ 동기화 완료!`, 'ok');
+    log(`악보 있음: ${cntHas}곡`, 'ok');
+    log(`악보 없음: ${cntNo}곡`, 'warn');
+    log(`has_score 수정: ${cntFixed}곡`, cntFixed>0?'ok':'info');
+    log(`상태 변경: ${cntStatusFixed}곡`, cntStatusFixed>0?'warn':'info');
+    log(`이미 정확: ${cntOk}곡`, 'info');
+
+    const sum = document.getElementById('summary');
+    sum.style.display = 'block';
+    sum.innerHTML = `✅ 동기화 완료<br>
+악보 있음 <b>${cntHas}곡</b> · 악보 없음 <b>${cntNo}곡</b><br>
+has_score 수정 <b>${cntFixed}곡</b> · 상태 변경 <b>${cntStatusFixed}곡</b>`;
+
+  } catch(e) {
+    log(`✗ 오류: ${e.message}`, 'err');
+  }
+  btn.disabled = false;
+  btn.textContent = '다시 실행';
+}
+</script>
+
+<style>
+/* === Phase12 codefix: existing score thumbnail preview in sequential editor === */
+.phase12-existing-score-preview {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.phase12-existing-score-title {
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.phase12-existing-score-list {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.phase12-existing-score-item {
+  min-width: 120px;
+  max-width: 150px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0,0,0,0.18);
+  border: 1px solid rgba(255,255,255,0.10);
+  cursor: pointer;
+}
+
+.phase12-existing-score-thumb {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  display: block;
+  background: rgba(0,0,0,0.35);
+}
+
+.phase12-existing-score-info {
+  padding: 8px;
+}
+
+.phase12-existing-score-name {
+  font-size: 12px;
+  line-height: 1.35;
+  word-break: break-all;
+}
+
+.phase12-existing-score-meta {
+  margin-top: 4px;
+  font-size: 11px;
+  opacity: 0.72;
+}
+
+.phase12-score-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: rgba(0,0,0,0.82);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.phase12-score-modal.open { display: flex; }
+
+.phase12-score-modal img {
+  max-width: min(96vw, 980px);
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 14px;
+  background: #111;
+}
+
+.phase12-score-modal-close {
+  position: fixed;
+  right: 18px;
+  top: 18px;
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-size: 18px;
+  font-weight: 900;
+  background: rgba(255,255,255,0.92);
+  color: #111;
+  cursor: pointer;
+}
+</style>
+
+<script>
+/* === Phase12 codefix: render existing score previews wherever "악보 있음" appears === */
+(function () {
+  if (window.__phase12ExistingScorePreviewInstalled) return;
+  window.__phase12ExistingScorePreviewInstalled = true;
+
+  function norm(v) {
+    return String(v || "").replace(/\s+/g, "").trim().toLowerCase();
+  }
+
+  function scoreUrl(item) {
+    return item?.url || item?.image_url || item?.file_url || item?.score_url || item?.publicUrl || item?.public_url || item?.src || item?.path || "";
+  }
+
+  function scoreName(item, i) {
+    return item?.filename || item?.file_name || item?.name || item?.title || item?.score_name || ("악보 " + (i + 1));
+  }
+
+  function collectScores() {
+    const arr = [];
+    [
+      window.scores,
+      window.scoreFiles,
+      window.songScores,
+      window.scoreImages,
+      window.allScores,
+      window.scoreList,
+      window.uploadedScores,
+      window.existingScores
+    ].forEach(v => Array.isArray(v) && v.forEach(x => arr.push(x)));
+
+    ["state", "appState", "WorshipDB", "worshipDB", "db"].forEach(k => {
+      const obj = window[k];
+      if (!obj || typeof obj !== "object") return;
+      ["scores", "scoreFiles", "songScores", "scoreImages", "allScores"].forEach(key => {
+        if (Array.isArray(obj[key])) obj[key].forEach(x => arr.push(x));
+      });
+    });
+
+    const seen = new Set();
+    return arr.filter(item => {
+      const sig = scoreUrl(item) + "|" + scoreName(item, 0);
+      if (!scoreUrl(item) || seen.has(sig)) return false;
+      seen.add(sig);
+      return true;
+    });
+  }
+
+  function guessSongName(el) {
+    const host = el.closest(".song-card, .song-item, .edit-card, .sequential-item, .seq-item, .card, li, tr, section, article, div") || el.parentElement;
+    if (!host) return "";
+
+    const input = host.querySelector('input[name*="title"], input[name*="song"], input[placeholder*="곡"], input[placeholder*="제목"], textarea[name*="title"]');
+    if (input && input.value) return input.value.trim();
+
+    const title = host.querySelector(".song-title, .title, .name, h1, h2, h3, h4, strong");
+    if (title && title.textContent) return title.textContent.replace(/악보\s*있음/g, "").trim();
+
+    const lines = (host.textContent || "").split(/\n|·|\|/).map(x => x.trim()).filter(Boolean);
+    return (lines.find(x => !/악보\s*있음|저장|수정|삭제|업로드/.test(x)) || "").trim();
+  }
+
+  function matchingScores(songName) {
+    const target = norm(songName);
+    if (!target) return [];
+    return collectScores().filter(item => {
+      const hay = norm([
+        item?.song_title, item?.song_name, item?.songTitle, item?.song,
+        item?.filename, item?.file_name, item?.name, item?.title
+      ].join(" "));
+      return hay && (hay.includes(target) || target.includes(hay));
+    }).slice(0, 12);
+  }
+
+  function modal() {
+    let m = document.querySelector(".phase12-score-modal");
+    if (m) return m;
+    m = document.createElement("div");
+    m.className = "phase12-score-modal";
+    m.innerHTML = '<button class="phase12-score-modal-close" type="button">×</button><img alt="악보 확대 미리보기">';
+    document.body.appendChild(m);
+    m.addEventListener("click", e => {
+      if (e.target === m || e.target.classList.contains("phase12-score-modal-close")) m.classList.remove("open");
+    });
+    return m;
+  }
+
+  function openPreview(url) {
+    const m = modal();
+    m.querySelector("img").src = url;
+    m.classList.add("open");
+  }
+
+  function render(el) {
+    if (!el || el.dataset.phase12PreviewDone === "1") return;
+    const found = matchingScores(guessSongName(el));
+    if (!found.length) return;
+
+    el.dataset.phase12PreviewDone = "1";
+    const box = document.createElement("div");
+    box.className = "phase12-existing-score-preview";
+    box.innerHTML = '<div class="phase12-existing-score-title">기존 악보 미리보기</div><div class="phase12-existing-score-list"></div>';
+    const list = box.querySelector(".phase12-existing-score-list");
+
+    found.forEach((item, i) => {
+      const url = scoreUrl(item);
+      if (!url) return;
+      const card = document.createElement("div");
+      card.className = "phase12-existing-score-item";
+      card.innerHTML =
+        '<img class="phase12-existing-score-thumb" loading="lazy" alt="">' +
+        '<div class="phase12-existing-score-info">' +
+        '<div class="phase12-existing-score-name"></div>' +
+        '<div class="phase12-existing-score-meta"></div>' +
+        '</div>';
+      card.querySelector("img").src = url;
+      card.querySelector("img").alt = scoreName(item, i);
+      card.querySelector(".phase12-existing-score-name").textContent = scoreName(item, i);
+      const page = item?.page || item?.page_no || item?.pageNumber || item?.page_number || (i + 1);
+      card.querySelector(".phase12-existing-score-meta").textContent = page ? ("페이지 " + page) : "기존 악보";
+      card.addEventListener("click", () => openPreview(url));
+      list.appendChild(card);
+    });
+
+    if (!list.children.length) return;
+    el.parentElement.insertBefore(box, el.nextSibling);
+  }
+
+  function scan() {
+    Array.from(document.querySelectorAll("body *")).forEach(el => {
+      const text = (el.textContent || "").trim();
+      if (text && text.length <= 40 && /악보\s*있음/.test(text)) render(el);
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => setTimeout(scan, 300));
+  window.addEventListener("load", () => setTimeout(scan, 800));
+
+  const observer = new MutationObserver(() => {
+    clearTimeout(window.__phase12ScoreScanTimer);
+    window.__phase12ScoreScanTimer = setTimeout(scan, 300);
+  });
+  observer.observe(document.documentElement, { childList: true, subtree: true });
+})();
+</script>
+
+
+</body>
+</html>

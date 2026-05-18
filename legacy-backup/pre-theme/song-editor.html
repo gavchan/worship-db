@@ -1,0 +1,3466 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="admin-guard.js"></script>
+<title>드림찬양단 곡 에디터</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f0e0c;--surface:#1a1814;--surface2:#242118;--border:#2e2b24;
+  --accent:#c4913a;--accent2:#8fb3d4;--green:#4a9e6a;--red:#c0392b;
+  --text1:#f0ece3;--text2:#a09880;--text3:#5a5548;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text1);min-height:100vh;display:flex;flex-direction:column}
+
+/* 상단 헤더 */
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:12px}
+.header h1{font-family:'Noto Serif KR',serif;font-size:1rem;color:var(--accent)}
+.progress-bar{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s}
+.progress-text{font-size:.72rem;color:var(--text2);white-space:nowrap}
+
+/* 곡 카드 */
+.song-card{flex:1;display:flex;flex-direction:column;padding:16px;gap:12px;max-width:600px;margin:0 auto;width:100%}
+.song-name{font-family:'Noto Serif KR',serif;font-size:1.5rem;font-weight:700;color:var(--text1);text-align:center;padding:16px 0 8px;line-height:1.4}
+.song-name-sub{font-size:.72rem;color:var(--text3);text-align:center;margin-top:-8px;margin-bottom:4px}
+
+/* 섹션 */
+.section{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.section-label{font-size:.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;font-weight:500}
+
+/* 유튜브 링크 */
+.url-row{display:flex;gap:8px;align-items:center}
+.url-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:.5rem .7rem;font-family:'Noto Sans KR',sans-serif;font-size:.82rem;color:var(--text1);outline:none}
+.url-input:focus{border-color:var(--accent)}
+.url-input::placeholder{color:var(--text3)}
+.url-preview{margin-top:8px;display:none}
+.url-preview a{font-size:.72rem;color:var(--accent2);text-decoration:none;word-break:break-all}
+
+/* 키/템포 */
+.row2{display:flex;gap:8px}
+.sel-wrap{flex:1}
+.sel-wrap select,.sel-wrap input[type=number]{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:.5rem .7rem;font-family:'Noto Sans KR',sans-serif;font-size:.82rem;color:var(--text1);outline:none}
+.sel-wrap select:focus,.sel-wrap input:focus{border-color:var(--accent)}
+
+/* 태그 체크박스 */
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag-btn{padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text2);font-family:'Noto Sans KR',sans-serif;font-size:.72rem;cursor:pointer;transition:all .15s}
+.tag-btn:hover{border-color:var(--accent2);color:var(--accent2)}
+.tag-btn.on{background:var(--accent2);border-color:var(--accent2);color:#0f0e0c;font-weight:500}
+.tag-btn.season.on{background:var(--accent);border-color:var(--accent);color:#0f0e0c}
+
+/* 악보 업로드 */
+.score-zone{border:1px dashed var(--border);border-radius:8px;padding:14px;text-align:center;cursor:pointer;transition:border-color .15s}
+.score-zone:hover{border-color:var(--accent2)}
+.score-zone input{display:none}
+.score-zone .zone-txt{font-size:.78rem;color:var(--text3)}
+.score-thumbs{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.score-thumb{width:60px;height:60px;object-fit:cover;border-radius:4px;border:1px solid var(--border)}
+.existing-tag{font-size:.68rem;color:var(--green);margin-bottom:6px}
+
+/* 하단 네비 */
+.nav{background:var(--surface);border-top:1px solid var(--border);padding:12px 16px;display:flex;gap:8px;align-items:center}
+.btn-skip{flex:1;padding:.6rem;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text2);font-family:'Noto Sans KR',sans-serif;font-size:.82rem;cursor:pointer}
+.btn-skip:hover{border-color:var(--text2)}
+.btn-save{flex:2;padding:.6rem;background:var(--accent);border:none;border-radius:8px;color:#0f0e0c;font-family:'Noto Sans KR',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;transition:opacity .15s}
+.btn-save:hover{opacity:.85}
+.btn-save:disabled{opacity:.4;cursor:not-allowed}
+.btn-prev{width:40px;padding:.6rem;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text2);font-family:'Noto Sans KR',sans-serif;font-size:.9rem;cursor:pointer}
+.btn-prev:hover{border-color:var(--text2)}
+
+/* 완료 화면 */
+.done{display:none;flex:1;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;padding:2rem}
+.done h2{font-size:2rem}
+.done p{color:var(--text2);font-size:.9rem}
+
+/* 로딩 */
+.loading{display:flex;flex:1;align-items:center;justify-content:center;flex-direction:column;gap:8px}
+.spin{font-size:2rem;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--accent);color:#000;padding:8px 18px;border-radius:20px;font-size:.8rem;font-weight:500;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+
+/* === Phase12 fix4: song-editor exact existing score preview === */
+.existing-score-box {
+  margin-top: 8px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.035);
+}
+
+.existing-score-text {
+  color: #4ade80;
+  font-size: .78rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.existing-score-list {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.existing-score-card {
+  width: 86px;
+  flex: 0 0 86px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: rgba(0,0,0,.25);
+  cursor: pointer;
+}
+
+.existing-score-card img {
+  width: 100%;
+  height: 112px;
+  object-fit: cover;
+  display: block;
+  background: #111;
+}
+
+.existing-score-card-name {
+  padding: 5px;
+  font-size: .66rem;
+  line-height: 1.25;
+  color: var(--text2);
+  word-break: break-all;
+}
+
+.existing-score-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: none;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 10px auto 14px;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0,0,0,.84);
+}
+
+.existing-score-modal.show {
+  display: flex;
+}
+
+.existing-score-modal img {
+  max-width: 96vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #111;
+}
+
+.existing-score-modal button {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: #fff;
+  color: #111;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+
+/* === Phase12 v4: polished sequential editor UI === */
+:root {
+  --phase12-bg0: #05070d;
+  --phase12-bg1: #0b1220;
+  --phase12-panel: rgba(17, 24, 39, .82);
+  --phase12-panel2: rgba(8, 13, 23, .72);
+  --phase12-line: rgba(255,255,255,.12);
+  --phase12-line2: rgba(147,197,253,.28);
+  --phase12-text: #f8fafc;
+  --phase12-muted: #94a3b8;
+  --phase12-blue: #93c5fd;
+  --phase12-blue2: #60a5fa;
+  --phase12-green: #4ade80;
+  --phase12-red: #ef4444;
+}
+
+html, body {
+  min-height: 100%;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(96,165,250,.18), transparent 34%),
+    radial-gradient(circle at 88% 10%, rgba(147,197,253,.10), transparent 30%),
+    linear-gradient(180deg, #08111f 0%, #05070d 100%) !important;
+  color: var(--phase12-text) !important;
+}
+
+body {
+  font-family: 'Noto Sans KR', system-ui, -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+
+/* 전체 폭을 넓혀 이미지처럼 중앙 대형 패널 구조 */
+.app,
+.wrap,
+.container,
+main {
+  max-width: 1180px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* 카드 전체 */
+.card,
+#card {
+  max-width: 980px !important;
+  width: min(980px, calc(100vw - 28px)) !important;
+  margin: 18px auto 90px !important;
+  padding: 18px !important;
+  border-radius: 22px !important;
+  border: 1px solid var(--phase12-line2) !important;
+  background:
+    linear-gradient(180deg, rgba(15,23,42,.92), rgba(5,10,20,.86)) !important;
+  box-shadow:
+    0 28px 80px rgba(0,0,0,.38),
+    inset 0 1px 0 rgba(255,255,255,.06) !important;
+  backdrop-filter: blur(18px);
+}
+
+/* 상단 헤더 */
+.header,
+.top,
+.progress-wrap,
+#song-sub {
+  color: var(--phase12-muted) !important;
+}
+
+#song-name {
+  font-size: clamp(24px, 3.6vw, 42px) !important;
+  font-weight: 950 !important;
+  letter-spacing: -.055em !important;
+  line-height: 1.12 !important;
+  color: #fff !important;
+  text-shadow: 0 8px 24px rgba(0,0,0,.28);
+}
+
+#song-sub {
+  font-size: 13px !important;
+  font-weight: 800 !important;
+}
+
+/* 각 입력 섹션을 이미지 같은 큰 박스로 */
+.section,
+.field,
+.form-section,
+.group,
+.block,
+.url-box,
+.score-zone,
+.existing-score-box {
+  border-radius: 16px !important;
+  border: 1px solid var(--phase12-line) !important;
+  background: rgba(255,255,255,.035) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+/* label/title 계열 */
+label,
+.label,
+.section-title,
+.group-title {
+  color: #cbd5e1 !important;
+  font-weight: 900 !important;
+  letter-spacing: -.02em;
+}
+
+/* 입력창 */
+input,
+select,
+textarea {
+  min-height: 42px !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(255,255,255,.13) !important;
+  background: rgba(0,0,0,.22) !important;
+  color: #f8fafc !important;
+  font-weight: 700 !important;
+  outline: none !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: rgba(147,197,253,.72) !important;
+  box-shadow: 0 0 0 3px rgba(147,197,253,.14) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(203,213,225,.52) !important;
+}
+
+/* 유튜브 링크 미리보기 */
+#url-preview {
+  margin-top: 10px !important;
+  padding: 10px 12px !important;
+  border-radius: 12px !important;
+  background: rgba(147,197,253,.06) !important;
+  border: 1px solid rgba(147,197,253,.16) !important;
+}
+
+#url-link {
+  color: #93c5fd !important;
+  text-decoration: none !important;
+  font-weight: 800 !important;
+  overflow-wrap: anywhere;
+}
+
+/* Key/BPM 2열 정돈 */
+.key-row,
+.meta-row,
+.form-row {
+  gap: 12px !important;
+}
+
+/* 태그 버튼 */
+.tag-btn {
+  border-radius: 999px !important;
+  padding: 8px 13px !important;
+  border: 1px solid rgba(255,255,255,.13) !important;
+  background: rgba(0,0,0,.18) !important;
+  color: #dbeafe !important;
+  font-weight: 850 !important;
+  transition: transform .12s ease, background .12s ease, border-color .12s ease;
+}
+
+.tag-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(147,197,253,.42) !important;
+}
+
+.tag-btn.on,
+.tag-btn.active,
+.tag-btn.selected {
+  background: linear-gradient(180deg, #bfdbfe, #93c5fd) !important;
+  color: #07111f !important;
+  border-color: #bfdbfe !important;
+  box-shadow: 0 10px 22px rgba(96,165,250,.22);
+}
+
+/* 기존 악보 미리보기, 이미지처럼 더 눈에 띄게 */
+.existing-score-box {
+  margin-top: 10px !important;
+  padding: 14px !important;
+}
+
+.existing-score-text {
+  color: var(--phase12-green) !important;
+  font-size: .9rem !important;
+  font-weight: 950 !important;
+  margin-bottom: 10px !important;
+}
+
+.existing-score-list {
+  gap: 14px !important;
+  padding: 2px 2px 8px !important;
+}
+
+.existing-score-card {
+  width: 170px !important;
+  flex: 0 0 170px !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(255,255,255,.15) !important;
+  background: rgba(0,0,0,.28) !important;
+  box-shadow: 0 16px 38px rgba(0,0,0,.24);
+}
+
+.existing-score-card img {
+  height: 128px !important;
+  object-fit: cover !important;
+  background: #fff !important;
+}
+
+.existing-score-card-name {
+  padding: 8px !important;
+  font-size: .72rem !important;
+  color: #cbd5e1 !important;
+}
+
+/* 새 이미지 업로드 영역 */
+.score-zone {
+  padding: 20px !important;
+  border-style: dashed !important;
+  border-color: rgba(255,255,255,.16) !important;
+  background: rgba(0,0,0,.16) !important;
+}
+
+.score-zone:hover {
+  border-color: rgba(147,197,253,.55) !important;
+  background: rgba(147,197,253,.055) !important;
+}
+
+.score-zone .zone-txt {
+  color: #cbd5e1 !important;
+  font-weight: 800 !important;
+}
+
+/* 새로 선택한 악보 썸네일 */
+.score-thumbs {
+  gap: 10px !important;
+  margin-top: 12px !important;
+}
+
+.score-thumb {
+  width: 92px !important;
+  height: 118px !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(255,255,255,.18) !important;
+  object-fit: cover !important;
+  background: #fff !important;
+}
+
+/* 버튼 */
+button {
+  font-family: inherit !important;
+}
+
+.btn-save,
+.btn-prev,
+.btn-skip,
+button[onclick*="save"],
+button[onclick*="goNext"],
+button[onclick*="goPrev"] {
+  border-radius: 999px !important;
+  font-weight: 950 !important;
+  letter-spacing: -.02em;
+  box-shadow: 0 12px 26px rgba(0,0,0,.22);
+}
+
+.btn-save {
+  background: linear-gradient(180deg, #ffffff, #dbeafe) !important;
+  color: #07111f !important;
+}
+
+.btn-skip {
+  background: rgba(255,255,255,.08) !important;
+  color: #e2e8f0 !important;
+  border: 1px solid rgba(255,255,255,.14) !important;
+}
+
+.btn-prev {
+  background: rgba(147,197,253,.12) !important;
+  color: #dbeafe !important;
+  border: 1px solid rgba(147,197,253,.22) !important;
+}
+
+.nav,
+#nav {
+  max-width: 980px !important;
+  width: min(980px, calc(100vw - 28px)) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  border-radius: 22px 22px 0 0 !important;
+  background: rgba(5,10,20,.86) !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  border-bottom: 0 !important;
+  backdrop-filter: blur(16px);
+}
+
+/* 진행 바 */
+.progress,
+.progress-bar,
+#pf {
+  border-radius: 999px !important;
+}
+
+#pf {
+  background: linear-gradient(90deg, #93c5fd, #60a5fa) !important;
+}
+
+/* 토스트 */
+.toast,
+#toast {
+  border-radius: 999px !important;
+  background: #fff !important;
+  color: #07111f !important;
+  font-weight: 900 !important;
+  box-shadow: 0 14px 34px rgba(0,0,0,.32) !important;
+}
+
+/* 완료 화면 */
+#done,
+.done {
+  max-width: 720px !important;
+  margin: 40px auto !important;
+  border-radius: 24px !important;
+  background: rgba(15,23,42,.92) !important;
+  border: 1px solid rgba(147,197,253,.28) !important;
+  box-shadow: 0 28px 80px rgba(0,0,0,.38) !important;
+}
+
+/* 모바일에서는 화면 폭에 맞춤 */
+@media(max-width: 760px) {
+  .card,
+  #card {
+    width: calc(100vw - 18px) !important;
+    margin-top: 10px !important;
+    padding: 14px !important;
+    border-radius: 20px !important;
+  }
+
+  #song-name {
+    font-size: 27px !important;
+  }
+
+  .existing-score-card {
+    width: 138px !important;
+    flex-basis: 138px !important;
+  }
+
+  .existing-score-card img {
+    height: 108px !important;
+  }
+
+  .tag-btn {
+    padding: 7px 11px !important;
+    font-size: .78rem !important;
+  }
+
+  .nav,
+  #nav {
+    width: calc(100vw - 18px) !important;
+  }
+}
+
+
+/* === Phase12 fix5: inline YouTube player in sequential editor === */
+.youtube-inline-box {
+  margin-top: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(147,197,253,.18);
+  background: rgba(0,0,0,.22);
+  overflow: hidden;
+}
+
+.youtube-inline-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  color: #cbd5e1;
+  font-size: .76rem;
+  font-weight: 850;
+}
+
+.youtube-inline-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.youtube-inline-actions button {
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 999px;
+  padding: 6px 9px;
+  background: rgba(255,255,255,.08);
+  color: #e2e8f0;
+  font-size: .72rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.youtube-inline-actions button.primary {
+  background: #fff;
+  color: #07111f;
+  border-color: #fff;
+}
+
+.youtube-inline-frame {
+  width: min(100%, 320px);
+  aspect-ratio: 16 / 9;
+  background: #000;
+  display: none;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 10px auto 14px;
+}
+
+.youtube-inline-frame.show {
+  display: block;
+}
+
+.youtube-inline-frame iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+.youtube-inline-url {
+  padding: 0 10px 10px;
+  color: #93c5fd;
+  font-size: .75rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+
+/* === Phase12 fix6: BPM multi/range input === */
+#f-bpm {
+  font-variant-numeric: tabular-nums;
+}
+.bpm-help-text {
+  margin-top: 6px;
+  color: #94a3b8;
+  font-size: .7rem;
+  font-weight: 700;
+}
+
+
+/* === Phase12 fix7: BPM min/max fields === */
+.bpm-minmax-wrap {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto minmax(0,1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.bpm-minmax-wrap input {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.bpm-tilde {
+  color: #93c5fd;
+  font-weight: 950;
+  font-size: 1.15rem;
+}
+
+#f-bpm-min,
+#f-bpm-max {
+  min-width: 0;
+}
+
+
+/* === Phase12 fix8: compact inline YouTube preview === */
+.youtube-inline-box {
+  max-width: 420px !important;
+  margin: 10px auto 0 !important;
+}
+
+.youtube-inline-head {
+  padding: 6px 9px !important;
+}
+
+.youtube-inline-actions button {
+  padding: 5px 8px !important;
+  font-size: .68rem !important;
+}
+
+.youtube-inline-frame {
+  box-shadow: 0 12px 30px rgba(0,0,0,.28);
+}
+
+.youtube-inline-frame iframe {
+  width: 100%;
+  height: 100%;
+}
+
+.youtube-inline-url {
+  font-size: .68rem !important;
+  padding-top: 4px !important;
+}
+
+@media(max-width:760px) {
+  .youtube-inline-box {
+    max-width: 260px !important;
+  }
+
+  .youtube-inline-frame {
+    width: min(100%, 240px) !important;
+  }
+}
+
+
+/* === Phase12 fix9: fit inline YouTube preview cleanly inside editor === */
+.youtube-inline-box {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 10px 0 0 !important;
+  border-radius: 14px !important;
+}
+
+.youtube-inline-head {
+  flex-wrap: wrap;
+  gap: 10px !important;
+}
+
+.youtube-inline-actions {
+  margin-left: auto;
+}
+
+.youtube-inline-frame {
+  width: 100% !important;
+  max-width: 420px !important;
+  aspect-ratio: 16 / 9 !important;
+  margin: 12px auto 16px !important;
+  border-radius: 14px !important;
+  overflow: hidden !important;
+  background: #000 !important;
+}
+
+.youtube-inline-frame iframe {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+}
+
+.youtube-inline-url {
+  width: 100%;
+  padding-bottom: 2px !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-all !important;
+}
+
+#url-preview {
+  overflow: visible !important;
+}
+
+@media(max-width:760px) {
+  .youtube-inline-frame {
+    max-width: 240px !important;
+  }
+
+  .youtube-inline-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+
+/* === Phase12 fix10: full-width YouTube preview card and bottom nav restore === */
+#url-preview {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: visible !important;
+}
+
+.youtube-inline-box {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 10px 0 0 !important;
+  border-radius: 14px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  column-gap: 12px !important;
+  padding: 10px 12px !important;
+}
+
+.youtube-inline-head {
+  display: contents !important;
+}
+
+.youtube-inline-head > span {
+  grid-column: 1 !important;
+  font-size: .78rem !important;
+  font-weight: 900 !important;
+  color: #dbeafe !important;
+}
+
+.youtube-inline-actions {
+  grid-column: 2 !important;
+  display: flex !important;
+  gap: 6px !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  margin-left: 0 !important;
+}
+
+.youtube-inline-url {
+  grid-column: 1 / -1 !important;
+  width: 100% !important;
+  padding: 6px 0 0 !important;
+  font-size: .72rem !important;
+  color: #93c5fd !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-all !important;
+}
+
+.youtube-inline-frame {
+  grid-column: 1 / -1 !important;
+  width: min(100%, 360px) !important;
+  max-width: 360px !important;
+  aspect-ratio: 16 / 9 !important;
+  margin: 10px 0 4px !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  background: #000 !important;
+  justify-self: start !important;
+}
+
+.youtube-inline-frame.show {
+  display: block !important;
+}
+
+.youtube-inline-frame iframe {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+}
+
+/* 하단 버튼 3개 고정 복구 */
+#nav,
+.nav {
+  display: grid !important;
+  grid-template-columns: 76px minmax(0, 1fr) minmax(0, 1.25fr) !important;
+  gap: 10px !important;
+  align-items: center !important;
+  padding: 10px 12px !important;
+  z-index: 9999 !important;
+}
+
+#nav button,
+.nav button {
+  min-height: 42px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+  font-size: .86rem !important;
+}
+
+.btn-prev {
+  width: 100% !important;
+}
+
+.btn-skip {
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.btn-save {
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* 카드 아래가 버튼에 가리지 않도록 여백 확보 */
+#card,
+.card {
+  padding-bottom: 110px !important;
+}
+
+@media(max-width:760px) {
+  .youtube-inline-box {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .youtube-inline-actions {
+    grid-column: 1 !important;
+    justify-content: flex-start !important;
+    margin-top: 8px !important;
+  }
+
+  .youtube-inline-url,
+  .youtube-inline-frame {
+    grid-column: 1 !important;
+  }
+
+  .youtube-inline-frame {
+    width: min(100%, 260px) !important;
+    max-width: 260px !important;
+  }
+
+  #nav,
+  .nav {
+    grid-template-columns: 56px 1fr 1.15fr !important;
+    gap: 6px !important;
+    padding: 8px !important;
+  }
+
+  #nav button,
+  .nav button {
+    min-height: 40px !important;
+    font-size: .76rem !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+}
+
+
+/* === Phase12 fix11: compact editor layout, small title/help, URL+BPM side by side === */
+
+/* 상단 제목 축소 */
+#song-name {
+  font-size: clamp(24px, 3vw, 36px) !important;
+  line-height: 1.08 !important;
+  margin-bottom: 4px !important;
+}
+
+#song-sub {
+  font-size: 12px !important;
+  margin-top: 0 !important;
+}
+
+/* 안내 영역을 도움말 칩처럼 작게 */
+.phase12-editor-badge {
+  max-width: 980px !important;
+  padding: 7px 12px !important;
+  border-radius: 999px !important;
+  font-size: .82rem !important;
+  display: inline-flex !important;
+  width: auto !important;
+  margin: 10px auto 0 !important;
+}
+
+.notice,
+.help,
+.info,
+.guide,
+[class*="notice"],
+[class*="guide"],
+[class*="help"] {
+  min-height: 0 !important;
+}
+
+/* 실제 안내문 바 축소 */
+body > div,
+.card > div,
+#card > div {
+  max-height: none;
+}
+
+/* 곡 카드 여백 축소 */
+#card,
+.card {
+  margin-top: 12px !important;
+  padding: 14px 18px 96px !important;
+  border-radius: 20px !important;
+}
+
+/* 내부 섹션 간격 축소 */
+.section,
+.field,
+.form-section,
+.group,
+.block,
+.url-box,
+.score-zone,
+.existing-score-box {
+  margin-top: 10px !important;
+  padding: 12px 14px !important;
+}
+
+/* 유튜브 섹션 다음의 Key/BPM 섹션을 데스크톱에서 옆으로 당기기 위한 래퍼 느낌 */
+@media(min-width: 821px) {
+  /* 유튜브 링크 섹션이 카드 안 첫 입력 블록이고, Key/BPM이 그 다음 블록일 때 두 블록을 압축 */
+  #url-preview {
+    margin-top: 8px !important;
+  }
+
+  .youtube-inline-box {
+    min-height: 108px !important;
+    padding: 10px 12px !important;
+  }
+
+  .youtube-inline-frame {
+    width: 260px !important;
+    max-width: 260px !important;
+    margin: 8px 0 0 !important;
+  }
+
+  /* Key/BPM 블록 자체를 낮게 */
+  .bpm-minmax-wrap {
+    grid-template-columns: minmax(0,1fr) 18px minmax(0,1fr) !important;
+  }
+
+  #f-bpm-min,
+  #f-bpm-max,
+  #f-key,
+  select,
+  input {
+    min-height: 36px !important;
+  }
+}
+
+/* URL과 Key/BPM을 실제 2열처럼 보이게 만드는 보조 레이아웃 */
+.phase12-url-bpm-grid {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, .8fr) !important;
+  gap: 12px !important;
+  align-items: stretch !important;
+  margin-top: 12px !important;
+}
+
+.phase12-url-bpm-grid > * {
+  margin-top: 0 !important;
+  min-width: 0 !important;
+}
+
+.phase12-url-bpm-grid .youtube-inline-box {
+  height: 100% !important;
+}
+
+/* Key/BPM 섹션 안을 더 조밀하게 */
+.phase12-url-bpm-grid .bpm-help-text {
+  margin-top: 5px !important;
+  font-size: .68rem !important;
+}
+
+/* 유튜브 박스가 2열 안에서 넘치지 않도록 */
+.phase12-url-bpm-grid #url-preview,
+.phase12-url-bpm-grid .youtube-inline-box {
+  overflow: visible !important;
+}
+
+/* 안내문이 길면 한 줄 작은 글씨로 */
+.phase12-compact-help {
+  max-width: 980px;
+  margin: 8px auto 0;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(251,191,36,.10);
+  border: 1px solid rgba(251,191,36,.18);
+  color: #fde68a;
+  font-size: .72rem;
+  font-weight: 800;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 기존 큰 안내문/배너가 있으면 높이 줄임 */
+#editor-help,
+.editor-help,
+.help-bar,
+.guide-bar {
+  padding: 6px 10px !important;
+  font-size: .72rem !important;
+  line-height: 1.3 !important;
+  border-radius: 10px !important;
+}
+
+/* 모바일은 다시 1열 */
+@media(max-width: 820px) {
+  .phase12-url-bpm-grid {
+    display: block !important;
+  }
+
+  #song-name {
+    font-size: 28px !important;
+  }
+
+  .phase12-compact-help {
+    white-space: normal;
+    border-radius: 12px;
+  }
+
+  .youtube-inline-frame {
+    width: min(100%, 240px) !important;
+    max-width: 240px !important;
+  }
+}
+
+
+/* === Phase12 fix12: score left, tags right compact grid === */
+.phase12-score-tags-grid {
+  display: grid !important;
+  grid-template-columns: minmax(280px, .9fr) minmax(0, 1.25fr) !important;
+  gap: 12px !important;
+  align-items: start !important;
+  margin-top: 12px !important;
+}
+
+.phase12-score-tags-grid > * {
+  margin-top: 0 !important;
+  min-width: 0 !important;
+}
+
+.phase12-tags-stack {
+  display: grid !important;
+  gap: 12px !important;
+}
+
+.phase12-tags-stack > * {
+  margin-top: 0 !important;
+}
+
+/* 악보 영역을 왼쪽 카드로 압축 */
+.phase12-score-tags-grid .score-zone,
+.phase12-score-tags-grid .existing-score-box {
+  width: 100% !important;
+}
+
+.phase12-score-tags-grid .existing-score-list {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  overflow: visible !important;
+}
+
+.phase12-score-tags-grid .existing-score-card {
+  width: 100% !important;
+  flex: none !important;
+}
+
+.phase12-score-tags-grid .existing-score-card img {
+  height: 96px !important;
+}
+
+.phase12-score-tags-grid .score-zone {
+  min-height: 86px !important;
+  padding: 14px !important;
+}
+
+.phase12-score-tags-grid .score-thumb {
+  width: 72px !important;
+  height: 92px !important;
+}
+
+/* 태그 영역은 오른쪽에서 더 조밀하게 */
+.phase12-tags-stack .tag-btn {
+  padding: 7px 11px !important;
+  font-size: .76rem !important;
+}
+
+.phase12-tags-stack .section,
+.phase12-tags-stack .field,
+.phase12-tags-stack .form-section,
+.phase12-tags-stack .group,
+.phase12-tags-stack .block {
+  padding: 12px 14px !important;
+}
+
+/* 한 화면 안에 더 들어오도록 여백 재조정 */
+#card,
+.card {
+  padding-bottom: 104px !important;
+}
+
+@media(max-width: 900px) {
+  .phase12-score-tags-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .phase12-score-tags-grid .existing-score-list {
+    display: flex !important;
+    overflow-x: auto !important;
+  }
+
+  .phase12-score-tags-grid .existing-score-card {
+    width: 138px !important;
+    flex: 0 0 138px !important;
+  }
+}
+
+
+/* === Phase12 fix13: remove top guide, help popup, compact score preview === */
+
+/* 순차 편집기 개선 UI 배너 제거 */
+.phase12-editor-badge {
+  display: none !important;
+}
+
+/* 상단 긴 안내문/가이드 줄 숨김 */
+.phase12-compact-help,
+.editor-help,
+.help-bar,
+.guide-bar,
+[class*="compact-help"] {
+  display: none !important;
+}
+
+/* 곡 에디터 헤더 + 도움말 버튼 */
+.phase12-editor-head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  margin: 4px 0 8px !important;
+}
+
+.phase12-editor-head-title {
+  display: flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  color: #fbbf24 !important;
+  font-size: 1rem !important;
+  font-weight: 950 !important;
+}
+
+.phase12-help-btn {
+  border: 1px solid rgba(147,197,253,.26) !important;
+  background: rgba(147,197,253,.10) !important;
+  color: #dbeafe !important;
+  border-radius: 999px !important;
+  padding: 5px 10px !important;
+  font-size: .72rem !important;
+  font-weight: 950 !important;
+  cursor: pointer !important;
+}
+
+.phase12-help-popup {
+  position: fixed !important;
+  top: 68px !important;
+  right: 22px !important;
+  width: min(420px, calc(100vw - 28px)) !important;
+  z-index: 99999 !important;
+  border-radius: 16px !important;
+  padding: 14px !important;
+  background: rgba(8,13,24,.96) !important;
+  border: 1px solid rgba(147,197,253,.24) !important;
+  color: #dbeafe !important;
+  font-size: .78rem !important;
+  line-height: 1.55 !important;
+  box-shadow: 0 24px 60px rgba(0,0,0,.45) !important;
+  display: none !important;
+}
+
+.phase12-help-popup.show {
+  display: block !important;
+}
+
+.phase12-help-popup b {
+  color: #fff !important;
+}
+
+.phase12-help-popup-close {
+  margin-top: 10px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  padding: 7px 12px !important;
+  background: #fff !important;
+  color: #07111f !important;
+  font-weight: 950 !important;
+  cursor: pointer !important;
+}
+
+/* 큰 제목과 카드 여백 더 압축 */
+#song-name {
+  font-size: clamp(24px, 2.7vw, 32px) !important;
+  line-height: 1.05 !important;
+  margin-bottom: 2px !important;
+}
+
+#song-sub {
+  font-size: 11px !important;
+}
+
+#card,
+.card {
+  margin-top: 8px !important;
+  padding-top: 10px !important;
+  padding-bottom: 92px !important;
+}
+
+/* 상단 영역 여백 축소 */
+.section,
+.field,
+.form-section,
+.group,
+.block,
+.url-box,
+.score-zone,
+.existing-score-box {
+  margin-top: 8px !important;
+  padding: 10px 12px !important;
+}
+
+/* 악보 글자 칸 제거, 썸네일만 작게 */
+.phase12-score-left .existing-score-box {
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  margin: 0 0 8px !important;
+}
+
+.phase12-score-left .existing-score-text {
+  display: none !important;
+}
+
+.phase12-score-left .existing-score-list {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+.phase12-score-left .existing-score-card {
+  width: 100% !important;
+  flex: none !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(255,255,255,.14) !important;
+  background: rgba(0,0,0,.18) !important;
+}
+
+.phase12-score-left .existing-score-card img {
+  width: 100% !important;
+  height: 76px !important;
+  object-fit: cover !important;
+  display: block !important;
+  background: #fff !important;
+}
+
+.phase12-score-left .existing-score-card-name,
+.phase12-score-left .existing-score-meta {
+  display: none !important;
+}
+
+/* 악보가 없다는 문구는 작은 상태 점으로만 */
+.phase12-score-left .existing-score-box:empty {
+  display: none !important;
+}
+
+/* 업로드 박스 작게 */
+.phase12-score-left .score-zone {
+  min-height: 64px !important;
+  padding: 10px !important;
+}
+
+.phase12-score-left .score-zone .zone-txt {
+  font-size: .72rem !important;
+}
+
+/* 악보 제목 바가 따로 남으면 숨김 */
+.phase12-score-left .section-title,
+.phase12-score-left .group-title,
+.phase12-score-left label {
+  font-size: .72rem !important;
+  opacity: .75 !important;
+}
+
+/* 하단 버튼 보이도록 고정바 높이 유지 */
+#nav,
+.nav {
+  min-height: 58px !important;
+}
+
+@media(max-width:760px) {
+  .phase12-help-popup {
+    top: 58px !important;
+    right: 10px !important;
+  }
+
+  .phase12-score-left .existing-score-card img {
+    height: 88px !important;
+  }
+}
+
+
+/* === Phase12 fix14: one-screen compact editor, drag-drop score, 4 bottom buttons === */
+
+/* 제목과 번호를 같은 줄에 작게 */
+.phase12-song-title-line {
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:10px !important;
+  margin: 6px 0 12px !important;
+}
+
+#song-name {
+  font-size: clamp(18px, 2vw, 24px) !important;
+  line-height: 1.05 !important;
+  margin: 0 !important;
+  max-width: 72% !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+
+#song-sub {
+  font-size: 12px !important;
+  margin: 0 !important;
+  padding: 3px 8px !important;
+  border-radius:999px !important;
+  background:rgba(147,197,253,.10) !important;
+  color:#cbd5e1 !important;
+  flex-shrink:0 !important;
+}
+
+/* 카드 전체 높이 압축 */
+#card,
+.card {
+  margin-top: 6px !important;
+  padding: 10px 14px 82px !important;
+  max-height: calc(100vh - 118px) !important;
+  overflow-y: auto !important;
+}
+
+/* 섹션 더 압축 */
+.section,
+.field,
+.form-section,
+.group,
+.block,
+.url-box,
+.score-zone,
+.existing-score-box {
+  margin-top: 7px !important;
+  padding: 9px 11px !important;
+}
+
+/* 유튜브/키 BPM 영역 높이 줄이기 */
+.youtube-inline-box {
+  padding: 8px 10px !important;
+}
+
+.youtube-inline-frame {
+  width: 220px !important;
+  max-width: 220px !important;
+  margin: 8px 0 0 !important;
+}
+
+.bpm-help-text {
+  font-size: .62rem !important;
+  line-height: 1.25 !important;
+  margin-top: 4px !important;
+}
+
+/* 태그 버튼 축소 */
+.tag-btn {
+  padding: 6px 9px !important;
+  font-size: .72rem !important;
+}
+
+/* 악보 드래그앤드롭 */
+.score-zone {
+  min-height: 72px !important;
+  border-style: dashed !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  text-align:center !important;
+  transition:.15s ease !important;
+}
+
+.score-zone.drag-over,
+.score-zone.phase12-drag-over {
+  border-color:#93c5fd !important;
+  background:rgba(147,197,253,.12) !important;
+  box-shadow:0 0 0 3px rgba(147,197,253,.13) inset !important;
+}
+
+.score-zone .zone-txt {
+  font-size:.72rem !important;
+  line-height:1.35 !important;
+}
+
+.score-zone .zone-txt::after {
+  content:" · 드래그앤드롭 가능";
+  color:#93c5fd;
+  font-weight:900;
+}
+
+/* 기존 악보 썸네일 더 작게 */
+.phase12-score-left .existing-score-card img {
+  height: 58px !important;
+}
+
+.phase12-score-left .existing-score-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap:5px !important;
+}
+
+/* 하단 버튼 4개 무조건 보이기 */
+#nav,
+.nav {
+  position: fixed !important;
+  left: 50% !important;
+  bottom: 8px !important;
+  transform: translateX(-50%) !important;
+  width: min(980px, calc(100vw - 24px)) !important;
+  display: grid !important;
+  grid-template-columns: .72fr 1fr 1.25fr 1.15fr !important;
+  gap: 8px !important;
+  align-items:center !important;
+  padding: 9px 10px !important;
+  border-radius: 18px !important;
+  background: rgba(8,13,24,.92) !important;
+  border: 1px solid rgba(255,255,255,.16) !important;
+  box-shadow: 0 16px 42px rgba(0,0,0,.36) !important;
+  z-index: 99998 !important;
+  backdrop-filter: blur(16px) !important;
+}
+
+#nav button,
+.nav button {
+  min-height: 38px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  visibility:visible !important;
+  opacity:1 !important;
+  white-space:nowrap !important;
+  border-radius:999px !important;
+  font-size:.78rem !important;
+  font-weight:950 !important;
+  padding: 0 10px !important;
+}
+
+.btn-close-save {
+  background: rgba(147,197,253,.16) !important;
+  color:#dbeafe !important;
+  border:1px solid rgba(147,197,253,.28) !important;
+}
+
+/* 화면 안에 더 잘 들어오도록 컨테이너 폭/높이 */
+.phase12-score-tags-grid {
+  margin-top: 8px !important;
+}
+
+@media(max-width:760px){
+  #song-name {
+    font-size: 18px !important;
+    max-width: 65% !important;
+  }
+
+  #card,
+  .card {
+    max-height: calc(100vh - 116px) !important;
+    padding-bottom: 88px !important;
+  }
+
+  #nav,
+  .nav {
+    grid-template-columns: .7fr .9fr 1.1fr 1fr !important;
+    gap:5px !important;
+    width: calc(100vw - 14px) !important;
+    padding: 7px !important;
+  }
+
+  #nav button,
+  .nav button {
+    font-size:.68rem !important;
+    min-height:36px !important;
+    padding:0 6px !important;
+  }
+}
+
+
+/* === Phase12 fix15: selected score thumbnails only, existing score names only === */
+
+/* 새 악보 선택 후에는 업로드 드롭존을 미리보기 영역으로 사용 */
+
+/* 새로 선택한 악보 썸네일만 작게 */
+#score-thumbs {
+  display: flex !important;
+  gap: 6px !important;
+  flex-wrap: wrap !important;
+  margin-top: 0 !important;
+}
+
+#score-thumbs .score-thumb {
+  width: 58px !important;
+  height: 74px !important;
+  object-fit: cover !important;
+  border-radius: 7px !important;
+  cursor: pointer !important;
+  border: 1px solid rgba(255,255,255,.16) !important;
+  background: #fff !important;
+}
+
+/* 기존 악보는 이미지가 아니라 이름 리스트만 표시 */
+.existing-score-list.phase12-existing-name-list {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 5px !important;
+  padding: 0 !important;
+}
+
+.existing-score-name-btn {
+  width: 100% !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  background: rgba(255,255,255,.045) !important;
+  color: #dbeafe !important;
+  border-radius: 8px !important;
+  padding: 6px 8px !important;
+  font-size: .7rem !important;
+  font-weight: 800 !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.existing-score-name-btn:hover {
+  border-color: rgba(147,197,253,.42) !important;
+  background: rgba(147,197,253,.10) !important;
+}
+
+.existing-score-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 6px !important;
+  align-items: center !important;
+}
+
+.existing-score-delete-btn {
+  border: 1px solid rgba(248,113,113,.38) !important;
+  background: rgba(127,29,29,.38) !important;
+  color: #fecaca !important;
+  border-radius: 8px !important;
+  padding: 6px 8px !important;
+  font-size: .68rem !important;
+  font-weight: 900 !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+}
+
+.existing-score-delete-btn:hover {
+  border-color: rgba(248,113,113,.78) !important;
+  background: rgba(185,28,28,.58) !important;
+}
+
+/* 기존 이미지 카드 방식은 숨김 */
+.phase12-score-left .existing-score-card {
+  display: none !important;
+}
+
+/* 확대 모달 공통 */
+.phase12-score-big-modal {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 100000 !important;
+  background: rgba(0,0,0,.86) !important;
+  display: none !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 22px !important;
+}
+
+.phase12-score-big-modal.show {
+  display: flex !important;
+}
+
+.phase12-score-big-modal img {
+  max-width: 96vw !important;
+  max-height: 90vh !important;
+  object-fit: contain !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+}
+
+.phase12-score-big-modal button {
+  position: fixed !important;
+  top: 16px !important;
+  right: 16px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  padding: 9px 13px !important;
+  background: #fff !important;
+  color: #111 !important;
+  font-weight: 950 !important;
+  cursor: pointer !important;
+}
+
+
+/* === Phase12 fix16: score preview carousel after upload === */
+
+/* 업로드 후에도 영역은 유지하고, 작은 악보 미리보기 자리로 사용 */
+.score-zone.phase12-has-new-score {
+  display: block !important;
+  min-height: 118px !important;
+  padding: 8px !important;
+  cursor: default !important;
+}
+
+/* 업로드 후 안내 문구는 숨김 */
+.score-zone.phase12-has-new-score .zone-txt {
+  display: none !important;
+}
+
+/* 새 악보 캐러셀 */
+.phase12-new-score-carousel {
+  display: grid !important;
+  grid-template-columns: 32px minmax(0, 1fr) 32px !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+}
+
+.phase12-score-nav-btn {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(255,255,255,.16) !important;
+  background: rgba(255,255,255,.07) !important;
+  color: #dbeafe !important;
+  font-weight: 950 !important;
+  cursor: pointer !important;
+}
+
+.phase12-score-nav-btn:disabled {
+  opacity: .35 !important;
+  cursor: default !important;
+}
+
+.phase12-score-preview-wrap {
+  min-width: 0 !important;
+  text-align: center !important;
+}
+
+.phase12-score-preview-img {
+  width: 78px !important;
+  height: 98px !important;
+  object-fit: cover !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255,255,255,.18) !important;
+  background: #fff !important;
+  cursor: pointer !important;
+  display: inline-block !important;
+}
+
+.phase12-score-preview-meta {
+  margin-top: 4px !important;
+  color: #cbd5e1 !important;
+  font-size: .68rem !important;
+  font-weight: 850 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.phase12-score-preview-actions {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  margin-top: 5px !important;
+}
+
+.phase12-score-preview-actions button {
+  border: 1px solid rgba(255,255,255,.16) !important;
+  background: rgba(255,255,255,.07) !important;
+  color: #dbeafe !important;
+  border-radius: 999px !important;
+  padding: 4px 8px !important;
+  font-size: .66rem !important;
+  font-weight: 900 !important;
+  cursor: pointer !important;
+}
+
+/* 기존 score-thumbs는 캐러셀 렌더링용으로 숨김 */
+#score-thumbs.phase12-carousel-source {
+  display: none !important;
+}
+
+
+/* === Phase12 fix17: reliable persisted existing score display === */
+.existing-score-box .existing-score-text {
+  font-size:.68rem !important;
+  line-height:1.3 !important;
+  color:#93c5fd !important;
+}
+
+
+
+
+</style>
+</head>
+<body>
+<div class="phase12-editor-badge" style="max-width:980px;width:min(980px,calc(100vw - 28px));margin:16px auto 0;padding:10px 14px;border:1px solid rgba(147,197,253,.32);border-radius:16px;background:linear-gradient(180deg,rgba(30,58,138,.45),rgba(15,23,42,.45));color:#dbeafe;font-weight:950;letter-spacing:-.03em;box-shadow:0 16px 36px rgba(0,0,0,.22)">순차 편집기 개선 UI</div>
+
+<div style="padding:10px 14px;background:#241d12;border-bottom:1px solid #4a3a1c;color:#f0ece3;font-size:13px;line-height:1.55">
+  <b>✏️ 순차 편집기 안내</b> · 기존 곡 정보를 하나씩 넘기며 Key, BPM, 유튜브 링크, 악보 상태를 수정합니다. BPM 범위(예: 100-115)와 악보 버전/페이지 관리는 <b>악보 버전 관리</b>에서 처리합니다.
+</div>
+
+<div class="header">
+  <h1>🎵 곡 에디터</h1>
+  <div class="progress-bar"><div class="progress-fill" id="pf" style="width:0"></div></div>
+  <span class="progress-text" id="ptxt">0 / 0</span>
+</div>
+
+<div class="loading" id="loading">
+  <span class="spin">⟳</span>
+  <span style="color:var(--text2);font-size:.85rem">곡 목록 불러오는 중...</span>
+</div>
+
+<div class="song-card" id="card" style="display:none">
+  <div class="song-name" id="song-name"></div>
+  <div class="song-name-sub" id="song-sub"></div>
+
+  <!-- 유튜브 링크 -->
+  <div class="section">
+    <div class="section-label">▶ 유튜브 링크</div>
+    <div class="url-row">
+      <input type="text" class="url-input" id="f-url" placeholder="https://youtube.com/watch?v=..." oninput="onUrlInput()">
+      <button onclick="clearUrl()" style="padding:4px 8px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;font-size:.75rem">지우기</button>
+    </div>
+    <div class="url-preview" id="url-preview">
+      <a id="url-link" href="#" >🔗 링크 확인</a>
+    </div>
+  </div>
+
+  <!-- 키 & 템포 -->
+  <div class="section">
+    <div class="section-label">🎵 키 & 템포</div>
+    <div class="row2">
+      <div class="sel-wrap">
+        <select id="f-key">
+          <option value="">키 선택</option>
+          <option>C</option><option>C#</option><option>D</option><option>D#</option>
+          <option>E</option><option>F</option><option>F#</option><option>G</option>
+          <option>G#</option><option>A</option><option>A#</option><option>B</option>
+        </select>
+      </div>
+      <div class="sel-wrap">
+        <div class="bpm-minmax-wrap">
+          <input type="number" id="f-bpm-min" placeholder="BPM 최소" min="1" max="300" inputmode="numeric">
+          <span class="bpm-tilde">~</span>
+          <input type="number" id="f-bpm-max" placeholder="BPM 최대" min="1" max="300" inputmode="numeric">
+        </div>
+        <div class="bpm-help-text">예: 100 ~ 115 / 단일 BPM은 양쪽에 같은 값 입력</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 상황별 태그 -->
+  <div class="section">
+    <div class="section-label">🏷 상황별</div>
+    <div class="tags" id="situ-tags">
+      <button class="tag-btn" data-val="경배·예배">경배·예배</button>
+      <button class="tag-btn" data-val="감사·은혜">감사·은혜</button>
+      <button class="tag-btn" data-val="회개·정결">회개·정결</button>
+      <button class="tag-btn" data-val="십자가·보혈·구원">십자가·보혈</button>
+      <button class="tag-btn" data-val="부활·승리">부활·승리</button>
+      <button class="tag-btn" data-val="성령·충만">성령·충만</button>
+      <button class="tag-btn" data-val="소망·위로">소망·위로</button>
+      <button class="tag-btn" data-val="기도·간구">기도·간구</button>
+      <button class="tag-btn" data-val="전도·선교·복음">전도·선교</button>
+      <button class="tag-btn" data-val="치유·회복">치유·회복</button>
+      <button class="tag-btn" data-val="주와동행·신앙생활">주와동행</button>
+      <button class="tag-btn" data-val="기쁨·찬양">기쁨·찬양</button>
+      <button class="tag-btn" data-val="고난·시련극복">고난·시련</button>
+      <button class="tag-btn" data-val="헌신·부르심">헌신·부르심</button>
+      <button class="tag-btn" data-val="가족·교제·나눔">가족·교제</button>
+      <button class="tag-btn" data-val="평강·평안">평강·평안</button>
+    </div>
+  </div>
+
+  <!-- 절기별 태그 -->
+  <div class="section">
+    <div class="section-label">📅 절기별</div>
+    <div class="tags" id="seas-tags">
+      <button class="tag-btn season" data-val="대림절">대림절</button>
+      <button class="tag-btn season" data-val="성탄절">성탄절</button>
+      <button class="tag-btn season" data-val="주현절">주현절</button>
+      <button class="tag-btn season" data-val="사순절">사순절</button>
+      <button class="tag-btn season" data-val="고난주간">고난주간</button>
+      <button class="tag-btn season" data-val="부활절">부활절</button>
+      <button class="tag-btn season" data-val="성령강림절">성령강림절</button>
+      <button class="tag-btn season" data-val="추수감사절">추수감사절</button>
+    </div>
+  </div>
+
+  <!-- 악보 업로드 -->
+  <div class="section">
+    <div class="section-label">🎼 악보</div>
+    <div id="existing-info" class="existing-tag" style="display:none"></div>
+    <div class="score-zone" onclick="document.getElementById('f-score').click()">
+      <input type="file" id="f-score" accept="image/*" multiple onchange="previewScores(this)">
+      <div class="zone-txt">📷 이미지 선택해서 악보 추가</div>
+      <div class="score-thumbs" id="score-thumbs"></div>
+    </div>
+  </div>
+</div>
+
+<div class="done" id="done">
+  <div style="font-size:3rem">🎉</div>
+  <h2>완료!</h2>
+  <p id="done-msg"></p>
+  <button onclick="restart()" style="margin-top:12px;padding:10px 24px;background:var(--accent);border:none;border-radius:8px;color:#000;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif">처음부터 다시</button>
+</div>
+
+<div class="nav" id="nav" style="display:none">
+  <button class="btn-prev" onclick="goPrev()" title="이전 곡">이전</button>
+  <button class="btn-skip" id="btn-skip" onclick="goNext(false)">건너뛰기</button>
+  <button class="btn-save" id="btn-save" onclick="saveAndNext()">저장 후 다음</button>
+  <button class="btn-close-save" id="btn-save-close" onclick="saveAndClose()">저장 후 닫기</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const URL_BASE = 'https://rmtysrytveexshwzenxj.supabase.co';
+const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdHlzcnl0dmVleHNod3plbnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjQ3OTYsImV4cCI6MjA5MjEwMDc5Nn0.5FzzJ1rg-uRG4jAGZ75xVT3i3NH0m6J_tDeOS4GxyT8';
+const H = {'Content-Type':'application/json','apikey':KEY,'Authorization':'Bearer '+KEY,'Prefer':'return=minimal'};
+const RH = {'apikey':KEY,'Authorization':'Bearer '+KEY};
+const STORAGE = URL_BASE + '/storage/v1';
+
+let songs = [], idx = 0, scoreFiles = [], savedCount = 0, skippedCount = 0;
+
+async function syncR2Praise(songIds) {
+  const ids = Array.isArray(songIds) ? songIds.filter(Boolean) : (songIds ? [songIds] : []);
+
+  async function postJson(payload) {
+    const res = await fetch('/api/r2-praise-sync', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const text = await res.text();
+    let data = {};
+    try { data = text ? JSON.parse(text) : {}; } catch (_) { data = {message: text}; }
+    if (!res.ok || data.ok === false) throw new Error(data.error || data.message || `R2 반영 실패 (${res.status})`);
+    return data;
+  }
+
+  try {
+    if (ids.length) {
+      try {
+        await postJson({songIds: ids, force: true});
+        return true;
+      } catch (targetError) {
+        const oneByOneErrors = [];
+        for (const id of ids) {
+          try {
+            await postJson({songId: id, force: true});
+          } catch (e) {
+            oneByOneErrors.push(e.message || String(e));
+          }
+        }
+        if (!oneByOneErrors.length) return true;
+      }
+    }
+
+    let offset = 0;
+    let guard = 0;
+    while (guard < 100) {
+      const data = await postJson({force: true, batch: true, offset, limit: 50});
+      if (data.done) return true;
+      const processed = Number(data.processedCount || data.limit || 0);
+      const nextOffset = Number(data.nextOffset || 0);
+      if (nextOffset > offset) offset = nextOffset;
+      else if (processed > 0) offset += processed;
+      else return true;
+      guard++;
+    }
+    throw new Error('R2 전체 반영이 너무 오래 걸려 중단됐어요');
+  } catch (e) {
+    if (typeof dbg === 'function') dbg('R2 반영 실패: ' + (e.message || e));
+    console.warn('R2 sync failed', e);
+    return false;
+  }
+}
+async function api(method, path, body) {
+  const res = await fetch(URL_BASE+'/rest/v1/'+path, {
+    method, headers: method==='GET' ? RH : H,
+    body: body ? JSON.stringify(body) : undefined
+  });
+  if(method==='GET') return res.json();
+}
+
+
+function existingScoreUrl(path) {
+  return `${STORAGE}/object/public/scores/${storageObjectUrl(path)}`;
+}
+
+async function listExistingScoreFiles(songId) {
+  try {
+    const res = await fetch(`${STORAGE}/object/list/scores`, {
+      method: 'POST',
+      headers: {...RH, 'Content-Type':'application/json'},
+      body: JSON.stringify({
+        prefix: songId + '/',
+        limit: 200,
+        sortBy: { column: 'name', order: 'asc' }
+      })
+    });
+
+    if(!res.ok) return [];
+
+    const files = await res.json();
+    const cleanFiles = Array.isArray(files) ? files.filter(isValidScoreObject) : [];
+
+    return sortScoreFiles(cleanFiles);
+  } catch(e) {
+    console.warn('existing score list failed', e);
+    return [];
+  }
+}
+
+function openExistingScorePreview(url) {
+  let modal = document.getElementById('existing-score-modal');
+  if(!modal) {
+    modal = document.createElement('div');
+    modal.id = 'existing-score-modal';
+    modal.className = 'existing-score-modal';
+    modal.innerHTML = '<button type="button">×</button><img alt="기존 악보 확대">';
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => {
+      if(e.target === modal || e.target.tagName === 'BUTTON') modal.classList.remove('show');
+    });
+  }
+  modal.querySelector('img').src = url;
+  modal.classList.add('show');
+}
+
+
+async function markSongHasScore(song) {
+  if(!song?.id) return;
+  try {
+    song.has_score = true;
+    await fetch(URL_BASE+'/rest/v1/songs?id=eq.'+song.id, {
+      method:'PATCH',
+      headers:H,
+      body:JSON.stringify({
+        has_score:true,
+        status: song.status === 'plan' ? 'ready' : song.status,
+        updated_at:new Date().toISOString()
+      })
+    });
+  } catch(e) {
+    console.warn('has_score mark failed', e);
+  }
+}
+
+async function updateSongHasScoreState(song, hasScore) {
+  if(!song?.id) return;
+  try {
+    song.has_score = !!hasScore;
+    const body = {
+      has_score: !!hasScore,
+      updated_at: new Date().toISOString()
+    };
+    if(hasScore && song.status === 'plan') body.status = 'ready';
+
+    const res = await fetch(URL_BASE+'/rest/v1/songs?id=eq.'+song.id, {
+      method:'PATCH',
+      headers:H,
+      body:JSON.stringify(body)
+    });
+    if(!res.ok) {
+      const msg = await res.text().catch(() => '');
+      throw new Error(msg || res.status);
+    }
+  } catch(e) {
+    console.warn('has_score state update failed', e);
+  }
+}
+
+async function removeScoreObject(path) {
+  const encodedPath = storageObjectUrl(path);
+  let res = await fetch(`${STORAGE}/object/scores/${encodedPath}`, {
+    method:'DELETE',
+    headers:RH
+  });
+
+  if(res.ok) return true;
+
+  // Supabase Storage 환경에 따라 remove 엔드포인트가 필요한 경우를 대비한 보조 경로
+  res = await fetch(`${STORAGE}/object/remove/scores`, {
+    method:'POST',
+    headers:{...RH, 'Content-Type':'application/json'},
+    body:JSON.stringify({ prefixes:[path] })
+  });
+
+  if(!res.ok) {
+    const msg = await res.text().catch(() => '');
+    throw new Error(msg || res.status);
+  }
+
+  return true;
+}
+
+async function deleteExistingScoreFile(songId, fileName) {
+  const song = songs[idx];
+  if(!song?.id || String(song.id) !== String(songId)) {
+    showToast('현재 곡 정보를 다시 확인해주세요');
+    return;
+  }
+
+  if(!fileName) {
+    showToast('삭제할 악보 파일명을 찾지 못했어요');
+    return;
+  }
+
+  if(!confirm(`이 악보 이미지 파일을 삭제할까요?
+
+${fileName}`)) return;
+
+  try {
+    showToast('악보 삭제 중...');
+    await removeScoreObject(`${songId}/${fileName}`);
+
+    const remain = await listExistingScoreFiles(songId);
+    await updateSongHasScoreState(song, remain.length > 0);
+    await syncR2Praise(songId);
+
+    showToast(remain.length ? '악보 이미지를 삭제했어요' : '마지막 악보를 삭제해서 악보 없음으로 바꿨어요');
+    renderExistingScores(song);
+  } catch(e) {
+    console.warn('score delete failed', e);
+    showToast('⚠ 악보 삭제 실패: ' + e.message);
+  }
+}
+
+async function renderExistingScores(song) {
+  const ei = document.getElementById('existing-info');
+  if(!ei) return;
+
+  ei.style.display = 'block';
+  ei.className = 'existing-score-box';
+  ei.dataset.phase12NameListDone = '';
+  ei.innerHTML = '<div class="existing-score-text">기존 악보 확인 중...</div>';
+
+  const files = await listExistingScoreFiles(song.id);
+
+  // 핵심 수정: has_score 값이 false여도 Storage에 파일이 있으면 악보 있음으로 처리
+  if(files && files.length) {
+    if(!song.has_score) {
+      markSongHasScore(song);
+    }
+
+    song.has_score = true;
+
+    const cards = files.map((f, i) => {
+      const path = `${song.id}/${f.name}`;
+      const url = existingScoreUrl(path);
+      const safeName = String(f.name || ('악보 ' + (i + 1))).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      return `
+        <div class="existing-score-card" data-score-file="${safeName}" onclick="openExistingScorePreview('${url}')">
+          <img src="${url}" alt="${safeName}" loading="lazy">
+          <div class="existing-score-card-name">${safeName}</div>
+          <button type="button" class="existing-score-delete-btn" onclick="event.preventDefault();event.stopPropagation();deleteExistingScoreFile('${song.id}', '${safeName.replace(/\'/g, "\\'")}')">삭제</button>
+        </div>
+      `;
+    }).join('');
+
+    ei.innerHTML = `
+      <div class="existing-score-text">기존 악보 ${files.length}장</div>
+      <div class="existing-score-list">${cards}</div>
+    `;
+
+    // 기존 악보 이름 목록 모드로 변환
+    setTimeout(() => {
+      if(typeof window.__phase12ForceExistingNameList === 'function') {
+        window.__phase12ForceExistingNameList();
+      }
+    }, 50);
+
+    return;
+  }
+
+  // 파일이 없을 때만 상태값을 참고
+  if(song?.has_score) {
+    ei.innerHTML = '<div class="existing-score-text">악보 있음으로 표시되어 있지만 저장소에서 파일을 찾지 못했습니다.</div>';
+  } else {
+    ei.style.display = 'none';
+    ei.innerHTML = '';
+  }
+}
+
+async function init() {
+  const data = await api('GET', 'songs?select=id,name,key,bpm,bpm_min,bpm_max,seasons,has_score,status,music_url&order=name&limit=500');
+  songs = data;
+  const lastIdx = parseInt(localStorage.getItem('worshipdb_song_editor_last_idx') || '0', 10);
+  if(Number.isFinite(lastIdx) && lastIdx >= 0 && lastIdx < songs.length) idx = lastIdx;
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('card').style.display = 'flex';
+  document.getElementById('nav').style.display = 'grid';
+  loadSong();
+}
+
+function loadSong() {
+  if(idx >= songs.length) { showDone(); return; }
+  const s = songs[idx];
+  localStorage.setItem('worshipdb_song_editor_last_idx', String(idx));
+  scoreFiles = [];
+
+  // 헤더 진행
+  const pct = Math.round((idx/songs.length)*100);
+  document.getElementById('pf').style.width = pct+'%';
+  document.getElementById('ptxt').textContent = `${idx+1} / ${songs.length}`;
+
+  // 곡명
+  document.getElementById('song-name').textContent = s.name;
+  document.getElementById('song-sub').textContent = `#${idx+1}`;
+
+  // 필드 채우기
+  document.getElementById('f-url').value = s.music_url || '';
+  document.getElementById('f-key').value = s.key || '';
+  fillBpmMinMaxFields(s);
+  onUrlInput();
+
+  // 태그 초기화
+  document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('on'));
+  const seas = s.seasons || [];
+  seas.forEach(t => {
+    const btn = document.querySelector(`.tag-btn[data-val="${t}"]`);
+    if(btn) btn.classList.add('on');
+  });
+
+  // 악보 상태: 기존 악보가 있으면 실제 썸네일을 보여줌
+  renderExistingScores(s);
+  document.getElementById('score-thumbs').innerHTML = '';
+  const scoreZone = document.getElementById('f-score')?.closest('.score-zone');
+  if(scoreZone) {
+    scoreZone.classList.remove('phase12-has-new-score');
+    const carousel = scoreZone.querySelector('.phase12-new-score-carousel');
+    if(carousel) carousel.remove();
+  }
+  document.getElementById('f-score').value = '';
+
+  // 스크롤 맨 위
+  document.getElementById('card').scrollTop = 0;
+}
+
+
+function getYoutubeId(url) {
+  try {
+    const u = new URL(url);
+    if (u.hostname.includes('youtu.be')) {
+      return u.pathname.replace('/', '').split('/')[0] || '';
+    }
+    if (u.searchParams.get('v')) return u.searchParams.get('v');
+    const m = u.pathname.match(/\/(embed|shorts|live)\/([^/?#]+)/);
+    if (m) return m[2];
+  } catch(e) {
+    const m = String(url || '').match(/(?:youtu\.be\/|v=|embed\/|shorts\/|live\/)([A-Za-z0-9_-]{6,})/);
+    return m ? m[1] : '';
+  }
+  return '';
+}
+
+function getYoutubeEmbedUrl(url) {
+  const id = getYoutubeId(url);
+  if (!id) return '';
+  return `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`;
+}
+
+function playYoutubeInline() {
+  const val = document.getElementById('f-url').value.trim();
+  const embed = getYoutubeEmbedUrl(val);
+  const frame = document.getElementById('youtube-inline-frame');
+  if (!frame || !embed) return;
+  frame.innerHTML = `<iframe src="${embed}" title="YouTube player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
+  frame.classList.add('show');
+  setTimeout(() => { try { frame.scrollIntoView({block:'nearest', behavior:'smooth'}); } catch(e){} }, 80);
+}
+
+function closeYoutubeInline() {
+  const frame = document.getElementById('youtube-inline-frame');
+  if (!frame) return;
+  frame.innerHTML = '';
+  frame.classList.remove('show');
+}
+
+function onUrlInput() {
+  const val = document.getElementById('f-url').value.trim();
+  const preview = document.getElementById('url-preview');
+  const embed = getYoutubeEmbedUrl(val);
+
+  closeYoutubeInline();
+
+  if(embed) {
+    preview.style.display = 'block';
+    preview.innerHTML = `
+      <div class="youtube-inline-box">
+        <div class="youtube-inline-head">
+          <span>▶ 유튜브 내부 미리보기</span>
+          <div class="youtube-inline-actions">
+            <button type="button" class="primary" onclick="playYoutubeInline()">재생</button>
+            <button type="button" onclick="clearUrl()">지우기</button>
+          </div>
+        </div>
+        <div class="youtube-inline-url">${val.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</div>
+        <div class="youtube-inline-frame compact" id="youtube-inline-frame"></div>
+      </div>
+    `;
+  } else {
+    preview.style.display = 'none';
+    preview.innerHTML = '';
+  }
+}
+
+function clearUrl() {
+  document.getElementById('f-url').value = '';
+  closeYoutubeInline();
+  const preview = document.getElementById('url-preview');
+  if(preview) {
+    preview.style.display = 'none';
+    preview.innerHTML = '';
+  }
+}
+
+// 태그 토글
+document.querySelectorAll('.tag-btn').forEach(btn => {
+  btn.addEventListener('click', () => btn.classList.toggle('on'));
+});
+
+function getSelectedTags() {
+  return [...document.querySelectorAll('.tag-btn.on')].map(b => b.dataset.val);
+}
+
+function previewScores(input) {
+  scoreFiles = [...input.files];
+  const wrap = document.getElementById('score-thumbs');
+  const zone = input.closest('.score-zone');
+  if(zone && scoreFiles.length) zone.classList.add('phase12-has-new-score');
+
+  wrap.innerHTML = '';
+  wrap.classList.add('phase12-carousel-source');
+
+  scoreFiles.forEach((f, i) => {
+    const img = document.createElement('img');
+    img.className = 'score-thumb';
+    img.src = URL.createObjectURL(f);
+    img.dataset.index = String(i);
+    img.title = '클릭하면 크게 봅니다';
+    img.onclick = function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if(typeof phase12OpenScoreBig === 'function') phase12OpenScoreBig(img.src);
+    };
+    wrap.appendChild(img);
+  });
+
+  if(typeof phase12RenderNewScoreCarousel === 'function') {
+    phase12RenderNewScoreCarousel(0);
+  }
+}
+
+
+
+
+function parseBpmRangeFromSong(song) {
+  const minRaw = song?.bpm_min ?? song?.bpmMin ?? '';
+  const maxRaw = song?.bpm_max ?? song?.bpmMax ?? '';
+
+  let min = parseInt(minRaw, 10) || '';
+  let max = parseInt(maxRaw, 10) || '';
+
+  if(min || max) {
+    if(min && !max) max = min;
+    if(max && !min) min = max;
+    return { min, max };
+  }
+
+  const raw = String(song?.bpm ?? '').trim();
+  if(!raw) return { min: '', max: '' };
+
+  const nums = raw.match(/\d+/g)?.map(n => parseInt(n, 10)).filter(Boolean) || [];
+  if(!nums.length) return { min: '', max: '' };
+
+  if(nums.length === 1) return { min: nums[0], max: nums[0] };
+
+  return {
+    min: Math.min(...nums),
+    max: Math.max(...nums)
+  };
+}
+
+function fillBpmMinMaxFields(song) {
+  const range = parseBpmRangeFromSong(song);
+  const minEl = document.getElementById('f-bpm-min');
+  const maxEl = document.getElementById('f-bpm-max');
+  if(minEl) minEl.value = range.min || '';
+  if(maxEl) maxEl.value = range.max || '';
+}
+
+function getBpmMinMaxForSave() {
+  const minEl = document.getElementById('f-bpm-min');
+  const maxEl = document.getElementById('f-bpm-max');
+
+  let min = parseInt(minEl?.value || '', 10) || null;
+  let max = parseInt(maxEl?.value || '', 10) || null;
+
+  if(min && !max) max = min;
+  if(max && !min) min = max;
+
+  if(min && max && min > max) {
+    const tmp = min;
+    min = max;
+    max = tmp;
+  }
+
+  return { min, max };
+}
+
+
+function cleanAsciiFilePart(value, fallback) {
+  const raw = String(value || fallback || '')
+    .normalize('NFKD')
+    .trim()
+    .replace(/\s+/g, '');
+
+  const ascii = raw
+    .replace(/[^A-Za-z0-9_-]/g, '')
+    .replace(/_+/g, '_')
+    .replace(/-+/g, '-');
+
+  return ascii || fallback || 'score';
+}
+
+function getScoreExtension(file) {
+  const original = String(file?.name || '');
+  const extMatch = original.match(/\.([a-zA-Z0-9]{1,8})$/);
+  const ext = extMatch ? extMatch[1].toLowerCase() : 'jpg';
+  if(['jpg','jpeg','png','webp'].includes(ext)) return ext;
+  return 'jpg';
+}
+
+function getScoreVersionName() {
+  return 'code';
+}
+
+function makeRuleBasedScoreFileName(song, keyValue, file, index) {
+  const songId = cleanAsciiFilePart(song?.id, 'song');
+  const key = cleanAsciiFilePart(keyValue || song?.key, 'Key');
+  const version = cleanAsciiFilePart(getScoreVersionName(), 'code');
+  const page = index + 1;
+  const ext = getScoreExtension(file);
+
+  return `${songId}_${key}_${version}_${page}.${ext}`;
+}
+
+function displayRuleBasedScoreFileName(song, keyValue, file, index) {
+  const songName = String(song?.name || '곡명').normalize('NFC').trim().replace(/\s+/g, '');
+  const key = String(keyValue || song?.key || 'Key').trim();
+  const page = index + 1;
+  const ext = getScoreExtension(file);
+  return `${songName}_${key}_코드_${page}.${ext}`;
+}
+
+function storageObjectUrl(bucketAndPath) {
+  return String(bucketAndPath).split('/').map(encodeURIComponent).join('/');
+}
+
+function extractScorePageNumber(fileName) {
+  const name = String(fileName || '');
+  const m = name.match(/_(\d+)\.[^.]+$/);
+  return m ? parseInt(m[1], 10) || 9999 : 9999;
+}
+
+function sortScoreFiles(files) {
+  return [...(files || [])].sort((a, b) => {
+    const pa = extractScorePageNumber(a?.name);
+    const pb = extractScorePageNumber(b?.name);
+    if(pa !== pb) return pa - pb;
+    return String(a?.name || '').localeCompare(String(b?.name || ''), 'ko');
+  });
+}
+
+function isValidScoreObject(file) {
+  const name = String(file?.name || '');
+  if(!name || name.startsWith('.') || name.endsWith('/')) return false;
+  return /\.(jpg|jpeg|png|webp)$/i.test(name);
+}
+
+async function saveAndNext() {
+  const btn = document.getElementById('btn-save');
+  btn.disabled = true;
+  btn.textContent = '저장 중...';
+  const s = songs[idx];
+
+  try {
+    // 곡 데이터 저장
+    const body = {
+      updated_at: new Date().toISOString(),
+      seasons: getSelectedTags(),
+    };
+    const url = document.getElementById('f-url').value.trim();
+    const key = document.getElementById('f-key').value.trim();
+    const bpmRange = getBpmMinMaxForSave();
+    if(url) body.music_url = url;
+    if(key) body.key = key;
+    if(scoreFiles.length && !key) throw new Error('악보 업로드 전 Key를 먼저 입력하세요.');
+    if(bpmRange.min) body.bpm_min = bpmRange.min;
+    if(bpmRange.max) body.bpm_max = bpmRange.max;
+    if(bpmRange.min && bpmRange.max) body.bpm = bpmRange.min === bpmRange.max ? String(bpmRange.min) : `${bpmRange.min}-${bpmRange.max}`;
+
+    await fetch(URL_BASE+'/rest/v1/songs?id=eq.'+s.id, {method:'PATCH',headers:H,body:JSON.stringify(body)});
+
+    // 악보 업로드
+    if(scoreFiles.length) {
+      for(let i = 0; i < scoreFiles.length; i++) {
+        const file = scoreFiles[i];
+        const safeName = makeRuleBasedScoreFileName(s, key, file, i);
+        const path = `${s.id}/${safeName}`;
+        const uploadUrl = `${STORAGE}/object/scores/${storageObjectUrl(path)}`;
+
+        const uploadRes = await fetch(uploadUrl, {
+          method:'POST',
+          headers:{
+            'apikey':KEY,
+            'Authorization':'Bearer '+KEY,
+            'Content-Type':file.type || 'image/jpeg',
+            'x-upsert':'true'
+          },
+          body: file
+        });
+
+        if(!uploadRes.ok) {
+          const msg = await uploadRes.text().catch(() => '');
+          throw new Error('악보 업로드 실패: ' + (msg || uploadRes.status));
+        }
+      }
+
+      // has_score 업데이트 + 현재 화면 데이터 즉시 반영
+      s.has_score = true;
+      s.key = key || s.key;
+      if(s.status === 'plan') s.status = 'ready';
+
+      await fetch(URL_BASE+'/rest/v1/songs?id=eq.'+s.id, {
+        method:'PATCH',headers:H,
+        body:JSON.stringify({
+          has_score:true,
+          status:s.status,
+          updated_at:new Date().toISOString()
+        })
+      });
+    }
+
+    await syncR2Praise(s.id);
+
+    savedCount++;
+    showToast('✓ 저장됨');
+    if(window.__phase12SaveCloseMode) {
+      window.__phase12SaveCloseMode = false;
+      localStorage.setItem('worshipdb_song_editor_last_idx', String(idx));
+      setTimeout(() => {
+        try { window.close(); } catch(e) {}
+        if(!window.closed) {
+          const modalClose = document.querySelector('[aria-label="Close"], .close, .modal-close, button[onclick*="close"]');
+          if(modalClose) modalClose.click();
+          else history.back();
+        }
+      }, 250);
+      return;
+    }
+    goNext(true);
+  } catch(e) {
+    showToast('⚠ 저장 실패: '+e.message);
+  }
+
+  btn.disabled = false;
+  btn.textContent = '저장 후 다음 ➜';
+}
+
+function goNext(saved) { localStorage.setItem('worshipdb_song_editor_last_idx', String(idx));
+  if(!saved) skippedCount++;
+  idx++;
+  loadSong();
+}
+
+
+function saveAndClose() {
+  window.__phase12SaveCloseMode = true;
+  saveAndNext();
+}
+
+function goPrev() { localStorage.setItem('worshipdb_song_editor_last_idx', String(Math.max(0, idx-1)));
+  if(idx > 0) { idx--; loadSong(); }
+}
+
+function showDone() {
+  document.getElementById('card').style.display = 'none';
+  document.getElementById('nav').style.display = 'none';
+  document.getElementById('done').style.display = 'flex';
+  document.getElementById('done-msg').textContent = `저장 ${savedCount}곡 · 건너뜀 ${skippedCount}곡`;
+  document.getElementById('pf').style.width = '100%';
+}
+
+function restart() {
+  idx = 0; savedCount = 0; skippedCount = 0;
+  document.getElementById('done').style.display = 'none';
+  document.getElementById('card').style.display = 'flex';
+  document.getElementById('nav').style.display = 'grid';
+  loadSong();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+init();
+</script>
+
+<style>
+/* === Phase12 codefix: existing score thumbnail preview in sequential editor === */
+.phase12-existing-score-preview {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.phase12-existing-score-title {
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.phase12-existing-score-list {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.phase12-existing-score-item {
+  min-width: 120px;
+  max-width: 150px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0,0,0,0.18);
+  border: 1px solid rgba(255,255,255,0.10);
+  cursor: pointer;
+}
+
+.phase12-existing-score-thumb {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  display: block;
+  background: rgba(0,0,0,0.35);
+}
+
+.phase12-existing-score-info {
+  padding: 8px;
+}
+
+.phase12-existing-score-name {
+  font-size: 12px;
+  line-height: 1.35;
+  word-break: break-all;
+}
+
+.phase12-existing-score-meta {
+  margin-top: 4px;
+  font-size: 11px;
+  opacity: 0.72;
+}
+
+.phase12-score-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: rgba(0,0,0,0.82);
+  display: none;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 10px auto 14px;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.phase12-score-modal.open { display: flex; }
+
+.phase12-score-modal img {
+  max-width: min(96vw, 980px);
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 14px;
+  background: #111;
+}
+
+.phase12-score-modal-close {
+  position: fixed;
+  right: 18px;
+  top: 18px;
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-size: 18px;
+  font-weight: 900;
+  background: rgba(255,255,255,0.92);
+  color: #111;
+  cursor: pointer;
+}
+</style>
+
+<script>
+/* === Phase12 codefix: render existing score previews wherever "악보 있음" appears === */
+(function () {
+  if (window.__phase12ExistingScorePreviewInstalled) return;
+  window.__phase12ExistingScorePreviewInstalled = true;
+
+  function norm(v) {
+    return String(v || "").replace(/\s+/g, "").trim().toLowerCase();
+  }
+
+  function scoreUrl(item) {
+    return item?.url || item?.image_url || item?.file_url || item?.score_url || item?.publicUrl || item?.public_url || item?.src || item?.path || "";
+  }
+
+  function scoreName(item, i) {
+    return item?.filename || item?.file_name || item?.name || item?.title || item?.score_name || ("악보 " + (i + 1));
+  }
+
+  function collectScores() {
+    const arr = [];
+    [
+      window.scores,
+      window.scoreFiles,
+      window.songScores,
+      window.scoreImages,
+      window.allScores,
+      window.scoreList,
+      window.uploadedScores,
+      window.existingScores
+    ].forEach(v => Array.isArray(v) && v.forEach(x => arr.push(x)));
+
+    ["state", "appState", "WorshipDB", "worshipDB", "db"].forEach(k => {
+      const obj = window[k];
+      if (!obj || typeof obj !== "object") return;
+      ["scores", "scoreFiles", "songScores", "scoreImages", "allScores"].forEach(key => {
+        if (Array.isArray(obj[key])) obj[key].forEach(x => arr.push(x));
+      });
+    });
+
+    const seen = new Set();
+    return arr.filter(item => {
+      const sig = scoreUrl(item) + "|" + scoreName(item, 0);
+      if (!scoreUrl(item) || seen.has(sig)) return false;
+      seen.add(sig);
+      return true;
+    });
+  }
+
+  function guessSongName(el) {
+    const host = el.closest(".song-card, .song-item, .edit-card, .sequential-item, .seq-item, .card, li, tr, section, article, div") || el.parentElement;
+    if (!host) return "";
+
+    const input = host.querySelector('input[name*="title"], input[name*="song"], input[placeholder*="곡"], input[placeholder*="제목"], textarea[name*="title"]');
+    if (input && input.value) return input.value.trim();
+
+    const title = host.querySelector(".song-title, .title, .name, h1, h2, h3, h4, strong");
+    if (title && title.textContent) return title.textContent.replace(/악보\s*있음/g, "").trim();
+
+    const lines = (host.textContent || "").split(/\n|·|\|/).map(x => x.trim()).filter(Boolean);
+    return (lines.find(x => !/악보\s*있음|저장|수정|삭제|업로드/.test(x)) || "").trim();
+  }
+
+  function matchingScores(songName) {
+    const target = norm(songName);
+    if (!target) return [];
+    return collectScores().filter(item => {
+      const hay = norm([
+        item?.song_title, item?.song_name, item?.songTitle, item?.song,
+        item?.filename, item?.file_name, item?.name, item?.title
+      ].join(" "));
+      return hay && (hay.includes(target) || target.includes(hay));
+    }).slice(0, 12);
+  }
+
+  function modal() {
+    let m = document.querySelector(".phase12-score-modal");
+    if (m) return m;
+    m = document.createElement("div");
+    m.className = "phase12-score-modal";
+    m.innerHTML = '<button class="phase12-score-modal-close" type="button">×</button><img alt="악보 확대 미리보기">';
+    document.body.appendChild(m);
+    m.addEventListener("click", e => {
+      if (e.target === m || e.target.classList.contains("phase12-score-modal-close")) m.classList.remove("open");
+    });
+    return m;
+  }
+
+  function openPreview(url) {
+    const m = modal();
+    m.querySelector("img").src = url;
+    m.classList.add("open");
+  }
+
+  function render(el) {
+    if (!el || el.dataset.phase12PreviewDone === "1") return;
+    const found = matchingScores(guessSongName(el));
+    if (!found.length) return;
+
+    el.dataset.phase12PreviewDone = "1";
+    const box = document.createElement("div");
+    box.className = "phase12-existing-score-preview";
+    box.innerHTML = '<div class="phase12-existing-score-title">기존 악보 미리보기</div><div class="phase12-existing-score-list"></div>';
+    const list = box.querySelector(".phase12-existing-score-list");
+
+    found.forEach((item, i) => {
+      const url = scoreUrl(item);
+      if (!url) return;
+      const card = document.createElement("div");
+      card.className = "phase12-existing-score-item";
+      card.innerHTML =
+        '<img class="phase12-existing-score-thumb" loading="lazy" alt="">' +
+        '<div class="phase12-existing-score-info">' +
+        '<div class="phase12-existing-score-name"></div>' +
+        '<div class="phase12-existing-score-meta"></div>' +
+        '</div>';
+      card.querySelector("img").src = url;
+      card.querySelector("img").alt = scoreName(item, i);
+      card.querySelector(".phase12-existing-score-name").textContent = scoreName(item, i);
+      const page = item?.page || item?.page_no || item?.pageNumber || item?.page_number || (i + 1);
+      card.querySelector(".phase12-existing-score-meta").textContent = page ? ("페이지 " + page) : "기존 악보";
+      card.addEventListener("click", () => openPreview(url));
+      list.appendChild(card);
+    });
+
+    if (!list.children.length) return;
+    el.parentElement.insertBefore(box, el.nextSibling);
+  }
+
+  function scan() {
+    Array.from(document.querySelectorAll("body *")).forEach(el => {
+      const text = (el.textContent || "").trim();
+      if (text && text.length <= 40 && /악보\s*있음/.test(text)) render(el);
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => setTimeout(scan, 300));
+  window.addEventListener("load", () => setTimeout(scan, 800));
+
+  const observer = new MutationObserver(() => {
+    clearTimeout(window.__phase12ScoreScanTimer);
+    window.__phase12ScoreScanTimer = setTimeout(scan, 300);
+  });
+  observer.observe(document.documentElement, { childList: true, subtree: true });
+})();
+</script>
+
+
+<script>
+/* === Phase12 fix11: arrange URL and Key/BPM sections side by side === */
+(function(){
+  if(window.__phase12CompactEditorLayoutInstalled) return;
+  window.__phase12CompactEditorLayoutInstalled = true;
+
+  function closestBlock(el){
+    if(!el) return null;
+    return el.closest('.section, .field, .form-section, .group, .block, .url-box') || el.parentElement;
+  }
+
+  function applyCompactLayout(){
+    const urlInput = document.getElementById('f-url');
+    const keyInput = document.getElementById('f-key');
+    const bpmMin = document.getElementById('f-bpm-min');
+    if(!urlInput || !keyInput || !bpmMin) return;
+
+    const urlBlock = closestBlock(urlInput);
+    const bpmBlock = closestBlock(keyInput) || closestBlock(bpmMin);
+    if(!urlBlock || !bpmBlock || urlBlock === bpmBlock) return;
+    if(urlBlock.parentElement && urlBlock.parentElement.classList.contains('phase12-url-bpm-grid')) return;
+
+    const grid = document.createElement('div');
+    grid.className = 'phase12-url-bpm-grid';
+    urlBlock.parentNode.insertBefore(grid, urlBlock);
+    grid.appendChild(urlBlock);
+    grid.appendChild(bpmBlock);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => setTimeout(applyCompactLayout, 80));
+  window.addEventListener('load', () => setTimeout(applyCompactLayout, 150));
+})();
+</script>
+
+
+<script>
+/* === Phase12 fix11: shrink top guide text === */
+(function(){
+  function shrinkGuide(){
+    const candidates = Array.from(document.querySelectorAll('body *')).filter(el => {
+      const t = (el.textContent || '').trim();
+      return t.includes('순차 편집기 안내') || t.includes('기존 곡 정보를 하나씩 넘기며');
+    });
+    candidates.forEach(el => {
+      if(el.children.length > 3) return;
+      el.classList.add('phase12-compact-help');
+    });
+  }
+  document.addEventListener('DOMContentLoaded', () => setTimeout(shrinkGuide, 120));
+  window.addEventListener('load', () => setTimeout(shrinkGuide, 220));
+})();
+</script>
+
+
+<script>
+/* === Phase12 fix12: move score section left and tag sections right === */
+(function(){
+  if(window.__phase12ScoreTagsGridInstalled) return;
+  window.__phase12ScoreTagsGridInstalled = true;
+
+  function closestBlock(el){
+    if(!el) return null;
+    return el.closest('.section, .field, .form-section, .group, .block, .url-box, .score-zone') || el.parentElement;
+  }
+
+  function isTagBlock(block){
+    if(!block) return false;
+    const text = (block.textContent || '').trim();
+    const hasTags = block.querySelectorAll('.tag-btn').length >= 2;
+    return hasTags && (
+      text.includes('상황별') ||
+      text.includes('절기별') ||
+      text.includes('대림절') ||
+      text.includes('경배') ||
+      text.includes('감사')
+    );
+  }
+
+  function applyGrid(){
+    const scoreInput = document.getElementById('f-score');
+    const scoreZone = closestBlock(scoreInput);
+    const existingInfo = document.getElementById('existing-info');
+
+    if(!scoreZone) return;
+    if(scoreZone.parentElement && scoreZone.parentElement.classList.contains('phase12-score-left')) return;
+
+    const allBlocks = Array.from(document.querySelectorAll('.section, .field, .form-section, .group, .block'));
+    const tagBlocks = allBlocks.filter(isTagBlock);
+
+    if(!tagBlocks.length) return;
+
+    const grid = document.createElement('div');
+    grid.className = 'phase12-score-tags-grid';
+
+    const left = document.createElement('div');
+    left.className = 'phase12-score-left';
+
+    const right = document.createElement('div');
+    right.className = 'phase12-tags-stack';
+
+    const insertBeforeNode = tagBlocks[0].compareDocumentPosition(scoreZone) & Node.DOCUMENT_POSITION_FOLLOWING
+      ? tagBlocks[0]
+      : scoreZone;
+
+    insertBeforeNode.parentNode.insertBefore(grid, insertBeforeNode);
+    grid.appendChild(left);
+    grid.appendChild(right);
+
+    if(existingInfo && existingInfo.parentElement) {
+      left.appendChild(existingInfo);
+    }
+
+    left.appendChild(scoreZone);
+
+    tagBlocks.forEach(block => {
+      if(block && block.parentElement && block !== scoreZone) {
+        right.appendChild(block);
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => setTimeout(applyGrid, 180));
+  window.addEventListener('load', () => setTimeout(applyGrid, 320));
+
+  const obs = new MutationObserver(() => {
+    clearTimeout(window.__phase12ScoreTagsGridTimer);
+    window.__phase12ScoreTagsGridTimer = setTimeout(applyGrid, 220);
+  });
+
+  if(document.documentElement) {
+    obs.observe(document.documentElement, {childList:true, subtree:true});
+  }
+})();
+</script>
+
+
+<script>
+/* === Phase12 fix13: move guide into help popup and compress score text === */
+(function(){
+  if(window.__phase12HelpScoreCompactInstalled) return;
+  window.__phase12HelpScoreCompactInstalled = true;
+
+  function findSongEditorTitle(){
+    const all = Array.from(document.querySelectorAll('body *'));
+    return all.find(el => {
+      const t = (el.textContent || '').trim();
+      return t === '곡 에디터' || t.endsWith('곡 에디터');
+    });
+  }
+
+  function hideTopGuides(){
+    const all = Array.from(document.querySelectorAll('body *'));
+    all.forEach(el => {
+      const t = (el.textContent || '').trim();
+      if(!t) return;
+      if(t.includes('순차 편집기 개선 UI') || t.includes('순차 편집기 안내') || t.includes('기존 곡 정보를 하나씩 넘기며')) {
+        if(!el.closest('.phase12-help-popup')) {
+          el.style.display = 'none';
+        }
+      }
+    });
+  }
+
+  function createHelp(){
+    hideTopGuides();
+
+    if(document.querySelector('.phase12-help-btn')) return;
+
+    const title = findSongEditorTitle();
+    if(!title || !title.parentNode) return;
+
+    const head = document.createElement('div');
+    head.className = 'phase12-editor-head';
+
+    const titleBox = document.createElement('div');
+    titleBox.className = 'phase12-editor-head-title';
+    titleBox.innerHTML = '🎵 <span>곡 에디터</span>';
+
+    const btn = document.createElement('button');
+    btn.className = 'phase12-help-btn';
+    btn.type = 'button';
+    btn.textContent = '도움말';
+
+    const popup = document.createElement('div');
+    popup.className = 'phase12-help-popup';
+    popup.innerHTML = `
+      <b>순차 편집기 도움말</b><br><br>
+      • 기존 곡 정보를 하나씩 넘기며 수정합니다.<br>
+      • Key, BPM, 유튜브 링크, 악보 상태를 빠르게 정리합니다.<br>
+      • BPM은 최소~최대 범위로 입력합니다. 예: 100~115<br>
+      • 기존 악보가 있으면 왼쪽 악보 영역에 작게 표시됩니다.<br>
+      • 악보 버전/페이지 관리는 악보 버전 관리에서 처리합니다.<br><br>
+      <button class="phase12-help-popup-close" type="button">닫기</button>
+    `;
+
+    btn.onclick = () => popup.classList.toggle('show');
+    popup.querySelector('.phase12-help-popup-close').onclick = () => popup.classList.remove('show');
+
+    head.appendChild(titleBox);
+    head.appendChild(btn);
+
+    title.style.display = 'none';
+    title.parentNode.insertBefore(head, title);
+    document.body.appendChild(popup);
+  }
+
+  function compressMissingScoreText(){
+    const el = document.getElementById('existing-info');
+    if(!el) return;
+    const t = (el.textContent || '').trim();
+    if(t.includes('파일을 찾지 못했습니다') || t.includes('새 이미지 추가 가능')) {
+      // 공간을 크게 차지하지 않도록 title로만 보관
+      el.title = t;
+      el.innerHTML = '';
+      el.style.display = 'none';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(createHelp, 120);
+    setTimeout(compressMissingScoreText, 400);
+  });
+
+  window.addEventListener('load', () => {
+    setTimeout(createHelp, 220);
+    setTimeout(compressMissingScoreText, 600);
+  });
+
+  const obs = new MutationObserver(() => {
+    clearTimeout(window.__phase12HelpScoreCompactTimer);
+    window.__phase12HelpScoreCompactTimer = setTimeout(() => {
+      hideTopGuides();
+      createHelp();
+      compressMissingScoreText();
+    }, 180);
+  });
+
+  if(document.documentElement) {
+    obs.observe(document.documentElement, { childList:true, subtree:true, characterData:true });
+  }
+})();
+</script>
+
+
+<script>
+/* === Phase12 fix14: compact title line === */
+(function(){
+  if(window.__phase12TitleLineInstalled) return;
+  window.__phase12TitleLineInstalled = true;
+
+  function applyTitleLine(){
+    const name = document.getElementById('song-name');
+    const sub = document.getElementById('song-sub');
+    if(!name || !sub) return;
+    if(name.parentElement && name.parentElement.classList.contains('phase12-song-title-line')) return;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'phase12-song-title-line';
+    name.parentNode.insertBefore(wrap, name);
+    wrap.appendChild(name);
+    wrap.appendChild(sub);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => setTimeout(applyTitleLine, 120));
+  window.addEventListener('load', () => setTimeout(applyTitleLine, 220));
+})();
+</script>
+
+
+<script>
+/* === Phase12 fix14: drag and drop score upload === */
+(function(){
+  if(window.__phase12ScoreDropInstalled) return;
+  window.__phase12ScoreDropInstalled = true;
+
+  function setupDrop(){
+    const input = document.getElementById('f-score');
+    const zone = input?.closest('.score-zone');
+    if(!input || !zone || zone.dataset.phase12DropReady === '1') return;
+
+    zone.dataset.phase12DropReady = '1';
+
+    ['dragenter','dragover'].forEach(type => {
+      zone.addEventListener(type, e => {
+        e.preventDefault();
+        e.stopPropagation();
+        zone.classList.add('phase12-drag-over');
+      });
+    });
+
+    ['dragleave','drop'].forEach(type => {
+      zone.addEventListener(type, e => {
+        e.preventDefault();
+        e.stopPropagation();
+        zone.classList.remove('phase12-drag-over');
+      });
+    });
+
+    zone.addEventListener('drop', e => {
+      const files = Array.from(e.dataTransfer?.files || []).filter(f => f.type.startsWith('image/'));
+      if(!files.length) {
+        if(typeof showToast === 'function') showToast('이미지 파일만 추가할 수 있어요');
+        return;
+      }
+
+      const dt = new DataTransfer();
+      files.forEach(f => dt.items.add(f));
+      input.files = dt.files;
+
+      if(typeof previewScores === 'function') previewScores(input);
+      if(typeof showToast === 'function') showToast(`악보 ${files.length}장 추가됨`);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => setTimeout(setupDrop, 160));
+  window.addEventListener('load', () => setTimeout(setupDrop, 260));
+})();
+</script>
+
+
+<script>
+/* === Phase12 fix15: score thumbnails/name-list preview behavior === */
+(function(){
+  if(window.__phase12ScorePreviewModeInstalled) return;
+  window.__phase12ScorePreviewModeInstalled = true;
+
+  function escHtml(v){
+    return String(v || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function bigModal(){
+    let modal = document.getElementById('phase12-score-big-modal');
+    if(modal) return modal;
+
+    modal = document.createElement('div');
+    modal.id = 'phase12-score-big-modal';
+    modal.className = 'phase12-score-big-modal';
+    modal.innerHTML = '<button type="button">×</button><img alt="악보 크게 보기">';
+    document.body.appendChild(modal);
+
+    modal.addEventListener('click', e => {
+      if(e.target === modal || e.target.tagName === 'BUTTON') {
+        modal.classList.remove('show');
+        modal.querySelector('img').src = '';
+      }
+    });
+
+    return modal;
+  }
+
+  window.phase12OpenScoreBig = function(url){
+    const modal = bigModal();
+    modal.querySelector('img').src = url;
+    modal.classList.add('show');
+  };
+
+  function getScoreZone(){
+    const input = document.getElementById('f-score');
+    return input?.closest('.score-zone');
+  }
+
+  function markUploadZoneByFiles(){
+    const input = document.getElementById('f-score');
+    const zone = getScoreZone();
+    if(!input || !zone) return;
+
+    if(input.files && input.files.length) {
+      zone.classList.add('phase12-has-new-score');
+    } else {
+      zone.classList.remove('phase12-has-new-score');
+    }
+  }
+
+  function enhanceNewThumbs(){
+    const wrap = document.getElementById('score-thumbs');
+    if(!wrap) return;
+    Array.from(wrap.querySelectorAll('img.score-thumb')).forEach(img => {
+      if(img.dataset.phase12BigReady === '1') return;
+      img.dataset.phase12BigReady = '1';
+      img.title = '클릭하면 크게 봅니다';
+      img.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        phase12OpenScoreBig(img.src);
+      });
+    });
+  }
+
+  function convertExistingScoreNames(){
+    const ei = document.getElementById('existing-info');
+    if(!ei || ei.dataset.phase12NameListDone === '1') return;
+
+    const cards = Array.from(ei.querySelectorAll('.existing-score-card'));
+    if(!cards.length) return;
+
+    const list = document.createElement('div');
+    list.className = 'existing-score-list phase12-existing-name-list';
+
+    cards.forEach((card, index) => {
+      const img = card.querySelector('img');
+      const nameEl = card.querySelector('.existing-score-card-name');
+      const name = (nameEl?.textContent || img?.alt || ('기존 악보 ' + (index + 1))).trim();
+      const url = img?.src || '';
+
+      const row = document.createElement('div');
+      row.className = 'existing-score-row';
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'existing-score-name-btn';
+      btn.textContent = name;
+      btn.title = name + ' 크게 보기';
+      btn.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        if(url) phase12OpenScoreBig(url);
+      });
+
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'existing-score-delete-btn';
+      del.textContent = '삭제';
+      del.title = name + ' 삭제';
+      del.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        const song = songs[idx];
+        if(song?.id) deleteExistingScoreFile(song.id, name);
+      });
+
+      row.appendChild(btn);
+      row.appendChild(del);
+      list.appendChild(row);
+    });
+
+    ei.innerHTML = '';
+    ei.appendChild(list);
+    ei.dataset.phase12NameListDone = '1';
+    ei.style.display = 'block';
+  }
+
+  function run(){
+    markUploadZoneByFiles();
+    enhanceNewThumbs();
+    convertExistingScoreNames();
+  }
+
+  const originalPreviewScores = window.previewScores;
+  if(typeof originalPreviewScores === 'function' && !originalPreviewScores.__phase12Wrapped) {
+    window.previewScores = function(input){
+      originalPreviewScores(input);
+      setTimeout(run, 30);
+    };
+    window.previewScores.__phase12Wrapped = true;
+  }
+
+  document.addEventListener('change', e => {
+    if(e.target && e.target.id === 'f-score') setTimeout(run, 30);
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(run, 300);
+    setTimeout(run, 900);
+  });
+
+  window.addEventListener('load', () => {
+    setTimeout(run, 500);
+    setTimeout(run, 1200);
+  });
+
+  const obs = new MutationObserver(() => {
+    clearTimeout(window.__phase12ScorePreviewModeTimer);
+    window.__phase12ScorePreviewModeTimer = setTimeout(run, 120);
+  });
+
+  if(document.documentElement) {
+    obs.observe(document.documentElement, {childList:true, subtree:true});
+  }
+})();
+</script>
+
+
+<script>
+/* === Phase12 fix16: render selected score carousel === */
+(function(){
+  if(window.__phase12NewScoreCarouselInstalled) return;
+  window.__phase12NewScoreCarouselInstalled = true;
+
+  window.__phase12CurrentScoreIndex = 0;
+
+  function ensureBigModal(){
+    let modal = document.getElementById('phase12-score-big-modal');
+    if(modal) return modal;
+
+    modal = document.createElement('div');
+    modal.id = 'phase12-score-big-modal';
+    modal.className = 'phase12-score-big-modal';
+    modal.innerHTML = '<button type="button">×</button><img alt="악보 크게 보기">';
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => {
+      if(e.target === modal || e.target.tagName === 'BUTTON') {
+        modal.classList.remove('show');
+        modal.querySelector('img').src = '';
+      }
+    });
+    return modal;
+  }
+
+  window.phase12OpenScoreBig = window.phase12OpenScoreBig || function(url){
+    const modal = ensureBigModal();
+    modal.querySelector('img').src = url;
+    modal.classList.add('show');
+  };
+
+  function getZone(){
+    return document.getElementById('f-score')?.closest('.score-zone');
+  }
+
+  function getThumbs(){
+    return Array.from(document.querySelectorAll('#score-thumbs img.score-thumb'));
+  }
+
+  window.phase12RenderNewScoreCarousel = function(nextIndex){
+    const zone = getZone();
+    const source = document.getElementById('score-thumbs');
+    if(!zone || !source) return;
+
+    const thumbs = getThumbs();
+    if(!thumbs.length) {
+      zone.classList.remove('phase12-has-new-score');
+      const old = zone.querySelector('.phase12-new-score-carousel');
+      if(old) old.remove();
+      return;
+    }
+
+    zone.classList.add('phase12-has-new-score');
+    source.classList.add('phase12-carousel-source');
+
+    let index = Number.isFinite(nextIndex) ? nextIndex : window.__phase12CurrentScoreIndex;
+    index = Math.max(0, Math.min(thumbs.length - 1, index));
+    window.__phase12CurrentScoreIndex = index;
+
+    let carousel = zone.querySelector('.phase12-new-score-carousel');
+    if(!carousel) {
+      carousel = document.createElement('div');
+      carousel.className = 'phase12-new-score-carousel';
+      zone.appendChild(carousel);
+    }
+
+    const img = thumbs[index];
+    const file = (typeof scoreFiles !== 'undefined' && scoreFiles[index]) ? scoreFiles[index] : null;
+    const fileName = (typeof phase12GeneratedScoreName === 'function' && file) ? phase12GeneratedScoreName(file, index) : (file?.name || img?.alt || `새 악보 ${index + 1}`);
+
+    carousel.innerHTML = `
+      <button type="button" class="phase12-score-nav-btn phase12-prev" ${index <= 0 ? 'disabled' : ''}>‹</button>
+      <div class="phase12-score-preview-wrap">
+        <img class="phase12-score-preview-img" src="${img.src}" alt="선택 악보 미리보기">
+        <div class="phase12-score-preview-meta">${index + 1} / ${thumbs.length} · ${String(fileName).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</div>
+        <div class="phase12-score-preview-actions">
+          <button type="button" class="phase12-score-add-more">추가/교체</button>
+        </div>
+      </div>
+      <button type="button" class="phase12-score-nav-btn phase12-next" ${index >= thumbs.length - 1 ? 'disabled' : ''}>›</button>
+    `;
+
+    carousel.querySelector('.phase12-score-preview-img').onclick = e => {
+      e.preventDefault();
+      e.stopPropagation();
+      phase12OpenScoreBig(img.src);
+    };
+
+    carousel.querySelector('.phase12-prev').onclick = e => {
+      e.preventDefault();
+      e.stopPropagation();
+      phase12RenderNewScoreCarousel(index - 1);
+    };
+
+    carousel.querySelector('.phase12-next').onclick = e => {
+      e.preventDefault();
+      e.stopPropagation();
+      phase12RenderNewScoreCarousel(index + 1);
+    };
+
+    carousel.querySelector('.phase12-score-add-more').onclick = e => {
+      e.preventDefault();
+      e.stopPropagation();
+      document.getElementById('f-score')?.click();
+    };
+  };
+
+  function hookInput(){
+    const input = document.getElementById('f-score');
+    if(!input || input.dataset.phase12CarouselHooked === '1') return;
+    input.dataset.phase12CarouselHooked = '1';
+    input.addEventListener('change', () => setTimeout(() => phase12RenderNewScoreCarousel(0), 30));
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    hookInput();
+    setTimeout(() => phase12RenderNewScoreCarousel(0), 300);
+  });
+
+  window.addEventListener('load', () => {
+    hookInput();
+    setTimeout(() => phase12RenderNewScoreCarousel(0), 600);
+  });
+})();
+</script>
+
+
+<script>
+/* === Phase12 fix19: show generated rule-based score filenames in preview === */
+(function(){
+  if(window.__phase12FilenamePreviewInstalled) return;
+  window.__phase12FilenamePreviewInstalled = true;
+
+  window.phase12GeneratedScoreName = function(file, index) {
+    try {
+      const song = (typeof songs !== 'undefined' && typeof idx !== 'undefined') ? songs[idx] : null;
+      const keyValue = document.getElementById('f-key')?.value || song?.key || '';
+      if(typeof makeRuleBasedScoreFileName === 'function') {
+        return displayRuleBasedScoreFileName(song, keyValue, file, index);
+      }
+    } catch(e) {}
+    return file?.name || `악보_${index + 1}`;
+  };
+})();
+</script>
+
+
+</body>
+</html>

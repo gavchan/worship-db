@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="admin-guard.js"></script>
+<title>성가곡 등록</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:'Noto Sans KR',system-ui,sans-serif;max-width:920px;margin:0 auto;padding:24px 16px 48px;background:#f8fafc;color:#111827}
+h1{font-size:1.45rem;margin:0 0 6px}
+h2{font-size:1rem;margin:0 0 10px;color:#111827}
+p{font-size:.88rem;color:#64748b;line-height:1.65;margin:0 0 16px}
+.panel{background:white;border:1px solid #e5e7eb;border-radius:16px;padding:16px;box-shadow:0 16px 40px rgba(15,23,42,.06);margin-bottom:14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.part-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.field{margin-bottom:12px}
+label{display:block;font-size:.78rem;font-weight:800;color:#475569;margin-bottom:6px}
+input,select,textarea{width:100%;border:1px solid #d6dce5;border-radius:10px;background:white;color:#111827;padding:11px;font:inherit;font-size:.92rem;outline:none}
+textarea{min-height:82px;resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.hint{font-size:.76rem;color:#64748b;line-height:1.55;margin-top:6px}
+.route{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#eef2ff;color:#3730a3;border-radius:8px;padding:2px 6px}
+.actions{display:flex;gap:8px;align-items:center;margin-top:14px}
+button{border:0;border-radius:999px;background:#1d4ed8;color:white;font-weight:900;padding:12px 16px;cursor:pointer;font-size:.92rem}
+button.secondary{background:#e2e8f0;color:#334155}
+button:disabled{opacity:.55;cursor:not-allowed}
+#log{margin-top:14px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;padding:13px;min-height:96px;white-space:pre-wrap;font-size:.82rem;line-height:1.65;color:#334155}
+.ok{color:#15803d}.err{color:#b91c1c}.info{color:#1d4ed8}
+.result-list{display:grid;gap:7px;margin-top:10px}
+.result-list a{display:block;color:#1d4ed8;text-decoration:none;font-size:.82rem;word-break:break-all}
+.section-card{border:1px solid #e5e7eb;background:#f8fafc;border-radius:13px;padding:12px}
+.section-card strong{display:block;font-size:.86rem;margin-bottom:8px;color:#1f2937}
+@media(max-width:720px){body{padding:16px 12px 36px}.grid,.part-grid{grid-template-columns:1fr}.actions{display:grid}button{width:100%}}
+</style>
+</head>
+<body>
+<h1>성가곡 등록</h1>
+<p>성가대 자료는 4성부 악보를 기본 악보로 두고, 소프라노·알토·테너·베이스 파트 악보와 파트별 유튜브 연습 영상을 함께 저장합니다. PDF는 페이지별 이미지로 나눠 R2에 저장합니다.</p>
+
+<div class="panel">
+  <h2>기본 정보</h2>
+  <div class="grid">
+    <div class="field">
+      <label for="title">악보 이름</label>
+      <input id="title" placeholder="예: 주 하나님 지으신 모든 세계">
+      <div class="hint">검색은 이 악보 이름만 기준으로 준비됩니다.</div>
+    </div>
+    <div class="field">
+      <label for="schedule-date">날짜</label>
+      <input id="schedule-date" type="date">
+    </div>
+  </div>
+  <div class="grid">
+    <div class="field">
+      <label for="schedule-type">일정 구분</label>
+      <select id="schedule-type">
+        <option value="service">이번 주일 할 곡</option>
+        <option value="practice" selected>앞으로 연습할 곡</option>
+        <option value="archive">자료만 보관</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="token">R2 보호 토큰</label>
+      <input id="token" type="password" placeholder="설정되어 있으면 입력">
+    </div>
+  </div>
+  <div class="field">
+    <label for="memo">메모</label>
+    <textarea id="memo" placeholder="예: 다음 주 연습 시작, 입례송, 파트별 어려운 마디 등"></textarea>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>악보 파일</h2>
+  <div class="field">
+    <label for="full-score">4성부 주요 악보</label>
+    <input id="full-score" type="file" multiple accept="image/*,.pdf">
+    <div class="hint">성가대 화면에서 기본으로 보여줄 악보입니다. PDF는 각 장을 PNG 이미지로 변환해 따로 저장합니다.</div>
+  </div>
+  <div class="part-grid">
+    <div class="section-card"><strong>소프라노 악보</strong><input id="soprano-file" type="file" multiple accept="image/*,.pdf"></div>
+    <div class="section-card"><strong>알토 악보</strong><input id="alto-file" type="file" multiple accept="image/*,.pdf"></div>
+    <div class="section-card"><strong>테너 악보</strong><input id="tenor-file" type="file" multiple accept="image/*,.pdf"></div>
+    <div class="section-card"><strong>베이스 악보</strong><input id="bass-file" type="file" multiple accept="image/*,.pdf"></div>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>파트별 유튜브 영상</h2>
+  <div class="grid">
+    <div class="field"><label for="video-full">전체 / 참고 영상</label><input id="video-full" placeholder="https://youtu.be/..."></div>
+    <div class="field"><label for="video-soprano">소프라노 영상</label><input id="video-soprano" placeholder="https://youtu.be/..."></div>
+    <div class="field"><label for="video-alto">알토 영상</label><input id="video-alto" placeholder="https://youtu.be/..."></div>
+    <div class="field"><label for="video-tenor">테너 영상</label><input id="video-tenor" placeholder="https://youtu.be/..."></div>
+    <div class="field"><label for="video-bass">베이스 영상</label><input id="video-bass" placeholder="https://youtu.be/..."></div>
+  </div>
+  <div class="actions">
+    <button id="upload-btn" onclick="uploadChoir()">성가곡 등록</button>
+    <button class="secondary" onclick="resetForm()" type="button">입력 초기화</button>
+  </div>
+  <div id="log">악보 이름과 4성부 악보를 넣고 등록하세요.</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+function el(id){return document.getElementById(id)}
+function files(id){return [...el(id).files]}
+function write(message, cls=''){
+  const log=el('log');
+  log.innerHTML += `<span class="${cls}">${message}</span>\n`;
+  log.scrollTop = log.scrollHeight;
+}
+function readToken(){
+  const token=(el('token').value || sessionStorage.getItem('worshipR2SyncToken') || localStorage.getItem('worshipR2SyncToken') || '').trim();
+  if(token){
+    sessionStorage.setItem('worshipR2SyncToken', token);
+    localStorage.setItem('worshipR2SyncToken', token);
+  }
+  return token;
+}
+function fileToData(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve({name:file.name,type:file.type,size:file.size,data:reader.result});
+    reader.onerror=()=>reject(reader.error || new Error(file.name+' 읽기 실패'));
+    reader.readAsDataURL(file);
+  });
+}
+function canvasToDataUrl(canvas){
+  return canvas.toDataURL('image/png', .92);
+}
+async function pdfToImages(file){
+  if(!window.pdfjsLib) throw new Error('PDF 변환 도구를 불러오지 못했습니다. 인터넷 연결을 확인해주세요.');
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const bytes=await file.arrayBuffer();
+  const pdf=await window.pdfjsLib.getDocument({data:bytes}).promise;
+  const baseName=file.name.replace(/\.pdf$/i,'');
+  const pages=[];
+  for(let pageNo=1; pageNo<=pdf.numPages; pageNo++){
+    write(`${file.name} ${pageNo}/${pdf.numPages}쪽을 이미지로 변환 중입니다.`, 'info');
+    const page=await pdf.getPage(pageNo);
+    const viewport=page.getViewport({scale:2});
+    const canvas=document.createElement('canvas');
+    const ctx=canvas.getContext('2d');
+    canvas.width=Math.ceil(viewport.width);
+    canvas.height=Math.ceil(viewport.height);
+    await page.render({canvasContext:ctx, viewport}).promise;
+    const dataUrl=canvasToDataUrl(canvas);
+    pages.push({
+      name:`${baseName}_p${String(pageNo).padStart(2,'0')}.png`,
+      type:'image/png',
+      size:Math.round(dataUrl.length * .75),
+      data:dataUrl,
+      source_pdf:file.name,
+      source_page:pageNo
+    });
+  }
+  return pages;
+}
+async function packFileList(list){
+  const packed=[];
+  for(const file of list){
+    const isPdf=file.type==='application/pdf' || /\.pdf$/i.test(file.name);
+    if(isPdf) packed.push(...await pdfToImages(file));
+    else packed.push(await fileToData(file));
+  }
+  return packed;
+}
+function resetForm(){
+  ['title','schedule-date','memo','token','video-full','video-soprano','video-alto','video-tenor','video-bass'].forEach(id=>el(id).value='');
+  el('schedule-type').value='practice';
+  ['full-score','soprano-file','alto-file','tenor-file','bass-file'].forEach(id=>el(id).value='');
+  el('log').textContent='악보 이름과 4성부 악보를 넣고 등록하세요.';
+}
+async function uploadChoir(){
+  const btn=el('upload-btn');
+  const title=el('title').value.trim();
+  const fullFiles=files('full-score');
+  const partFiles={
+    soprano:files('soprano-file'),
+    alto:files('alto-file'),
+    tenor:files('tenor-file'),
+    bass:files('bass-file')
+  };
+  const total=fullFiles.length+Object.values(partFiles).reduce((sum,list)=>sum+list.length,0);
+  if(!title){el('title').focus();return alert('악보 이름을 입력해주세요.')}
+  if(!fullFiles.length && !total){el('full-score').focus();return alert('4성부 악보 또는 파트 자료를 선택해주세요.')}
+  btn.disabled=true;
+  btn.textContent='등록 중...';
+  el('log').innerHTML='';
+  try{
+    write('파일을 읽는 중입니다.', 'info');
+    const payload={
+      title,
+      scheduleDate:el('schedule-date').value,
+      scheduleType:el('schedule-type').value,
+      memo:el('memo').value.trim(),
+      videos:{
+        full:el('video-full').value.trim(),
+        soprano:el('video-soprano').value.trim(),
+        alto:el('video-alto').value.trim(),
+        tenor:el('video-tenor').value.trim(),
+        bass:el('video-bass').value.trim()
+      },
+      fullScoreFiles:await packFileList(fullFiles),
+      partFiles:{
+        soprano:await packFileList(partFiles.soprano),
+        alto:await packFileList(partFiles.alto),
+        tenor:await packFileList(partFiles.tenor),
+        bass:await packFileList(partFiles.bass)
+      }
+    };
+    write('R2 성가대 저장공간으로 보내는 중입니다.', 'info');
+    const token=readToken();
+    const headers={'Content-Type':'application/json'};
+    if(token) headers['x-r2-sync-token']=token;
+    const res=await fetch('/api/r2-choir-upload',{method:'POST',headers,body:JSON.stringify(payload)});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok || !data.ok) throw new Error(data.error || '등록 실패');
+    write(`완료: ${data.group.title} / ${data.group.files.length}개 파일 저장`, 'ok');
+    write(`일정: ${data.group.schedule.date || '날짜 미정'} · ${data.group.schedule.type}`, 'ok');
+    const links=document.createElement('div');
+    links.className='result-list';
+    links.innerHTML=[
+      data.manifest_url ? `<a href="${data.manifest_url}" target="_blank">성가곡 목록 열기</a>` : '',
+      ...data.group.files.map(file=>`<a href="${file.url}" target="_blank">[${file.section}] ${file.file_name}</a>`)
+    ].join('');
+    el('log').appendChild(links);
+  }catch(e){
+    write('실패: '+(e.message || e), 'err');
+    if(String(e.message || '').includes('권한')) write('R2 보호 토큰이 설정되어 있으면 같은 값을 입력해주세요.', 'info');
+    if(String(e.message || '').includes('환경변수')) write('Vercel 환경변수에 R2 계정 정보가 필요합니다.', 'info');
+  }finally{
+    btn.disabled=false;
+    btn.textContent='성가곡 등록';
+  }
+}
+</script>
+</body>
+</html>

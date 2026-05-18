@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script src="admin-guard.js"></script>
+<title>악보 버전 관리</title>
+<style>
+:root{--bg:#09111f;--panel:#111a2e;--panel2:#16213a;--line:rgba(255,255,255,.12);--muted:#9aa7bd;--text:#f7f8fb;--good:#68e0a4;--warn:#ffd166;--danger:#ff7b7b;--blue:#8ec5ff}*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#07101f,#0b1530 55%,#101827);color:var(--text);font-family:system-ui,-apple-system,'Noto Sans KR',sans-serif}.wrap{max-width:1320px;margin:0 auto;padding:20px}.top{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}.badge{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);background:rgba(255,255,255,.06);border-radius:999px;padding:6px 11px;font-size:12px;color:#dce7ff}h1{margin:9px 0 4px;font-size:28px}p{margin:5px 0;color:var(--muted);font-size:13px;line-height:1.55}.layout{display:grid;grid-template-columns:310px 1fr;gap:14px}.card{border:1px solid var(--line);background:rgba(255,255,255,.055);border-radius:20px;padding:14px;box-shadow:0 18px 50px rgba(0,0,0,.18)}.mini{font-size:12px;color:var(--muted)}.song-list{display:grid;gap:7px;max-height:calc(100vh - 180px);overflow:auto;padding-right:4px}.song{border:1px solid rgba(255,255,255,.08);background:var(--panel);border-radius:14px;padding:11px;color:white;text-align:left;cursor:pointer}.song.on{background:white;color:#08101e}.song small{display:block;color:#9da9bd;margin-top:4px}.song.on small{color:#4b5563}.toolbar{display:flex;gap:8px;flex-wrap:wrap}.toolbar>*{flex:1}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.tab{border:1px solid var(--line);background:rgba(255,255,255,.06);color:white;border-radius:999px;padding:8px 12px;cursor:pointer}.tab.on{background:white;color:#07101f;font-weight:900}.grid2{display:grid;grid-template-columns:1fr 360px;gap:14px}.version-grid{display:grid;gap:12px}.version{border:1px solid var(--line);background:var(--panel);border-radius:18px;padding:13px}.version-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:10px;margin-bottom:10px}.version h3{margin:0;font-size:18px}.pill{display:inline-flex;border:1px solid rgba(255,255,255,.13);border-radius:999px;padding:4px 8px;font-size:11px;color:#deebff;margin:5px 4px 0 0}.pill.good{border-color:rgba(104,224,164,.35);color:#b9ffd7}.pill.warn{border-color:rgba(255,209,102,.35);color:#ffe8a3}.pill.danger{border-color:rgba(255,80,80,.38);color:#ffd8d8}.files{display:grid;gap:8px}.file{display:grid;grid-template-columns:54px 1fr auto;gap:10px;align-items:center;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.035);border-radius:14px;padding:8px}.thumb{width:54px;height:70px;border-radius:8px;background:#050913;object-fit:cover;border:1px solid rgba(255,255,255,.1)}.file-name{font-size:12px;line-height:1.35;word-break:break-all;color:#e7efff}.muted{color:var(--muted);font-size:12px}.box{border:1px dashed rgba(255,255,255,.18);background:rgba(255,255,255,.035);border-radius:16px;padding:12px}.side{position:sticky;top:14px;align-self:start}input,select,textarea{width:100%;border:1px solid var(--line);background:rgba(255,255,255,.065);color:white;border-radius:12px;padding:10px;font-size:13px;outline:none}textarea{min-height:76px;resize:vertical}option{color:#111}button{border:1px solid var(--line);background:rgba(255,255,255,.065);color:white;border-radius:12px;padding:9px 12px;font-size:13px;cursor:pointer}button.primary{background:white;color:#07101f;border-color:white;font-weight:900}button.good{background:rgba(104,224,164,.14);border-color:rgba(104,224,164,.35);color:#d6ffe7}button.warn{background:rgba(255,209,102,.13);border-color:rgba(255,209,102,.35);color:#fff0bb}button.danger{background:rgba(255,80,80,.13);border-color:rgba(255,80,80,.36);color:#ffd8d8}button:disabled{opacity:.45;cursor:not-allowed}.row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px}.notice{border:1px solid rgba(142,197,255,.22);background:rgba(142,197,255,.08);border-radius:16px;padding:12px;margin:10px 0;color:#d9ecff}.empty{text-align:center;padding:22px;color:var(--muted);border:1px dashed rgba(255,255,255,.18);border-radius:16px}.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(12px);opacity:0;transition:.2s;background:white;color:#08101e;border-radius:999px;padding:11px 16px;font-size:13px;font-weight:900;z-index:99999}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.modal{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;z-index:9999;padding:20px}.modal.open{display:flex}.modal img{max-width:96vw;max-height:90vh;border-radius:14px;background:#111}.close{position:fixed;right:18px;top:18px;background:white;color:#111;border:0;font-weight:900}.log{max-height:160px;overflow:auto;font-size:12px;line-height:1.45;color:#dce8ff;background:rgba(0,0,0,.18);border-radius:12px;padding:10px;white-space:pre-wrap}@media(max-width:980px){.layout,.grid2{grid-template-columns:1fr}.song-list{max-height:280px}.side{position:static}.top{display:block}.file{grid-template-columns:48px 1fr}.file .actions{grid-column:1 / -1}.row,.row3{grid-template-columns:1fr}}
+
+
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <span class="badge">🎚️ 악보 연결 지도</span>
+      <h1>악보 버전 관리</h1>
+      <p>한 곡 안에서 기본/전주1/전주2, Key, 페이지 순서를 정리합니다. 파일명은 바꾸지 않고 DB 연결만 조정합니다.</p>
+    </div>
+    <div class="toolbar" style="min-width:270px">
+      <button onclick="location.href='pc.html'">PC</button>
+      <button onclick="location.href='mobile.html'">모바일</button>
+    </div>
+  </div>
+
+  <div id="schemaNotice" class="notice">DB와 Storage 연결을 확인하는 중...</div>
+
+  <div class="layout">
+    <div class="card">
+      <div class="toolbar">
+        <input id="q" placeholder="곡 검색" oninput="renderSongs()">
+        <button onclick="loadSongs()">새로고침</button>
+      </div>
+      <p class="mini">곡을 선택하면 오른쪽에서 악보 버전과 연결 파일을 정리합니다.</p>
+      <div id="songList" class="song-list"></div>
+    </div>
+
+    <div class="card">
+      <div id="selectedHead">
+        <h2 style="margin:0 0 4px">곡을 선택하세요</h2>
+        <p>왼쪽에서 곡을 선택하면 버전, 충돌 악보, 미분류 악보, 복구 항목을 한 화면에서 정리합니다.</p>
+      </div>
+
+      <div id="workArea" style="display:none">
+        <div class="tabs">
+          <button class="tab on" data-tab="versions" onclick="setTab('versions')">버전/페이지</button>
+          <button class="tab" data-tab="conflicts" onclick="setTab('conflicts')">충돌 악보</button>
+          <button class="tab" data-tab="unlinked" onclick="setTab('unlinked')">미분류 악보</button>
+          <button class="tab" data-tab="repair" onclick="setTab('repair')">점검/복구</button>
+        </div>
+
+        <div class="grid2">
+          <div>
+            <div id="tabVersions"></div>
+            <div id="tabConflicts" style="display:none"></div>
+            <div id="tabUnlinked" style="display:none"></div>
+            <div id="tabRepair" style="display:none"></div>
+          </div>
+          <div class="side card" style="background:rgba(255,255,255,.035)">
+            <h3 style="margin:0 0 8px">새 버전 만들기</h3>
+            <p class="mini">예: 기본, 전주1, 전주2, 피아노, 싱어용. 파일명은 그대로 두고 DB 연결만 정리합니다.</p>
+            <input id="newVersionName" placeholder="버전명 예: 기본 / 전주1 / 전주2">
+            <div class="row">
+              <select id="newVersionKey"><option value="">Key 선택</option><option>C</option><option>Db</option><option>D</option><option>Eb</option><option>E</option><option>F</option><option>Gb</option><option>G</option><option>Ab</option><option>A</option><option>Bb</option><option>B</option><option>여성키</option><option>남성키</option></select>
+              <select id="newVersionType"><option>코드악보</option><option>피아노악보</option><option>밴드악보</option><option>싱어용</option><option>기타</option></select>
+            </div>
+            <div class="row">
+              <input id="newBpmMin" type="number" placeholder="BPM 시작">
+              <input id="newBpmMax" type="number" placeholder="BPM 끝">
+            </div>
+            <textarea id="newVersionMemo" placeholder="버전 메모"></textarea>
+            <div class="row">
+              <button class="primary" onclick="createVersion()">버전 추가</button>
+              <button class="good" onclick="createBasicVersions()">기본/전주1/전주2 생성</button>
+            </div>
+
+            <div class="box" style="margin-top:12px">
+              <b>선택 파일 작업</b>
+              <p class="mini">아래 목록에서 체크한 파일을 버전에 연결하거나 삭제합니다.</p>
+              <select id="moveTarget"></select>
+              <div class="row">
+                <button class="primary" onclick="moveCheckedToVersion()">선택 파일 이동</button>
+                <button class="danger" onclick="deleteCheckedFiles()">선택 삭제</button>
+              </div>
+            </div>
+
+            <div class="box" style="margin-top:12px">
+              <b>작업 로그</b>
+              <div id="log" class="log">대기 중...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<div class="modal" id="previewModal" onclick="this.classList.remove('open')"><button class="close">닫기</button><img id="previewImg"></div>
+<script>
+const SUPABASE_URL='https://rmtysrytveexshwzenxj.supabase.co';
+const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6InJtdHlzcnl0dmVleHNod3plbnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjQ3OTYsImV4cCI6MjA5MjEwMDc5Nn0.5FzzJ1rg-uRG4jAGZ75xVT3i3NH0m6J_tDeOS4GxyT8'.replace('eyJpc3MiOiJIUzI1NiIsInJlZiI','eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI');
+const REST=SUPABASE_URL+'/rest/v1/';
+const STORAGE=SUPABASE_URL+'/storage/v1';
+const HEADERS={'Content-Type':'application/json','apikey':KEY,'Authorization':'Bearer '+KEY,'Prefer':'return=representation'};
+const STOR_HEADERS={'apikey':KEY,'Authorization':'Bearer '+KEY};
+let songs=[], selected=null, versions=[], dbFiles=[], storageFiles=[], activeTab='versions';
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function norm(s){return String(s||'').normalize('NFC').replace(/\s+/g,' ').trim().toLowerCase()}
+function isImagePath(p){return /\.(png|jpe?g|webp|gif)$/i.test(String(p||''))}
+function publicUrl(path){return `${SUPABASE_URL}/storage/v1/object/public/scores/${String(path||'').split('/').map(encodeURIComponent).join('/')}`}
+function toast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1800)}
+function log(t){const el=document.getElementById('log');el.textContent=(new Date().toLocaleTimeString()+'  '+t+'\n'+el.textContent).slice(0,3000)}
+async function api(method,path,body){const r=await fetch(REST+path,{method,headers:HEADERS,body:body?JSON.stringify(body):undefined});if(!r.ok)throw new Error(await r.text());const txt=await r.text();return txt?JSON.parse(txt):null}
+async function storageList(prefix=''){const r=await fetch(`${STORAGE}/object/list/scores`,{method:'POST',headers:{...STOR_HEADERS,'Content-Type':'application/json'},body:JSON.stringify({prefix,limit:1000,offset:0,sortBy:{column:'name',order:'asc'}})});if(!r.ok)throw new Error(await r.text());return await r.json()}
+async function storageRemove(paths){if(!paths.length)return;const r=await fetch(`${STORAGE}/object/scores`,{method:'DELETE',headers:{...STOR_HEADERS,'Content-Type':'application/json'},body:JSON.stringify({prefixes:paths})});if(!r.ok)throw new Error(await r.text());return await r.json()}
+async function loadSongs(){try{document.getElementById('schemaNotice').textContent='곡 목록을 불러오는 중...';songs=await api('GET','songs?select=*&order=name.asc');await api('GET','song_score_versions?select=id&limit=1');await api('GET','song_score_files?select=id&limit=1');document.getElementById('schemaNotice').innerHTML='✅ 악보 버전 관리 DB 연결 완료. Storage 파일명은 그대로 두고 DB 연결만 정리합니다.';renderSongs()}catch(e){document.getElementById('schemaNotice').innerHTML='⚠️ 악보 버전관리 테이블 확인 실패. <b>phase2b_schema.sql</b> 실행 여부를 확인하세요.<br><small>'+esc(e.message)+'</small>';renderSongs()}}
+function renderSongs(){const q=norm(document.getElementById('q').value);const list=songs.filter(s=>!q||norm(s.name).includes(q)).slice(0,400);document.getElementById('songList').innerHTML=list.map(s=>`<button class="song ${selected&&String(selected.id)===String(s.id)?'on':''}" onclick="selectSong('${s.id}')"><b>${esc(s.name)}</b><small>Key ${esc(s.key||'-')} · BPM ${esc(s.bpm_min||s.bpm||'-')}${s.bpm_max?'~'+esc(s.bpm_max):''} · ${s.has_score?'악보 있음':'악보 없음'}</small></button>`).join('')||'<div class="empty">검색 결과 없음</div>'}
+async function selectSong(id){selected=songs.find(s=>String(s.id)===String(id));versions=[];dbFiles=[];storageFiles=[];activeTab='versions';renderSongs();document.getElementById('workArea').style.display='block';document.getElementById('selectedHead').innerHTML=`<h2 style="margin:0 0 4px">${esc(selected.name)}</h2><p>Key ${esc(selected.key||'-')} · BPM ${esc(selected.bpm_min||selected.bpm||'-')}${selected.bpm_max?'~'+esc(selected.bpm_max):''} · song_id: <span class="mini">${esc(selected.id)}</span></p>`;document.getElementById('tabVersions').innerHTML='<div class="empty">불러오는 중...</div>';document.getElementById('tabConflicts').innerHTML='';document.getElementById('tabUnlinked').innerHTML='';document.getElementById('tabRepair').innerHTML='';await reloadSelected()}
+async function reloadSelected(){if(!selected)return;try{versions=await api('GET',`song_score_versions?select=*&song_id=eq.${selected.id}&order=is_default.desc,created_at.asc`)}catch(e){versions=[];log('버전 조회 실패: '+e.message)}try{dbFiles=await api('GET',`song_score_files?select=*&song_id=eq.${selected.id}&order=page_no.asc,created_at.asc`)}catch(e){dbFiles=[];log('DB 파일 조회 실패: '+e.message)}try{storageFiles=await collectStorageFiles(selected.id)}catch(e){storageFiles=[];log('Storage 조회 실패: '+e.message)}renderAll()}
+async function collectStorageFiles(songId){const out=[];async function walk(prefix){const items=await storageList(prefix);for(const it of items){const path=(prefix?prefix.replace(/\/$/,'')+'/':'')+it.name;if(it.id||it.metadata){if(isImagePath(path))out.push({storage_path:path,file_name:it.name,size:it.metadata?.size||0,updated_at:it.updated_at||it.created_at||''})}else{await walk(path)}}}
+await walk(String(songId));return out}
+function setTab(tab){activeTab=tab;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));renderAll()}
+function renderAll(){document.getElementById('tabVersions').style.display=activeTab==='versions'?'block':'none';document.getElementById('tabConflicts').style.display=activeTab==='conflicts'?'block':'none';document.getElementById('tabUnlinked').style.display=activeTab==='unlinked'?'block':'none';document.getElementById('tabRepair').style.display=activeTab==='repair'?'block':'none';renderMoveTarget();renderVersions();renderConflicts();renderUnlinked();renderRepair()}
+function renderMoveTarget(){const sel=document.getElementById('moveTarget');sel.innerHTML=versions.map(v=>`<option value="${v.id}">${esc(v.version_name)} · ${esc(v.score_key||'-')}</option>`).join('')||'<option value="">먼저 버전을 만드세요</option>'}
+function fileCheckbox(f, origin){const key=origin+'|'+f.storage_path+'|'+(f.id||'');return `<input type="checkbox" class="file-check" data-origin="${origin}" data-id="${esc(f.id||'')}" data-path="${esc(f.storage_path)}" data-name="${esc(f.file_name||f.storage_path)}">`}
+function fileRow(f, origin){const url=publicUrl(f.storage_path);return `<div class="file">${fileCheckbox(f,origin)}<img class="thumb" src="${url}" onerror="this.style.opacity=.25" onclick="preview('${esc(url)}')"><div><div class="file-name">${esc(f.file_name||f.storage_path)}</div><div class="muted">page ${esc(f.page_no||'-')} · ${esc(f.storage_path)}</div></div><div class="actions"><button onclick="preview('${esc(url)}')">보기</button></div></div>`}
+function renderVersions(){const box=document.getElementById('tabVersions');if(!versions.length){box.innerHTML='<div class="empty">아직 버전이 없습니다. 오른쪽에서 기본/전주1/전주2를 만들거나 새 버전을 추가하세요.</div>';return}let html='<div class="version-grid">';for(const v of versions){const files=dbFiles.filter(f=>String(f.version_id)===String(v.id)).sort((a,b)=>(a.page_no||0)-(b.page_no||0));html+=`<div class="version"><div class="version-head"><div><h3>${esc(v.version_name)} ${v.is_default?'⭐':''}</h3><span class="pill good">Key ${esc(v.score_key||selected.key||'-')}</span><span class="pill">${esc(v.score_type||'코드악보')}</span><span class="pill">${files.length}장</span><span class="pill warn">BPM ${esc(v.bpm_min||'-')}${v.bpm_max&&v.bpm_max!==v.bpm_min?'~'+esc(v.bpm_max):''}</span></div><div><button onclick="makeDefault('${v.id}')">대표</button> <button onclick="editVersionPrompt('${v.id}')">수정</button> <button class="danger" onclick="deleteVersion('${v.id}')">버전삭제</button></div></div><p>${esc(v.memo||'메모 없음')}</p><div class="files">${files.map(f=>fileRow(f,'db')).join('')||'<div class="empty">이 버전에 연결된 파일 없음</div>'}</div></div>`}
+html+='</div>';box.innerHTML=html}
+function readConflictRegistry(){try{return JSON.parse(localStorage.getItem('wdb_score_conflicts')||'[]')}catch(_){return []}}
+function writeConflictRegistry(list){localStorage.setItem('wdb_score_conflicts',JSON.stringify(list))}
+function selectedConflicts(){if(!selected)return [];return readConflictRegistry().filter(c=>String(c.song_id)===String(selected.id))}
+function renderConflicts(){const list=selectedConflicts();document.getElementById('tabConflicts').innerHTML=`<div class="notice">같은 곡·Key·버전·페이지가 이미 있어서 자동 등록하지 않은 악보입니다. 기존 악보를 유지하거나, 교체하거나, 다른 버전명으로 저장하세요.</div><div class="files">${list.map(conflictRow).join('')||'<div class="empty">충돌 악보 없음</div>'}</div>`}
+function conflictRow(c){const url=publicUrl(c.storage_path);return `<div class="file"><img class="thumb" src="${url}" onerror="this.style.opacity=.25" onclick="preview('${esc(url)}')"><div><div class="file-name">${esc(c.original_filename||c.storage_path)}</div><div class="muted">${esc(c.song_name||selected.name)} · Key ${esc(c.key||'-')} · ${esc(c.version||'기본')} · ${esc(c.page||'-')}p</div><div class="muted">기존: ${esc(c.existing_storage_path||'-')}</div></div><div class="actions"><button onclick="preview('${esc(url)}')">보기</button> <button class="good" onclick="replaceConflict('${esc(c.id)}')">기존 삭제 후 교체</button> <button onclick="saveConflictAsVersion('${esc(c.id)}')">다른 버전</button> <button class="danger" onclick="deleteConflict('${esc(c.id)}')">삭제</button></div></div>`}
+function removeConflictById(id){const list=readConflictRegistry();const next=list.filter(c=>String(c.id)!==String(id));writeConflictRegistry(next);return list.find(c=>String(c.id)===String(id))}
+async function findOrCreateVersionByName(name,key){let v=versions.find(x=>norm(x.version_name)===norm(name)&&norm(x.score_key||'')===norm(key||''));if(v)return v;await api('POST','song_score_versions',{song_id:selected.id,version_name:name,score_key:key||selected.key||'',score_type:'코드악보',is_default:versions.length===0&&norm(name)==='기본',memo:'충돌 악보에서 새 버전으로 저장'});versions=await api('GET',`song_score_versions?select=*&song_id=eq.${selected.id}&order=is_default.desc,created_at.asc`);return versions.find(x=>norm(x.version_name)===norm(name)&&norm(x.score_key||'')===norm(key||''))}
+async function replaceConflict(id){const c=readConflictRegistry().find(x=>String(x.id)===String(id));if(!c)return toast('충돌 항목을 찾지 못했어요');if(!confirm('기존 같은 페이지 악보를 삭제하고 새 악보로 교체할까요?'))return;const v=await findOrCreateVersionByName(c.version||'기본',c.key||selected.key||'');const existing=dbFiles.filter(f=>String(f.version_id)===String(v.id)&&Number(f.page_no)===Number(c.page));for(const f of existing){try{await storageRemove([f.storage_path])}catch(e){log('기존 Storage 삭제 실패: '+e.message)}await api('DELETE',`song_score_files?id=eq.${f.id}`)}await api('POST','song_score_files',{version_id:v.id,song_id:selected.id,storage_path:c.storage_path,file_name:c.original_filename||c.storage_path,page_no:Number(c.page)||1,mime_type:'image/*'});removeConflictById(id);toast('교체 완료');await reloadSelected()}
+async function saveConflictAsVersion(id){const c=readConflictRegistry().find(x=>String(x.id)===String(id));if(!c)return toast('충돌 항목을 찾지 못했어요');const name=prompt('새 버전명을 입력하세요',`${c.version||'기본'}-추가`);if(!name)return;const v=await findOrCreateVersionByName(name,c.key||selected.key||'');let page=Number(c.page)||1;const used=dbFiles.some(f=>String(f.version_id)===String(v.id)&&Number(f.page_no)===page);if(used){const rows=await api('GET',`song_score_files?select=page_no&version_id=eq.${v.id}&order=page_no.desc&limit=1`);page=(rows[0]?.page_no||0)+1}await api('POST','song_score_files',{version_id:v.id,song_id:selected.id,storage_path:c.storage_path,file_name:c.original_filename||c.storage_path,page_no:page,mime_type:'image/*'});removeConflictById(id);toast('다른 버전으로 저장 완료');await reloadSelected()}
+async function deleteConflict(id){const c=removeConflictById(id);if(!c)return toast('충돌 항목을 찾지 못했어요');if(confirm('충돌 악보 Storage 파일도 삭제할까요?')){try{await storageRemove([c.storage_path])}catch(e){log('충돌 파일 삭제 실패: '+e.message)}}toast('충돌 항목 삭제 완료');await reloadSelected()}
+function renderUnlinked(){const linked=new Set(dbFiles.map(f=>f.storage_path));const conflictPaths=new Set(readConflictRegistry().map(c=>c.storage_path));const unlinked=storageFiles.filter(f=>!linked.has(f.storage_path)&&!conflictPaths.has(f.storage_path)&&!String(f.storage_path).includes('/_conflicts/'));document.getElementById('tabUnlinked').innerHTML=`<div class="notice">Storage에는 있지만 DB 버전에 연결되지 않았고 충돌 정보도 없는 악보입니다. 진짜 미분류만 여기에서 정리합니다.</div><div class="files">${unlinked.map(f=>fileRow(f,'storage')).join('')||'<div class="empty">미분류 악보 없음</div>'}</div>`}
+function renderRepair(){const storageSet=new Set(storageFiles.map(f=>f.storage_path));const missing=dbFiles.filter(f=>!storageSet.has(f.storage_path));const dupMap={};dbFiles.forEach(f=>{dupMap[f.storage_path]=(dupMap[f.storage_path]||[]).concat(f)});const dups=Object.values(dupMap).filter(a=>a.length>1).flat();document.getElementById('tabRepair').innerHTML=`<div class="notice">이 화면은 삭제보다 점검용입니다. 깨진 연결이나 중복 DB 기록을 먼저 눈으로 확인하세요.</div><h3>DB에는 있는데 Storage 파일 없음</h3><div class="files">${missing.map(f=>fileRow(f,'db')).join('')||'<div class="empty">깨진 DB 연결 없음</div>'}</div><h3>같은 파일이 DB에 중복 연결됨</h3><div class="files">${dups.map(f=>fileRow(f,'db')).join('')||'<div class="empty">중복 연결 없음</div>'}</div><div class="row" style="margin-top:12px"><button class="warn" onclick="removeBrokenDbLinks()">깨진 DB 연결만 제거</button><button class="good" onclick="renumberPages()">현재 버전 페이지 재번호</button></div>`}
+async function createVersion(){if(!selected)return toast('곡을 먼저 선택하세요');const name=document.getElementById('newVersionName').value.trim()||'기본';const key=document.getElementById('newVersionKey').value||selected.key||'';const min=Number(document.getElementById('newBpmMin').value)||null;const max=Number(document.getElementById('newBpmMax').value)||min;const payload={song_id:selected.id,version_name:name,score_key:key,score_type:document.getElementById('newVersionType').value,bpm_min:min,bpm_max:max,is_default:versions.length===0,memo:document.getElementById('newVersionMemo').value.trim()};await api('POST','song_score_versions',payload);['newVersionName','newBpmMin','newBpmMax','newVersionMemo'].forEach(id=>document.getElementById(id).value='');toast('버전 추가 완료');log('버전 추가: '+name);await reloadSelected()}
+async function createBasicVersions(){if(!selected)return;const names=['기본','전주1','전주2'];let made=0;for(const n of names){if(versions.some(v=>norm(v.version_name)===norm(n)))continue;await api('POST','song_score_versions',{song_id:selected.id,version_name:n,score_key:selected.key||'',score_type:'코드악보',is_default:n==='기본'&&versions.length===0,memo:''});made++}toast(`${made}개 버전 생성`);log('기본 버전 세트 생성');await reloadSelected()}
+async function makeDefault(id){const v=versions.find(x=>String(x.id)===String(id));if(!v)return;await api('PATCH',`song_score_versions?song_id=eq.${v.song_id}`,{is_default:false});await api('PATCH',`song_score_versions?id=eq.${id}`,{is_default:true,updated_at:new Date().toISOString()});toast('대표 악보 지정');await reloadSelected()}
+async function editVersionPrompt(id){const v=versions.find(x=>String(x.id)===String(id));if(!v)return;const name=prompt('버전명',v.version_name);if(name===null)return;const key=prompt('Key',v.score_key||selected.key||'');if(key===null)return;const memo=prompt('메모',v.memo||'');if(memo===null)return;await api('PATCH',`song_score_versions?id=eq.${id}`,{version_name:name.trim()||v.version_name,score_key:key.trim(),memo:memo.trim(),updated_at:new Date().toISOString()});toast('버전 수정 완료');await reloadSelected()}
+async function deleteVersion(id){const files=dbFiles.filter(f=>String(f.version_id)===String(id));if(files.length){toast('파일이 연결된 버전은 먼저 파일을 이동/삭제하세요');return}if(!confirm('빈 버전을 삭제할까요?'))return;await api('DELETE',`song_score_versions?id=eq.${id}`);toast('버전 삭제 완료');await reloadSelected()}
+function checkedFiles(){return [...document.querySelectorAll('.file-check:checked')].map(el=>({origin:el.dataset.origin,id:el.dataset.id,path:el.dataset.path,name:el.dataset.name}))}
+async function moveCheckedToVersion(){const target=document.getElementById('moveTarget').value;if(!target)return toast('이동할 버전을 선택하세요');const items=checkedFiles();if(!items.length)return toast('파일을 체크하세요');let max=0;try{const rows=await api('GET',`song_score_files?select=page_no&version_id=eq.${target}&order=page_no.desc&limit=1`);max=rows[0]?.page_no||0}catch(e){}for(const item of items){max++;if(item.id){await api('PATCH',`song_score_files?id=eq.${item.id}`,{version_id:target,page_no:max})}else{await api('POST','song_score_files',{version_id:target,song_id:selected.id,storage_path:item.path,file_name:item.name,page_no:max,mime_type:'image/*'})}}await api('PATCH',`songs?id=eq.${selected.id}`,{has_score:true,status:'ready',updated_at:new Date().toISOString()});toast('선택 파일 이동 완료');log(`${items.length}개 파일을 버전으로 이동`);await reloadSelected()}
+async function deleteCheckedFiles(){const items=checkedFiles();if(!items.length)return toast('삭제할 파일을 체크하세요');const mode=confirm('Storage 실제 이미지까지 삭제할까요?\n확인: 실제 파일+DB 삭제\n취소: DB 연결만 삭제');try{if(mode){await storageRemove([...new Set(items.map(i=>i.path))]);log('Storage 파일 삭제: '+items.length+'개')}for(const item of items){if(item.id)await api('DELETE',`song_score_files?id=eq.${item.id}`)}toast('삭제 처리 완료');await reloadSelected()}catch(e){toast('삭제 실패');log('삭제 실패: '+e.message)}}
+async function removeBrokenDbLinks(){const storageSet=new Set(storageFiles.map(f=>f.storage_path));const missing=dbFiles.filter(f=>!storageSet.has(f.storage_path));if(!missing.length)return toast('제거할 깨진 연결 없음');if(!confirm(`${missing.length}개의 깨진 DB 연결만 제거할까요? 실제 파일 삭제는 하지 않습니다.`))return;for(const f of missing){await api('DELETE',`song_score_files?id=eq.${f.id}`)}toast('깨진 DB 연결 제거 완료');await reloadSelected()}
+async function renumberPages(){if(!versions.length)return;for(const v of versions){const files=dbFiles.filter(f=>String(f.version_id)===String(v.id)).sort((a,b)=>(a.page_no||0)-(b.page_no||0)||String(a.created_at).localeCompare(String(b.created_at)));let n=1;for(const f of files){if(f.page_no!==n)await api('PATCH',`song_score_files?id=eq.${f.id}`,{page_no:n});n++}}toast('페이지 번호 정리 완료');await reloadSelected()}
+function preview(url){document.getElementById('previewImg').src=url;document.getElementById('previewModal').classList.add('open')}
+loadSongs();
+</script>
+
+</body>
+</html>

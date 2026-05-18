@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<script src="admin-guard.js"></script>
+<title>악보 일괄 업로드</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:sans-serif;background:#faf8f5;color:#1a1714;min-height:100vh}
+.header{background:#1a1714;color:#fff;padding:1.2rem 1.5rem}
+.header h1{font-size:1.2rem;font-weight:700;margin-bottom:.2rem}
+.header p{font-size:.75rem;color:rgba(255,255,255,.5)}
+.controls{background:#fff;border-bottom:1px solid #e8e2d9;padding:.9rem 1rem;position:sticky;top:0;z-index:10;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{padding:.5rem 1rem;border:none;border-radius:6px;font-size:.8rem;cursor:pointer;font-family:inherit;white-space:nowrap}
+.btn-blue{background:#2d5a8e;color:#fff}
+.btn-blue:disabled{opacity:.5;cursor:not-allowed}
+.btn-green{background:#3a7a52;color:#fff}
+.btn-green:disabled{opacity:.5;cursor:not-allowed}
+.btn-outline{background:transparent;border:1px solid #d4cec4;color:#6b6560}
+.stat{font-size:.75rem;color:#6b6560;flex:1}
+.drop-zone{border:2px dashed #d4cec4;border-radius:12px;padding:3rem;text-align:center;margin:1rem;cursor:pointer;background:#fff;transition:all .2s}
+.drop-zone.active{border-color:#2d5a8e;background:#eaf0f8}
+.drop-zone input{display:none}
+.list{padding:.75rem;display:flex;flex-direction:column;gap:5px}
+.row{background:#fff;border:1px solid #e8e2d9;border-radius:8px;padding:9px 13px;display:flex;align-items:center;gap:10px}
+.row.ok{border-color:#3a7a52}
+.row.skip{opacity:.4}
+.row.done{border-color:#3a7a52;background:#edf5f0;opacity:.7}
+.row.err{border-color:#b0281f;background:#fdeaea}
+.thumb{width:40px;height:40px;object-fit:cover;border-radius:4px;border:1px solid #e8e2d9;flex-shrink:0;background:#f4f1eb;display:flex;align-items:center;justify-content:center;font-size:1rem}
+.info{flex:1;min-width:0}
+.fname{font-size:.72rem;color:#9e9891;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mrow{display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap}
+.badge{font-size:.62rem;padding:2px 7px;border-radius:20px;white-space:nowrap}
+.b-ok{background:#edf5f0;color:#3a7a52;border:1px solid rgba(58,122,82,.2)}
+.b-sim{background:#eaf0f8;color:#2d5a8e;border:1px solid rgba(45,90,142,.2)}
+.b-no{background:#fdf4e7;color:#c4913a;border:1px solid rgba(196,145,58,.2)}
+.b-done{background:#edf5f0;color:#3a7a52}
+.b-err{background:#fdeaea;color:#b0281f}
+.b-has{background:#edf5f0;color:#3a7a52;border:1px solid rgba(58,122,82,.2)}
+.b-meta{background:#f4f1eb;color:#6b6560;border:1px solid #e8e2d9}
+.sel{font-size:.76rem;padding:3px 7px;border:1px solid #d4cec4;border-radius:6px;background:#faf8f5;font-family:sans-serif;max-width:200px;color:#1a1714;outline:none}
+.rb{font-size:.63rem;padding:3px 8px;border:1px solid #d4cec4;border-radius:20px;background:transparent;cursor:pointer;color:#6b6560;white-space:nowrap}
+.rb:hover{border-color:#b0281f;color:#b0281f}
+.prog-wrap{display:none;padding:.5rem 1rem;background:#fff;border-top:1px solid #e8e2d9;position:sticky;bottom:0}
+.prog-bar{height:5px;background:#e8e2d9;border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;background:#2d5a8e;border-radius:3px;transition:width .3s}
+.prog-txt{font-size:.73rem;color:#6b6560;margin-top:3px;text-align:center}
+.debug{background:#1a1714;color:#0f0;padding:.5rem 1rem;font-size:.72rem;font-family:monospace;white-space:pre-wrap;max-height:150px;overflow-y:auto;display:none}
+.guide{margin:1rem;background:#fff;border:1px solid #e8e2d9;border-radius:12px;padding:1rem;display:grid;gap:.75rem}
+.guide h2{font-size:.95rem}.guide code{display:block;background:#faf8f5;border:1px solid #e8e2d9;border-radius:8px;padding:.7rem;font-size:.78rem;line-height:1.7;white-space:pre-wrap;color:#3d3730}
+.helper-grid{display:grid;grid-template-columns:repeat(5,minmax(90px,1fr));gap:6px}.helper-grid input,.helper-grid select{border:1px solid #d4cec4;background:#faf8f5;border-radius:7px;padding:.45rem;font-size:.78rem}.helper-result{width:100%;min-height:80px;border:1px solid #d4cec4;background:#faf8f5;border-radius:8px;padding:.6rem;font-size:.78rem;font-family:monospace;resize:vertical}
+@media(max-width:700px){.helper-grid{grid-template-columns:1fr 1fr}}
+
+
+
+</style>
+</head>
+<body>
+<div style="margin:12px 0;padding:12px;border:1px solid #ddd;border-radius:10px;background:#f8fafc;color:#111;font-size:14px;line-height:1.6">
+  <b>🎚️ Phase 2-B 권장 파일명</b><br>
+  <code>곡명_키_악보종류_페이지번호.jpg</code><br>
+  예: <code>은혜_G_코드악보_1.jpg</code>, <code>은혜_G_코드악보_2.jpg</code><br>
+  여러 Key/버전은 업로드 후 <b>악보 버전 관리</b>에서 대표 악보와 페이지 순서를 확인하세요.
+</div>
+
+<div class="header">
+  <h1>🎼 악보 일괄 업로드</h1>
+  <p>새 악보를 한 번에 넣을 때만 사용합니다. 파일명으로 곡을 찾고, 중복 페이지는 충돌 목록으로 보냅니다.</p>
+  <div style="margin-top:.7rem;padding:.65rem .8rem;border-radius:12px;background:#fff7ed;border:1px solid #fed7aa;color:#7c2d12;font-size:.78rem;line-height:1.5">권장 순서: 백업 → 파일 선택 → 업로드 → 악보 연결 점검 → R2 최종 반영</div>
+</div>
+<div class="controls">
+  <button class="btn btn-blue" id="btnFile" onclick="document.getElementById('fi').click()" disabled>📁 파일 선택</button>
+  <button class="btn btn-green" id="btnUp" onclick="startUpload()" disabled>☁️ 업로드 시작</button>
+  <button class="btn btn-outline" onclick="skipAll()">매칭 안된 곡 건너뛰기</button>
+  <span class="stat" id="stat">⟳ 곡 목록 불러오는 중...</span>
+</div>
+
+<div class="guide">
+  <div>
+    <h2>📦 파일명 규칙 안내</h2>
+    <code>권장 형식: 곡명_키_악보종류_페이지번호.jpg
+예: 은혜_G_코드_1.jpg
+예: 은혜_G_코드_2.jpg
+예: 주신실하심놀라워_A_밴드_1.png
+
+※ 곡명은 DB 곡명과 최대한 같게 적어주세요.
+※ 한 곡이 여러 장이면 페이지 번호를 1, 2, 3 순서로 붙여주세요.</code>
+  </div>
+  <div>
+    <h2>🛠 파일명 생성 도우미</h2>
+    <div class="helper-grid">
+      <input id="fh-song" placeholder="곡명" value="은혜">
+      <input id="fh-key" placeholder="Key" value="G">
+      <input id="fh-type" placeholder="악보종류" value="코드">
+      <input id="fh-pages" type="number" min="1" value="2">
+      <select id="fh-ext"><option value="jpg">jpg</option><option value="png">png</option><option value="pdf">pdf</option></select>
+    </div>
+    <div style="display:flex;gap:6px;margin:.5rem 0;flex-wrap:wrap"><button class="btn btn-outline" onclick="makeHelperNames()">파일명 생성</button><button class="btn btn-blue" onclick="copyHelperNames()">복사</button></div>
+    <textarea class="helper-result" id="fh-result" readonly></textarea>
+  </div>
+</div>
+
+<div class="drop-zone" id="dz">
+  <input type="file" id="fi" multiple accept="image/*,.pdf" onchange="go(this.files)">
+  <p style="font-size:.9rem;color:#6b6560;margin-bottom:.4rem">📂 파일을 드래그하거나 클릭해서 선택</p>
+  <small style="font-size:.75rem;color:#9e9891">PNG, JPG, PDF · 폴더 내 전체 선택 가능</small>
+</div>
+<div class="debug" id="debug"></div>
+<div class="list" id="list"></div>
+<div class="prog-wrap" id="pw">
+  <div class="prog-bar"><div class="prog-fill" id="pf"></div></div>
+  <div class="prog-txt" id="pt"></div>
+</div>
+<script>
+
+function helperClean(v){return String(v||'').trim().replace(/\s+/g,'').replace(/[\/:*?"<>|]/g,'')}
+function makeHelperNames(){const song=helperClean(document.getElementById('fh-song').value)||'은혜';const key=helperClean(document.getElementById('fh-key').value)||'G';const type=helperClean(document.getElementById('fh-type').value)||'코드';const pages=Math.max(1,parseInt(document.getElementById('fh-pages').value||'1',10));const ext=document.getElementById('fh-ext').value||'jpg';document.getElementById('fh-result').value=Array.from({length:pages},(_,i)=>`${song}_${key}_${type}_${i+1}.${ext}`).join('\n')}
+async function copyHelperNames(){makeHelperNames();try{await navigator.clipboard.writeText(document.getElementById('fh-result').value);alert('파일명을 복사했어요')}catch(e){alert('복사 실패: 직접 선택해서 복사하세요')}}
+setTimeout(makeHelperNames,0);
+
+const SURL='https://rmtysrytveexshwzenxj.supabase.co';
+const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdHlzcnl0dmVleHNod3plbnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjQ3OTYsImV4cCI6MjA5MjEwMDc5Nn0.5FzzJ1rg-uRG4jAGZ75xVT3i3NH0m6J_tDeOS4GxyT8';
+const RH={'apikey':KEY,'Authorization':'Bearer '+KEY};
+const JH={'Content-Type':'application/json','apikey':KEY,'Authorization':'Bearer '+KEY,'Prefer':'return=minimal'};
+const SH={'apikey':KEY,'Authorization':'Bearer '+KEY};
+
+let DB=[], items=[];
+
+async function syncR2Praise(songIds) {
+  const ids = Array.isArray(songIds) ? songIds.filter(Boolean) : (songIds ? [songIds] : []);
+
+  async function postJson(payload) {
+    const syncToken = sessionStorage.getItem('worshipR2SyncToken') || localStorage.getItem('worshipR2SyncToken') || '';
+    const headers = {'Content-Type': 'application/json'};
+    if (syncToken) headers['x-r2-sync-token'] = syncToken;
+    const res = await fetch('/api/r2-praise-sync', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload)
+    });
+    const text = await res.text();
+    let data = {};
+    try { data = text ? JSON.parse(text) : {}; } catch (_) { data = {message: text}; }
+    if (!res.ok || data.ok === false) throw new Error(data.error || data.message || `R2 반영 실패 (${res.status})`);
+    return data;
+  }
+
+  try {
+    if (ids.length) {
+      try {
+        await postJson({songIds: ids, force: true});
+        return true;
+      } catch (targetError) {
+        const oneByOneErrors = [];
+        for (const id of ids) {
+          try {
+            await postJson({songId: id, force: true});
+          } catch (e) {
+            oneByOneErrors.push(e.message || String(e));
+          }
+        }
+        if (!oneByOneErrors.length) return true;
+      }
+    }
+
+    let offset = 0;
+    let guard = 0;
+    while (guard < 100) {
+      const data = await postJson({force: true, batch: true, offset, limit: 50});
+      if (data.done) return true;
+      const processed = Number(data.processedCount || data.limit || 0);
+      const nextOffset = Number(data.nextOffset || 0);
+      if (nextOffset > offset) offset = nextOffset;
+      else if (processed > 0) offset += processed;
+      else return true;
+      guard++;
+    }
+    throw new Error('R2 전체 반영이 너무 오래 걸려 중단됐어요');
+  } catch (e) {
+    if (typeof dbg === 'function') dbg('R2 반영 실패: ' + (e.message || e));
+    console.warn('R2 sync failed', e);
+    return false;
+  }
+}
+
+function esc(s){return String(s||'').replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'}[c]))}
+
+function dbg(msg){
+  const el=document.getElementById('debug');
+  el.style.display='block';
+  el.textContent+=msg+'\n';
+  el.scrollTop=el.scrollHeight;
+}
+
+function clean(s){
+  // Mac NFD → NFC 정규화 (한글 자모 분리 문제 해결)
+  s = s.normalize('NFC');
+  // 확장자 제거
+  s = s.replace(/\.[a-z0-9]+$/i, '');
+  // 끝 페이지번호 제거 (-1, -2 등)
+  s = s.replace(/-\d+$/, '');
+  // 앞 숫자 제거
+  s = s.replace(/^\d[\d\-]*/, '');
+  // 소문자
+  s = s.toLowerCase();
+  // 공백 전부 제거
+  s = s.split(' ').join('');
+  s = s.split('\t').join('');
+  s = s.split('\u00A0').join('');
+  s = s.split('\u3000').join('');
+  return s;
+}
+
+
+function parseScoreFileName(fileName){
+  const original = String(fileName || '').normalize('NFC');
+  const ext = (original.split('.').pop() || '').toLowerCase();
+  const name = original.replace(/\.[a-z0-9]+$/i,'').trim();
+  const parts = name.split('_').map(v=>v.trim()).filter(Boolean);
+  const knownKeys = ['C','C#','Db','D','D#','Eb','E','F','F#','Gb','G','G#','Ab','A','A#','Bb','B','Cm','C#m','Dbm','Dm','D#m','Ebm','Em','Fm','F#m','Gbm','Gm','G#m','Abm','Am','A#m','Bbm','Bm','여성키','남성키','원키'];
+  const isKey = v => knownKeys.some(k=>k.toLowerCase()===String(v||'').toLowerCase());
+  const splitVersionPage = raw => {
+    const text = String(raw || '').trim();
+    const m = text.match(/^(.+?)[-_\s]*(\d+)$/);
+    if(!m) return { version:text || '', page:null };
+    return { version:(m[1] || '').replace(/[-_\s]+$/,'').trim(), page:Number(m[2]) || null };
+  };
+  let songName = '', key = '', type = '', page = null;
+  const keyIndex = parts.findIndex(isKey);
+  if(keyIndex > 0){
+    songName = parts.slice(0,keyIndex).join('_').trim();
+    key = parts[keyIndex];
+    const rest = parts.slice(keyIndex+1).join('_').trim();
+    const vp = splitVersionPage(rest || '기본-1');
+    type = vp.version || '기본';
+    page = vp.page;
+  }else if(parts.length >= 2){
+    const vp = splitVersionPage(parts[parts.length-1]);
+    songName = parts.slice(0,-1).join('_').trim() || parts[0];
+    type = vp.version || '';
+    page = vp.page;
+  }else{
+    const vp = splitVersionPage(name);
+    songName = vp.version || name;
+    page = vp.page;
+  }
+  const missing = [];
+  if(!songName) missing.push('곡명');
+  if(!key) missing.push('Key');
+  if(!type) missing.push('버전');
+  if(!page) missing.push('페이지');
+  return { songName, key, type:type || '기본', page:page || 1, ext, original:fileName, missing, isParsed:missing.length===0 };
+}
+
+async function getOrCreateScoreVersion(songId, meta){
+  const vName = meta.type || '기본';
+  const vKey = meta.key || '';
+  const q = `song_score_versions?select=*&song_id=eq.${songId}&version_name=eq.${encodeURIComponent(vName)}&score_key=eq.${encodeURIComponent(vKey)}&limit=1`;
+  const found = await apiGet(q);
+  if(found?.[0]) return found[0];
+  const payload = {song_id:songId,version_name:vName,score_key:vKey,score_type:'코드악보',is_default:vName==='기본',memo:`파일명 자동분석: ${meta.original}`};
+  const created = await apiPost('song_score_versions', payload);
+  return created?.[0];
+}
+
+async function findScorePageConflict(songId, versionId, pageNo){
+  const rows = await apiGet(`song_score_files?select=*&song_id=eq.${songId}&version_id=eq.${versionId}&page_no=eq.${pageNo}&limit=1`);
+  return rows?.[0] || null;
+}
+
+function readConflictRegistry(){
+  try{return JSON.parse(localStorage.getItem('wdb_score_conflicts')||'[]')}catch(_){return []}
+}
+function writeConflictRegistry(list){localStorage.setItem('wdb_score_conflicts', JSON.stringify(list.slice(-500)))}
+function addConflictRegistry(row){const list=readConflictRegistry();list.push({...row, id:Date.now()+'_'+Math.random().toString(36).slice(2), created_at:new Date().toISOString()});writeConflictRegistry(list)}
+async function apiGet(path){const r=await fetch(`${SURL}/rest/v1/${path}`,{headers:RH});if(!r.ok)throw new Error(await r.text());return await r.json()}
+async function apiPost(path,payload){const r=await fetch(`${SURL}/rest/v1/${path}`,{method:'POST',headers:{...JH,'Prefer':'return=representation'},body:JSON.stringify(payload)});if(!r.ok)throw new Error(await r.text());return await r.json()}
+
+
+function match(fileName, songName){
+  const f = clean(fileName);
+  const s = clean(songName);
+  if(!f || !s) return 0;
+  // 완전 일치
+  if(f === s) return 1.0;
+  // 한쪽이 포함
+  if(f.includes(s) || s.includes(f)) return 0.9;
+  // 앞부분 일치 (4글자 이상)
+  const ml = Math.min(f.length, s.length);
+  if(ml >= 4 && f.substring(0, ml) === s.substring(0, ml)) return 0.8;
+  // 글자 교집합 — 한글 글자 단위로 분리
+  const af = Array.from(f); // 한글 분리
+  const as_ = Array.from(s);
+  const sf = new Set(af);
+  const ss = new Set(as_);
+  let inter = 0;
+  sf.forEach(c => { if(ss.has(c)) inter++; });
+  return inter / Math.max(sf.size, ss.size);
+}
+
+// 디버그용 — 첫 파일과 DB 매칭 상세 출력
+function debugMatch(fileName) {
+  const f = clean(fileName);
+  const results = DB.map(s => ({name: s.name, score: match(fileName, s.name)}))
+    .sort((a,b) => b.score - a.score)
+    .slice(0, 3);
+  dbg(`TOP3 매칭: ${results.map(r=>`"${r.name}"(${r.score.toFixed(2)})`).join(', ')}`);
+}
+
+async function load(){
+  try{
+    const r=await fetch(`${SURL}/rest/v1/songs?select=id,name,status,has_score,key&limit=2000&order=name`,{headers:RH});
+    DB=await r.json();
+    document.getElementById('stat').textContent=`✓ ${DB.length}곡 로드 완료 — 파일을 선택하세요`;
+    document.getElementById('btnFile').disabled=false;
+    document.getElementById('dz').style.opacity='1';
+    document.getElementById('dz').style.pointerEvents='auto';
+    dbg(`DB 로드: ${DB.length}곡`);
+  }catch(e){
+    document.getElementById('stat').textContent='⚠️ 로드 실패: '+e.message;
+  }
+}
+
+document.getElementById('dz').style.opacity='0.5';
+document.getElementById('dz').style.pointerEvents='none';
+load();
+
+function go(files){
+  if(!DB.length){alert('곡 목록이 아직 로드되지 않았어요!');return;}
+  items=[];
+  document.getElementById('dz').style.display='none';
+  document.getElementById('debug').textContent='';
+
+  dbg(`파일 수: ${files.length}, DB 곡 수: ${DB.length}`);
+
+  // 첫 파일 상세 매칭 디버그
+  const firstFile = [...files][0];
+  if(firstFile) {
+    const fc = clean(firstFile.name);
+    dbg(`첫파일 clean: "${fc}" 길이:${fc.length}`);
+    // DB에서 동일한 clean 값 직접 찾기
+    const exact = DB.find(s => {
+      const sc = clean(s.name);
+      return sc === fc;
+    });
+    dbg(`직접 찾기: ${exact ? '"'+exact.name+'"' : '없음'}`);
+    // 첫 번째 한글 곡과 비교
+    const korSong = DB.find(s => /[가-힣]/.test(s.name));
+    if(korSong) {
+      const kc = clean(korSong.name);
+      dbg(`한글곡 예시: "${korSong.name}" → clean:"${kc}" 길이:${kc.length}`);
+      dbg(`같은가? ${fc===kc} | charCode비교: ${fc.charCodeAt(0)} vs ${kc.charCodeAt(0)}`);
+    }
+  }
+
+  // 파일명 규칙 기반 그룹핑: 곡명_Key_악보종류_페이지번호.jpg
+  const groups={};
+  [...files].forEach(f=>{
+    const meta=parseScoreFileName(f.name);
+    const key=[clean(meta.songName), meta.key || 'nokey', meta.type || 'notype'].join('__');
+    if(!groups[key]) groups[key]={base:key, meta, files:[]};
+    groups[key].files.push(f);
+  });
+
+  dbg(`그룹 수: ${Object.keys(groups).length}`);
+
+  // 매칭: 전체 파일명이 아니라 파싱된 곡명만 DB 곡명과 비교
+  let matchCount=0;
+  Object.values(groups).forEach(group=>{
+    const base=group.base;
+    const gfiles=group.files;
+    const meta=group.meta;
+    let best=null, bestScore=0;
+    DB.forEach(s=>{
+      const sc=match(meta.songName, s.name);
+      if(sc>bestScore){bestScore=sc;best=s;}
+    });
+
+    const matched = bestScore>=0.5 ? best : null;
+    if(matched) matchCount++;
+
+    if(items.length === 0){
+      const firstDB = DB[0];
+      dbg(`DB첫곡:"${firstDB.name}" → clean:"${clean(firstDB.name)}"`);
+      debugMatch(meta.songName);
+    }
+    if(items.length < 5){
+      dbg(`파일명 분석: 곡="${meta.songName}" Key="${meta.key||'-'}" 종류="${meta.type||'-'}" | 매칭:${matched?matched.name+'('+bestScore.toFixed(2)+')':'없음'}`);
+    }
+
+    items.push({
+      id:base,
+      files:gfiles.sort((a,b)=>{
+        const pa=parseScoreFileName(a.name).page || 999;
+        const pb=parseScoreFileName(b.name).page || 999;
+        return pa-pb || a.name.localeCompare(b.name);
+      }),
+      meta,
+      songId:matched?.id||null,
+      songName:matched?.name||null,
+      score:bestScore,
+      matchType:!matched?'none':bestScore>=0.85?'auto':'sim',
+      hasScore:matched?.has_score||false,
+      skip:false,
+      done:false,err:null
+    });
+  });
+
+  dbg(`매칭 결과: ${matchCount}/${items.length}`);
+  render();
+  updateStat();
+  document.getElementById('btnUp').disabled=false;
+}
+
+function render(){
+  document.getElementById('list').innerHTML=items.map((it,i)=>{
+    const f=it.files[0];
+    const isImg=f.type.startsWith('image/');
+    const rc=it.done?'done':it.err?'err':it.skip?'skip':it.songId?'ok':'';
+    const bl=it.done?'b-done':it.err?'b-err':it.matchType==='auto'?'b-ok':it.matchType==='sim'?'b-sim':'b-no';
+    const bt=it.done?'✓ 완료':it.err?'✗ 실패':it.matchType==='auto'?`자동 ${Math.round(it.score*100)}%`:it.matchType==='sim'?`유사 ${Math.round(it.score*100)}%`:'새 곡 등록 가능';
+    const opts=DB.map(s=>`<option value="${s.id}"${s.id===it.songId?' selected':''}>${s.name}</option>`).join('');
+    const thumb=isImg?`<img class="thumb" src="${URL.createObjectURL(f)}" style="width:40px;height:40px;object-fit:cover;border-radius:4px">`:`<div class="thumb">📄</div>`;
+    return`<div class="row ${rc}" id="r${i}">
+${thumb}
+<div class="info">
+  <div class="fname">${it.files.map(f=>f.name).join(', ')}</div>
+  <div class="mrow">
+    <span class="badge ${bl}">${bt}</span>
+    ${it.meta?.key?`<span class="badge b-meta">Key ${it.meta.key}</span>`:''}
+    ${it.meta?.type?`<span class="badge b-meta">${it.meta.type}</span>`:''}
+    ${it.meta?.page?`<span class="badge b-meta">시작 ${it.meta.page}p</span>`:''}
+    ${it.files?.length?`<span class="badge b-meta">${it.files.length}장</span>`:''}
+    ${it.meta?.missing?.length?`<span class="badge b-err">미분류: ${it.meta.missing.join(', ')}</span>`:''}
+    ${it.conflict?`<span class="badge b-err">충돌 대기</span>`:''}
+    ${it.hasScore?'<span class="badge b-has">기존 악보 있음</span>':''}
+    ${!it.done&&!it.err?`<select class="sel" onchange="upd(${i},this.value)"><option value="">+ 새 곡으로 등록: ${esc(it.meta.songName)}</option>${opts}</select>`:(it.songName?`<span style="font-size:.78rem;font-weight:500">${it.songName}</span>`:'')}
+  </div>
+</div>
+<button class="rb" onclick="tog(${i})">${it.skip&&!it.done?'↩ 취소':'건너뛰기'}</button>
+</div>`;
+  }).join('');
+}
+
+function upd(i,id){
+  const s=DB.find(x=>x.id===id);
+  items[i].songId=id||null;
+  items[i].songName=s?.name||null;
+  items[i].matchType=id?'sim':'none';
+  items[i].score=0.7;
+  render();updateStat();
+}
+function tog(i){items[i].skip=!items[i].skip;render();updateStat();}
+function skipAll(){items.forEach(it=>{if(!it.songId)it.skip=true;});render();updateStat();}
+
+function updateStat(){
+  const tot=items.length,ok=items.filter(i=>!i.skip).length,sk=items.filter(i=>i.skip).length,dn=items.filter(i=>i.done).length;
+  document.getElementById('stat').textContent=`전체 ${tot} · 매칭 ${ok} · 건너뛰기 ${sk} · 완료 ${dn}`;
+}
+
+async function startUpload(){
+  const todo=items.filter(i=>!i.skip&&!i.done);
+  if(!todo.length){alert('업로드할 파일이 없어요');return;}
+  if(!confirm(`${todo.length}개 업로드할까요?`))return;
+  document.getElementById('btnUp').disabled=true;
+  document.getElementById('pw').style.display='block';
+  let done=0;
+  for(const it of todo){
+    document.getElementById('pt').textContent=`${done+1}/${todo.length} — "${it.songName}"`;
+    document.getElementById('pf').style.width=Math.round(done/todo.length*100)+'%';
+    try{
+      if(!it.songId){
+        const payload={name:it.meta.songName,status:'ready',has_score:true,key:it.meta.key||'',bpm:0,bpm_min:0,bpm_max:0,seasons:[],memo:`파일명 자동분석: ${it.meta.original} / 버전 ${it.meta.type||'기본'}`,updated_at:new Date().toISOString()};
+        const cr=await fetch(`${SURL}/rest/v1/songs`,{method:'POST',headers:{...JH,'Prefer':'return=representation'},body:JSON.stringify(payload)});
+        if(!cr.ok)throw new Error(await cr.text());
+        const created=await cr.json();
+        if(!created?.[0]?.id)throw new Error('새 곡 생성 실패');
+        it.songId=created[0].id;it.songName=created[0].name;
+        DB.push({id:created[0].id,name:created[0].name,status:'ready',has_score:true,key:created[0].key||it.meta.key||''});
+      }
+      const version = await getOrCreateScoreVersion(it.songId, it.meta);
+      if(!version?.id) throw new Error('악보 버전 생성/조회 실패');
+      for(let i=0;i<it.files.length;i++){
+        const f=it.files[i];
+        const fileMeta = parseScoreFileName(f.name);
+        const pageNo = fileMeta.page || (it.meta.page || 1) + i;
+        const conflict = await findScorePageConflict(it.songId, version.id, pageNo);
+        const ext=(f.name.split('.').pop()||'png').toLowerCase();
+        const baseName = `${Date.now()}_${i}.${ext}`;
+        if(conflict){
+          const conflictPath=`${it.songId}/_conflicts/${baseName}`;
+          const cr=await fetch(`${SURL}/storage/v1/object/scores/${conflictPath}`,{method:'POST',headers:{...SH,'Content-Type':f.type||'application/octet-stream','x-upsert':'false'},body:f});
+          if(!cr.ok)throw new Error(await cr.text());
+          addConflictRegistry({song_id:it.songId,song_name:it.songName||it.meta.songName,key:it.meta.key||'',version:it.meta.type||'기본',page:pageNo,storage_path:conflictPath,original_filename:f.name,existing_storage_path:conflict.storage_path,reason:'same_song_key_version_page'});
+          it.conflict=true;
+          continue;
+        }
+        const path=`${it.songId}/${baseName}`;
+        const r=await fetch(`${SURL}/storage/v1/object/scores/${path}`,{method:'POST',headers:{...SH,'Content-Type':f.type||'application/octet-stream','x-upsert':'false'},body:f});
+        if(!r.ok)throw new Error(await r.text());
+        await apiPost('song_score_files',{version_id:version.id,song_id:it.songId,storage_path:path,file_name:f.name,page_no:pageNo,mime_type:f.type||'image/*'});
+      }
+      const song=DB.find(s=>s.id===it.songId);
+      const newStatus=song?.status==='plan'?'ready':song?.status;
+      await fetch(`${SURL}/rest/v1/songs?id=eq.${it.songId}`,{method:'PATCH',headers:JH,body:JSON.stringify({has_score:true,status:newStatus,updated_at:new Date().toISOString()})});
+      if(song){song.has_score=true;song.status=newStatus;}
+      it.done=true;
+    }catch(e){it.err=e.message;}
+    done++;
+    const idx=items.indexOf(it);
+    const row=document.getElementById('r'+idx);
+    if(row){
+      it.done?row.className='row done':row.className='row err';
+    }
+    updateStat();
+  }
+  document.getElementById('pf').style.width='100%';
+  document.getElementById('pt').textContent=`완료! ${todo.filter(i=>i.done).length}/${todo.length}곡 성공`;
+  const syncedIds = [...new Set(todo.filter(i=>i.done && i.songId).map(i=>i.songId))];
+  if (syncedIds.length) {
+    document.getElementById('pt').textContent='R2 서버에 반영 중...';
+    const ok = await syncR2Praise(syncedIds);
+    document.getElementById('pt').textContent = ok
+      ? `완료! ${todo.filter(i=>i.done).length}/${todo.length}곡 성공 · R2 반영 완료`
+      : `완료! ${todo.filter(i=>i.done).length}/${todo.length}곡 성공 · R2 반영 실패`;
+  }
+  document.getElementById('btnUp').disabled=false;
+  render();
+}
+
+// 드래그 앤 드롭
+const dz=document.getElementById('dz');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('active');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('active'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('active');go(e.dataTransfer.files);});
+</script>
+
+<style>
+/* === Phase12 codefix: existing score thumbnail preview in sequential editor === */
+.phase12-existing-score-preview {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.phase12-existing-score-title {
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.phase12-existing-score-list {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.phase12-existing-score-item {
+  min-width: 120px;
+  max-width: 150px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0,0,0,0.18);
+  border: 1px solid rgba(255,255,255,0.10);
+  cursor: pointer;
+}
+
+.phase12-existing-score-thumb {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  display: block;
+  background: rgba(0,0,0,0.35);
+}
+
+.phase12-existing-score-info {
+  padding: 8px;
+}
+
+.phase12-existing-score-name {
+  font-size: 12px;
+  line-height: 1.35;
+  word-break: break-all;
+}
+
+.phase12-existing-score-meta {
+  margin-top: 4px;
+  font-size: 11px;
+  opacity: 0.72;
+}
+
+.phase12-score-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: rgba(0,0,0,0.82);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.phase12-score-modal.open { display: flex; }
+
+.phase12-score-modal img {
+  max-width: min(96vw, 980px);
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 14px;
+  background: #111;
+}
+
+.phase12-score-modal-close {
+  position: fixed;
+  right: 18px;
+  top: 18px;
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-size: 18px;
+  font-weight: 900;
+  background: rgba(255,255,255,0.92);
+  color: #111;
+  cursor: pointer;
+}
+</style>
+
+<script>
+/* === Phase12 codefix: render existing score previews wherever "악보 있음" appears === */
+(function () {
+  if (window.__phase12ExistingScorePreviewInstalled) return;
+  window.__phase12ExistingScorePreviewInstalled = true;
+
+  function norm(v) {
+    return String(v || "").replace(/\s+/g, "").trim().toLowerCase();
+  }
+
+  function scoreUrl(item) {
+    return item?.url || item?.image_url || item?.file_url || item?.score_url || item?.publicUrl || item?.public_url || item?.src || item?.path || "";
+  }
+
+  function scoreName(item, i) {
+    return item?.filename || item?.file_name || item?.name || item?.title || item?.score_name || ("악보 " + (i + 1));
+  }
+
+  function collectScores() {
+    const arr = [];
+    [
+      window.scores,
+      window.scoreFiles,
+      window.songScores,
+      window.scoreImages,
+      window.allScores,
+      window.scoreList,
+      window.uploadedScores,
+      window.existingScores
+    ].forEach(v => Array.isArray(v) && v.forEach(x => arr.push(x)));
+
+    ["state", "appState", "WorshipDB", "worshipDB", "db"].forEach(k => {
+      const obj = window[k];
+      if (!obj || typeof obj !== "object") return;
+      ["scores", "scoreFiles", "songScores", "scoreImages", "allScores"].forEach(key => {
+        if (Array.isArray(obj[key])) obj[key].forEach(x => arr.push(x));
+      });
+    });
+
+    const seen = new Set();
+    return arr.filter(item => {
+      const sig = scoreUrl(item) + "|" + scoreName(item, 0);
+      if (!scoreUrl(item) || seen.has(sig)) return false;
+      seen.add(sig);
+      return true;
+    });
+  }
+
+  function guessSongName(el) {
+    const host = el.closest(".song-card, .song-item, .edit-card, .sequential-item, .seq-item, .card, li, tr, section, article, div") || el.parentElement;
+    if (!host) return "";
+
+    const input = host.querySelector('input[name*="title"], input[name*="song"], input[placeholder*="곡"], input[placeholder*="제목"], textarea[name*="title"]');
+    if (input && input.value) return input.value.trim();
+
+    const title = host.querySelector(".song-title, .title, .name, h1, h2, h3, h4, strong");
+    if (title && title.textContent) return title.textContent.replace(/악보\s*있음/g, "").trim();
+
+    const lines = (host.textContent || "").split(/\n|·|\|/).map(x => x.trim()).filter(Boolean);
+    return (lines.find(x => !/악보\s*있음|저장|수정|삭제|업로드/.test(x)) || "").trim();
+  }
+
+  function matchingScores(songName) {
+    const target = norm(songName);
+    if (!target) return [];
+    return collectScores().filter(item => {
+      const hay = norm([
+        item?.song_title, item?.song_name, item?.songTitle, item?.song,
+        item?.filename, item?.file_name, item?.name, item?.title
+      ].join(" "));
+      return hay && (hay.includes(target) || target.includes(hay));
+    }).slice(0, 12);
+  }
+
+  function modal() {
+    let m = document.querySelector(".phase12-score-modal");
+    if (m) return m;
+    m = document.createElement("div");
+    m.className = "phase12-score-modal";
+    m.innerHTML = '<button class="phase12-score-modal-close" type="button">×</button><img alt="악보 확대 미리보기">';
+    document.body.appendChild(m);
+    m.addEventListener("click", e => {
+      if (e.target === m || e.target.classList.contains("phase12-score-modal-close")) m.classList.remove("open");
+    });
+    return m;
+  }
+
+  function openPreview(url) {
+    const m = modal();
+    m.querySelector("img").src = url;
+    m.classList.add("open");
+  }
+
+  function render(el) {
+    if (!el || el.dataset.phase12PreviewDone === "1") return;
+    const found = matchingScores(guessSongName(el));
+    if (!found.length) return;
+
+    el.dataset.phase12PreviewDone = "1";
+    const box = document.createElement("div");
+    box.className = "phase12-existing-score-preview";
+    box.innerHTML = '<div class="phase12-existing-score-title">기존 악보 미리보기</div><div class="phase12-existing-score-list"></div>';
+    const list = box.querySelector(".phase12-existing-score-list");
+
+    found.forEach((item, i) => {
+      const url = scoreUrl(item);
+      if (!url) return;
+      const card = document.createElement("div");
+      card.className = "phase12-existing-score-item";
+      card.innerHTML =
+        '<img class="phase12-existing-score-thumb" loading="lazy" alt="">' +
+        '<div class="phase12-existing-score-info">' +
+        '<div class="phase12-existing-score-name"></div>' +
+        '<div class="phase12-existing-score-meta"></div>' +
+        '</div>';
+      card.querySelector("img").src = url;
+      card.querySelector("img").alt = scoreName(item, i);
+      card.querySelector(".phase12-existing-score-name").textContent = scoreName(item, i);
+      const page = item?.page || item?.page_no || item?.pageNumber || item?.page_number || (i + 1);
+      card.querySelector(".phase12-existing-score-meta").textContent = page ? ("페이지 " + page) : "기존 악보";
+      card.addEventListener("click", () => openPreview(url));
+      list.appendChild(card);
+    });
+
+    if (!list.children.length) return;
+    el.parentElement.insertBefore(box, el.nextSibling);
+  }
+
+  function scan() {
+    Array.from(document.querySelectorAll("body *")).forEach(el => {
+      const text = (el.textContent || "").trim();
+      if (text && text.length <= 40 && /악보\s*있음/.test(text)) render(el);
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => setTimeout(scan, 300));
+  window.addEventListener("load", () => setTimeout(scan, 800));
+
+  const observer = new MutationObserver(() => {
+    clearTimeout(window.__phase12ScoreScanTimer);
+    window.__phase12ScoreScanTimer = setTimeout(scan, 300);
+  });
+  observer.observe(document.documentElement, { childList: true, subtree: true });
+})();
+</script>
+
+
+</body>
+</html>

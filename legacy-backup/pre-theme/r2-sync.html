@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="admin-guard.js"></script>
+<title>R2 배포 동기화</title>
+<style>
+body{font-family:sans-serif;max-width:680px;margin:2rem auto;padding:1rem;background:#faf8f5;color:#1a1714}
+h1{font-size:1.3rem;margin-bottom:.5rem}
+p{font-size:.85rem;color:#6b6560;line-height:1.6;margin-bottom:1rem}
+button{width:100%;padding:.75rem 1rem;border:0;border-radius:8px;background:#2d5a8e;color:white;font-size:1rem;cursor:pointer}
+button:disabled{opacity:.55;cursor:not-allowed}
+#log{margin-top:1rem;padding:1rem;background:white;border:1px solid #e8e2d9;border-radius:8px;font-size:.8rem;line-height:1.8;white-space:pre-wrap;max-height:520px;overflow:auto}
+.ok{color:#3a7a52}.err{color:#b0281f}.info{color:#2d5a8e}
+
+
+
+</style>
+</head>
+<body>
+<h1>R2 배포 동기화</h1>
+<p>업로드와 점검이 끝난 뒤 마지막에 실행합니다. Supabase 악보를 R2로 복사하고 앱/공유에서 읽을 <code>praise_songs.json</code>을 다시 만듭니다.</p>
+<p><input id="sync-token" type="password" placeholder="R2 보호 토큰이 있으면 입력" style="width:100%;padding:.7rem;border:1px solid #ddd;border-radius:8px;margin-bottom:.5rem"></p>
+<button id="btn" onclick="syncAll()">전체 동기화 시작</button>
+<div id="log">버튼을 누르면 시작합니다.</div>
+<script>
+function write(msg, cls='') {
+  const log = document.getElementById('log');
+  log.innerHTML += `<span class="${cls}">${msg}</span>\n`;
+  log.scrollTop = log.scrollHeight;
+}
+function syncHeaders() {
+  const tokenInput = document.getElementById('sync-token');
+  const token = (tokenInput?.value || sessionStorage.getItem('worshipR2SyncToken') || localStorage.getItem('worshipR2SyncToken') || '').trim();
+  if (token) {
+    sessionStorage.setItem('worshipR2SyncToken', token);
+    return {'Content-Type':'application/json','x-r2-sync-token':token};
+  }
+  return {'Content-Type':'application/json'};
+}
+
+async function syncAll() {
+  const btn = document.getElementById('btn');
+  btn.disabled = true;
+  btn.textContent = '동기화 중...';
+  document.getElementById('log').innerHTML = '';
+  write('R2 서버에 반영하는 중입니다. 20곡씩 나눠서 처리합니다.', 'info');
+
+  try {
+    let offset = Number(localStorage.getItem('r2-praise-sync-offset') || '0');
+    let totalProcessed = 0;
+    let totalUploaded = 0;
+    let lastManifestCount = 0;
+
+    while (true) {
+      write(`${offset + 1}번째 곡부터 확인 중...`, 'info');
+      const res = await fetch('/api/r2-praise-sync', {
+        method:'POST',
+        headers:syncHeaders(),
+        body: JSON.stringify({force:false,batch:true,offset,limit:20})
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) throw new Error(data.error || '동기화 실패');
+
+      totalProcessed += data.processedCount || 0;
+      totalUploaded += Array.isArray(data.uploaded) ? data.uploaded.length : 0;
+      lastManifestCount = data.manifestCount || lastManifestCount;
+      offset = data.nextOffset || offset + (data.processedCount || 0);
+      localStorage.setItem('r2-praise-sync-offset', String(offset));
+
+      write(`이번 묶음 완료: ${data.processedCount || 0}곡 확인 · 누적 ${totalProcessed}곡`, 'ok');
+      if (data.done) break;
+    }
+
+    localStorage.removeItem('r2-praise-sync-offset');
+    write(`완료: ${lastManifestCount}곡이 praise_songs.json에 반영됐습니다.`, 'ok');
+    write(`이번에 새로 확인/업로드한 곡: ${totalUploaded}곡`, 'ok');
+  } catch(e) {
+    write('실패: ' + e.message, 'err');
+    if (String(e.message || '').includes('404')) write('api/r2-praise-sync.js 파일이 배포에 포함되지 않았을 가능성이 큽니다.', 'info');
+    if (String(e.message || '').includes('권한')) write('Vercel에 R2_SYNC_TOKEN을 넣었다면, 같은 값을 위 토큰 칸에 입력해주세요.', 'info');
+    if (String(e.message || '').includes('환경변수')) write('Vercel 환경변수에 R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME, R2_PUBLIC_BASE_URL을 넣어야 합니다.', 'info');
+    write('다시 누르면 마지막 처리 위치부터 이어서 진행합니다.', 'info');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '다시 동기화';
+}
+</script>
+
+</body>
+</html>

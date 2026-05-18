@@ -113,7 +113,7 @@ h1{font-size:clamp(42px,4.7vw,76px);line-height:1.02;letter-spacing:-.055em;text
         </div>
       </div>
       <div class="quick">
-        <a class="mini share-link" href="test-conti.html"><b>콘티 공유</b><span>선택한 콘티를 공유 화면으로 확인합니다.</span></a>
+        <a class="mini" href="test-conti.html"><b>콘티 공유</b><span>선택한 콘티를 공유 화면으로 확인합니다.</span></a>
         <a class="mini" href="test-choir.html"><b>성가대 연습</b><span>앞으로 연습할 성가곡 자료를 봅니다.</span></a>
         <a class="mini" href="test-songs.html"><b>악보 관리</b><span>곡별 악보와 영상 링크를 정리합니다.</span></a>
         <a class="mini" href="test-tools.html"><b>관리도구</b><span>백업, 점검, R2 반영을 실행합니다.</span></a>
@@ -150,8 +150,7 @@ async function loadConti(){
     document.getElementById('conti-list').innerHTML=names.slice(0,5).map((name,i)=>`<div class="song-row"><div class="num">${i+1}</div><div><div class="song-title">${esc(name)}</div><div class="song-meta">주일 찬양</div></div><span class="pill">준비</span></div>`).join('');
     document.getElementById('now-title').textContent=names[0];
     document.getElementById('now-sub').textContent=`${row.worship_date||'최근 콘티'} · ${names.length}곡`;
-    const share=document.querySelector('.share-link');
-    if(share) share.href=`share.html?id=${encodeURIComponent(row.id)}`;
+    document.querySelector('.mini[href="share.html"]').href=`share.html?id=${encodeURIComponent(row.id)}`;
   }catch(e){fallback();}
 }
 loadConti();
