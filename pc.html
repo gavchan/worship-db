@@ -105,8 +105,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .viewer-title{color:#fff;font-size:.95rem;font-weight:500}
 .viewer-close{background:rgba(255,255,255,.15);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center}
 .viewer-close:hover{background:rgba(255,255,255,.3)}
-.viewer-body{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:.5rem 1rem 1rem;align-items:center}
-.viewer-body img{max-width:100%;border-radius:6px;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+.viewer-body{flex:1;overflow:auto;display:flex;flex-direction:column;gap:14px;padding:.7rem 1rem 1.2rem;align-items:center}
+.viewer-body img{max-width:calc(100vw - 48px);max-height:calc(100vh - 92px);width:auto;height:auto;object-fit:contain;border-radius:6px;box-shadow:0 4px 20px rgba(0,0,0,.5);background:#fff}
 .viewer-empty{color:rgba(255,255,255,.4);font-size:.85rem;margin-top:3rem;text-align:center}
 .viewer-empty span{display:block;font-size:2rem;margin-bottom:.5rem}
 
@@ -339,6 +339,13 @@ body.dark{--bg:#111315;--surface:#191c20;--surface2:#22262b;--border:#2e343b;--b
 .song-detail-content{flex:1;min-height:0;overflow:auto;padding:10px}
 .song-detail-content .song-detail-panel{height:100%;min-height:0;box-shadow:none;border:0;border-radius:16px;padding:10px;background:transparent}
 .song-detail-content .song-detail-empty{height:100%;min-height:0;border:0;background:transparent}
+.song-usage-card{border:1px solid var(--border);background:var(--surface2);border-radius:16px;padding:10px 12px;margin:10px 0 2px}
+.song-usage-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
+.song-usage-head strong{font-size:.76rem;color:var(--text2)}
+.song-usage-count{font-size:.68rem;color:var(--text3);font-weight:900}
+.song-usage-dates{display:flex;gap:6px;flex-wrap:wrap}
+.song-usage-date{border:1px solid var(--border2);background:var(--surface);border-radius:999px;padding:4px 8px;font-size:.7rem;font-weight:800;color:var(--text2);white-space:nowrap}
+.song-usage-empty{font-size:.73rem;color:var(--text3);line-height:1.45}
 
 @media(max-width:900px){.compact-topbar{grid-template-columns:1fr auto}.compact-stats{grid-column:1/-1;justify-content:flex-start;overflow:auto}.tabs{grid-template-columns:repeat(2,1fr)}.desktop-search-row{grid-template-columns:1fr auto}.desktop-search-row .cb{grid-column:1/-1}.filter-panel{grid-template-columns:repeat(2,1fr)}.current-setlist-strip{flex-wrap:wrap}.song-detail-actions{grid-template-columns:1fr}.song-delete-icon{width:100%!important}.song-action-line{grid-template-columns:1fr}}
 
@@ -384,6 +391,34 @@ body.dark{--bg:#111315;--surface:#191c20;--surface2:#22262b;--border:#2e343b;--b
 .current-setlist-strip{display:none!important}
 .sel-song .drag-handle{order:9}
 .sel-song .order-backup{display:none!important}
+
+/* 2026 desktop width alignment */
+@media(min-width:901px){
+  .compact-topbar,
+  .tabs,
+  .desktop-controls,
+  .song-library-shell,
+  .song-library-shell.bookmark-layout,
+  .song-library-shell.resizable-detail{
+    width:calc(100vw - 48px)!important;
+    max-width:1360px!important;
+  }
+  .song-library-shell.bookmark-layout{
+    grid-template-columns:minmax(420px,39%) minmax(560px,61%)!important;
+    gap:14px!important;
+    padding-left:0!important;
+    padding-right:0!important;
+  }
+  .song-library-shell.resizable-detail{
+    padding-left:0!important;
+    padding-right:0!important;
+  }
+  .desktop-controls,
+  .tabs{
+    padding-left:0!important;
+    padding-right:0!important;
+  }
+}
 
 /* === Phase12 codefix: prevent shared/conti titles from being cut off === */
 .share-title,
@@ -862,6 +897,7 @@ const BASE_SEASONS = {"십자가 그 사랑":["사순절","위로"],"내 위해 
 
 // ── STATE ─────────────────────────────────────────────────
 let songs = [], filt = 'all', exp = null, editId = null, sortBy = 'name', sortDir = 1;
+let usageBySong = new Map();
 let currentTab = 'songs', historyExp = null, selectedSongs = [];
 let selectedSongId = null, currentSetlistId = localStorage.getItem('wdb-current-setlist') || '', currentSetlistRows = [];
 
@@ -1940,6 +1976,7 @@ async function init() {
     setSync('on', `자료 연결됨 · ${songs.length}곡`);
     updateStats();
     render();
+    loadSongUsageSummaries().then(()=>render());
     // 백그라운드에서 has_score 불일치 수정 (화면 블로킹 없이)
     const toFix = songs.filter(s => s.has_score && s.status === 'plan');
     if (toFix.length > 0) {
@@ -2460,6 +2497,67 @@ function compactTags(tags, max=2){
   const shown=arr.slice(0,max).map(t=>`<span class="song-mini-tag">${escHtml(t)}</span>`).join('');
   return shown + (arr.length>max?`<span class="song-mini-tag">+${arr.length-max}</span>`:'');
 }
+function usageKey(value){return String(value||'').normalize('NFC').replace(/\s+/g,'').trim().toLowerCase();}
+function addUsageEntry(map, key, entry){
+  if(!key) return;
+  const prev=map.get(key) || {count:0, dates:[], ids:new Set()};
+  if(!prev.ids.has(entry.historyId)){
+    prev.ids.add(entry.historyId);
+    prev.count += 1;
+    prev.dates.push(entry);
+  }
+  map.set(key, prev);
+}
+async function loadSongUsageSummaries(){
+  try{
+    const rows=await api('GET','worship_history?select=id,worship_date,note,song_names,song_ids&order=worship_date.desc&limit=1000');
+    const map=new Map();
+    (rows||[]).forEach(h=>{
+      const entry={historyId:String(h.id), date:h.worship_date, label:weekLabel(h.worship_date)};
+      const seen=new Set();
+      (h.song_ids||[]).forEach((id,i)=>{
+        const key=String(id||'');
+        if(key && !seen.has(key)){addUsageEntry(map,key,entry);seen.add(key);}
+        const name=(h.song_names||[])[i];
+        const nkey=usageKey(name);
+        if(nkey && !seen.has(nkey)){addUsageEntry(map,nkey,entry);seen.add(nkey);}
+      });
+      (h.song_names||[]).forEach(name=>{
+        const nkey=usageKey(name);
+        if(nkey && !seen.has(nkey)){addUsageEntry(map,nkey,entry);seen.add(nkey);}
+      });
+      const noteInfo=splitHistoryNote(h.note||'');
+      (noteInfo.conti2?.song_ids||[]).forEach((id,i)=>{
+        const key=String(id||'');
+        if(key && !seen.has(key)){addUsageEntry(map,key,entry);seen.add(key);}
+        const name=(noteInfo.conti2.song_names||[])[i];
+        const nkey=usageKey(name);
+        if(nkey && !seen.has(nkey)){addUsageEntry(map,nkey,entry);seen.add(nkey);}
+      });
+      (noteInfo.conti2?.song_names||[]).forEach(name=>{
+        const nkey=usageKey(name);
+        if(nkey && !seen.has(nkey)){addUsageEntry(map,nkey,entry);seen.add(nkey);}
+      });
+    });
+    usageBySong=map;
+  }catch(e){
+    usageBySong=new Map();
+  }
+}
+function usageForSong(song){
+  return usageBySong.get(String(song?.id||'')) || usageBySong.get(usageKey(song?.name)) || null;
+}
+function songUsageHtml(song){
+  const usage=usageForSong(song);
+  if(!usage || !usage.dates.length){
+    return `<div class="song-usage-card"><div class="song-usage-head"><strong>언제 사용했나요?</strong></div><div class="song-usage-empty">아직 연결된 콘티 기록이 없습니다.</div></div>`;
+  }
+  const dates=usage.dates.slice(0,4).map(item=>`<span class="song-usage-date">${escHtml(item.date)} · ${escHtml(item.label.replace(/^[0-9]{4}년\\s*/,''))}</span>`).join('');
+  return `<div class="song-usage-card">
+    <div class="song-usage-head"><strong>언제 사용했나요?</strong><span class="song-usage-count">총 ${usage.count}회</span></div>
+    <div class="song-usage-dates">${dates}</div>
+  </div>`;
+}
 function selectSong(id){selectedSongId=id; activeInlineVideoId=null; if(detailPanelPct < 20) detailPanelPct = 20; render(); setTimeout(()=>setDetailPanelPct(detailPanelPct,true),0);}
 function selectedSongDetailHtml(song){
   if(!song) return `<div class="song-detail-empty">위 목록에서 곡을 선택하면 이곳에 상세 정보와 영상 플레이어가 표시됩니다.</div>`;
@@ -2478,6 +2576,7 @@ function selectedSongDetailHtml(song){
         <div class="song-detail-box"><div class="song-detail-label">상태</div><div class="song-detail-value">${escHtml(statusLabel)}</div></div>
         <div class="song-detail-box"><div class="song-detail-label">자료</div><div class="song-detail-value">${song.has_score?'악보 연결됨':'악보 준비중'} · ${song.music_url?'영상 연결됨':'영상 없음'}</div></div>
       </div>
+      ${songUsageHtml(song)}
       <div class="song-detail-actions">
         <div class="song-action-lines">
           <div class="song-action-line">
