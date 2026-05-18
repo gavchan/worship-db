@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>드림찬양단 테스트 메인</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#b99545;--gold2:#d7b765;--ink:#07111f;--panel:rgba(5,10,18,.68);--line:rgba(255,255,255,.16);--muted:#c3cad8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;font-family:'Noto Sans KR',system-ui,sans-serif;color:#fff;background:#08111f;overflow-x:hidden}
+.page{min-height:100vh;position:relative;background:
+  linear-gradient(90deg,rgba(2,6,16,.66) 0%,rgba(3,9,23,.28) 42%,rgba(5,11,23,.42) 100%),
+  linear-gradient(180deg,rgba(0,0,0,.08) 0%,rgba(0,0,0,.06) 44%,rgba(0,0,0,.62) 100%),
+  url("assets/main-church-bg.png");
+  background-size:cover,cover,cover;background-position:center,center,left center}
+.stars{position:absolute;inset:0;background:radial-gradient(circle at 84% 72%,rgba(255,166,69,.24),transparent 23%);pointer-events:none}
+.top{position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:28px 34px 0;display:flex;justify-content:space-between;align-items:center;gap:20px}
+.brand{font-weight:900;letter-spacing:-.03em;font-size:22px;text-shadow:0 2px 14px rgba(0,0,0,.45)}
+.nav{display:flex;align-items:center;gap:2px;padding:6px;border:1px solid rgba(255,255,255,.15);border-radius:999px;background:rgba(2,7,18,.32);backdrop-filter:blur(16px)}
+.nav a{color:#fff;text-decoration:none;font-size:14px;font-weight:800;padding:10px 16px;border-radius:999px;opacity:.84}
+.nav a:hover,.nav a.on{background:rgba(183,146,65,.92);opacity:1}
+.hero{position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:94px 34px 44px;display:grid;grid-template-columns:minmax(420px,1fr) 430px;gap:28px;align-items:end;min-height:calc(100vh - 90px)}
+.copy{padding-left:min(28vw,420px)}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);border-radius:999px;padding:8px 13px;font-size:13px;color:#e7ecf8;backdrop-filter:blur(14px);margin-bottom:18px}
+h1{font-size:clamp(42px,4.7vw,76px);line-height:1.02;letter-spacing:-.055em;text-shadow:0 8px 36px rgba(0,0,0,.45);white-space:nowrap;word-break:keep-all}
+.lead{margin-top:16px;color:#d9dfeb;font-size:20px;line-height:1.55;font-weight:600;text-shadow:0 4px 24px rgba(0,0,0,.48)}
+.cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid rgba(255,255,255,.18);border-radius:999px;background:rgba(5,10,18,.52);color:#fff;text-decoration:none;font-weight:900;padding:13px 18px;backdrop-filter:blur(14px)}
+.btn.primary{background:linear-gradient(135deg,var(--gold2),var(--gold));border-color:rgba(255,255,255,.16);color:#111827}
+.btn:hover{transform:translateY(-1px)}
+.panel-stack{display:grid;gap:14px}
+.card{border:1px solid var(--line);border-radius:22px;background:var(--panel);box-shadow:0 24px 80px rgba(0,0,0,.28);backdrop-filter:blur(18px);overflow:hidden}
+.card-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 20px;border-bottom:1px solid rgba(255,255,255,.1)}
+.card-head h2{font-size:24px;letter-spacing:-.04em}
+.date{font-size:13px;color:var(--muted);white-space:nowrap}
+.conti-list{display:grid;padding:4px 20px 12px}
+.song-row{display:grid;grid-template-columns:38px 1fr auto;gap:13px;align-items:center;padding:13px 0;border-bottom:1px solid rgba(255,255,255,.1)}
+.song-row:last-child{border-bottom:0}
+.num{width:34px;height:34px;border-radius:12px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-weight:900}
+.song-title{font-size:17px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.song-meta{font-size:12px;color:var(--muted);margin-top:2px}
+.pill{border:1px solid rgba(255,255,255,.13);border-radius:999px;padding:5px 8px;font-size:12px;color:#e8ecf6;white-space:nowrap}
+.quick{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mini{display:block;text-decoration:none;color:#fff;padding:17px;border:1px solid var(--line);border-radius:19px;background:rgba(5,10,18,.56);backdrop-filter:blur(15px)}
+.mini b{display:block;font-size:17px;margin-bottom:5px}
+.mini span{display:block;color:var(--muted);font-size:12px;line-height:1.45}
+.player{position:relative;z-index:2;border-top:1px solid rgba(255,255,255,.1);background:rgba(1,5,13,.78);backdrop-filter:blur(18px)}
+.player-inner{max-width:1280px;margin:0 auto;padding:16px 34px;display:grid;grid-template-columns:260px 1fr auto;gap:22px;align-items:center}
+.now b{display:block;font-size:15px}.now span{display:block;font-size:12px;color:var(--muted);margin-top:3px}
+.wave{height:42px;border-radius:999px;background:repeating-linear-gradient(90deg,rgba(183,146,65,.35) 0 4px,transparent 4px 12px),linear-gradient(90deg,rgba(183,146,65,.7),rgba(124,58,237,.68),rgba(255,255,255,.2));mask:linear-gradient(#000,#000);opacity:.78}
+.more{color:#fff;text-decoration:none;background:#000;border-radius:999px;padding:12px 17px;font-weight:900}
+@media(max-width:1180px) and (min-width:721px){
+  .hero{grid-template-columns:1fr;align-items:start;padding-top:44vh}
+  .copy{padding-left:0;max-width:520px}
+  .panel-stack{max-width:620px;margin-top:22px}
+  .player-inner{grid-template-columns:1fr}
+}
+@media(max-width:900px){.nav{display:none}}
+@media(max-width:720px){
+  body{background:#06101f}
+  .page{min-height:100dvh;background:
+    linear-gradient(180deg,rgba(2,6,16,.34) 0%,rgba(2,6,16,.74) 46%,rgba(2,6,16,.94) 100%),
+    url("assets/main-church-bg.png");
+    background-size:auto 100%,auto 100%;background-position:left center,left center;background-repeat:no-repeat}
+  .stars{background:radial-gradient(circle at 70% 80%,rgba(255,166,69,.18),transparent 28%)}
+  .top{padding:18px 16px 0}.brand{font-size:18px}
+  .hero{padding:34vh 16px 28px;min-height:auto;display:block}
+  .copy{padding:0}.eyebrow{font-size:12px;padding:7px 11px;margin-bottom:12px}
+  h1{font-size:42px;white-space:normal;letter-spacing:-.05em}
+  .lead{font-size:16px;line-height:1.55;margin-top:10px;max-width:310px}
+  .cta{display:grid;grid-template-columns:1fr;gap:8px;margin-top:18px;max-width:310px}
+  .btn{width:100%;padding:12px 15px}
+  .panel-stack{margin-top:20px;max-width:none;gap:10px}
+  .card{border-radius:18px}.card-head{padding:15px 16px}.card-head h2{font-size:21px}.date{font-size:12px}
+  .conti-list{padding:2px 16px 10px}.song-row{grid-template-columns:32px 1fr auto;gap:10px;padding:11px 0}.num{width:30px;height:30px;border-radius:10px}.song-title{font-size:15px}.pill{font-size:11px;padding:4px 7px}
+  .quick{grid-template-columns:1fr 1fr;gap:8px}.mini{padding:13px;border-radius:15px}.mini b{font-size:15px}.mini span{font-size:11px}
+  .player{display:none}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="stars"></div>
+  <header class="top">
+    <div class="brand">드림찬양단</div>
+    <nav class="nav">
+      <a class="on" href="test-main.html">홈</a>
+      <a href="mobile.html">찬양콘티</a>
+      <a href="pc.html">악보</a>
+      <a href="choir.html">성가대</a>
+      <a href="pc.html#tools">관리도구</a>
+    </nav>
+  </header>
+  <main class="hero">
+    <section class="copy">
+      <div class="eyebrow">✦ 찬양콘티 · 악보 · 성가대 자료</div>
+      <h1>드림찬양단</h1>
+      <p class="lead">주일 콘티와 악보, 연주 화면, 성가대 연습 자료를 한 곳에서 준비합니다.</p>
+      <div class="cta">
+        <a class="btn primary" href="mobile.html">연주 화면 열기</a>
+        <a class="btn" href="pc.html">곡 데이터베이스</a>
+        <a class="btn" href="choir.html">성가대 자료실</a>
+      </div>
+    </section>
+    <section class="panel-stack">
+      <div class="card">
+        <div class="card-head"><h2>이번 주 콘티</h2><span class="date" id="conti-date">불러오는 중</span></div>
+        <div class="conti-list" id="conti-list">
+          <div class="song-row"><div class="num">1</div><div><div class="song-title">콘티를 불러오고 있습니다</div><div class="song-meta">잠시만 기다려주세요</div></div><span class="pill">준비중</span></div>
+        </div>
+      </div>
+      <div class="quick">
+        <a class="mini" href="share.html"><b>콘티 공유</b><span>선택한 콘티를 공유 화면으로 확인합니다.</span></a>
+        <a class="mini" href="choir.html"><b>성가대 연습</b><span>앞으로 연습할 성가곡 자료를 봅니다.</span></a>
+        <a class="mini" href="pc.html"><b>악보 관리</b><span>곡별 악보와 영상 링크를 정리합니다.</span></a>
+        <a class="mini" href="pc.html#tools"><b>관리도구</b><span>백업, 점검, R2 반영을 실행합니다.</span></a>
+      </div>
+    </section>
+  </main>
+  <section class="player">
+    <div class="player-inner">
+      <div class="now"><b id="now-title">오늘의 첫 곡</b><span id="now-sub">콘티가 연결되면 자동으로 표시됩니다.</span></div>
+      <div class="wave"></div>
+      <a class="more" href="mobile.html">바로 보기 →</a>
+    </div>
+  </section>
+</div>
+<script>
+const SUPABASE_URL='https://rmtysrytveexshwzenxj.supabase.co';
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function fallback(){
+  const names=['기대','가서 제자 삼으라','많은 사람들','내 마음에 주를 향한 사랑이'];
+  document.getElementById('conti-date').textContent='테스트 콘티';
+  document.getElementById('conti-list').innerHTML=names.map((name,i)=>`<div class="song-row"><div class="num">${i+1}</div><div><div class="song-title">${esc(name)}</div><div class="song-meta">찬양콘티</div></div><span class="pill">악보</span></div>`).join('');
+  document.getElementById('now-title').textContent=names[0];
+  document.getElementById('now-sub').textContent='테스트 메인 화면';
+}
+async function loadConti(){
+  try{
+    const key='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdHlzcnl0dmVleHNod3plbnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjQ3OTYsImV4cCI6MjA5MjEwMDc5Nn0.5FzzJ1rg-uRG4jAGZ75xVT3i3NH0m6J_tDeOS4GxyT8';
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/worship_history?select=id,worship_date,song_names,song_ids&order=worship_date.desc&limit=1`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});
+    if(!res.ok) throw new Error('load failed');
+    const row=(await res.json())[0];
+    const names=(row?.song_names||[]).filter(Boolean);
+    if(!names.length) return fallback();
+    document.getElementById('conti-date').textContent=row.worship_date||'최근 콘티';
+    document.getElementById('conti-list').innerHTML=names.slice(0,5).map((name,i)=>`<div class="song-row"><div class="num">${i+1}</div><div><div class="song-title">${esc(name)}</div><div class="song-meta">주일 찬양</div></div><span class="pill">준비</span></div>`).join('');
+    document.getElementById('now-title').textContent=names[0];
+    document.getElementById('now-sub').textContent=`${row.worship_date||'최근 콘티'} · ${names.length}곡`;
+    document.querySelector('.mini[href="share.html"]').href=`share.html?id=${encodeURIComponent(row.id)}`;
+  }catch(e){fallback();}
+}
+loadConti();
+</script>
+</body>
+</html>
