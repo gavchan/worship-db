@@ -708,6 +708,67 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
   }
 }
 
+/* Keep the selected conti summary visible; it is the base form for the current conti. */
+@media (max-width:900px){
+  #sec-home .hero{
+    padding:10px 0 0!important;
+  }
+  #sec-home .hero-in>div:first-child{
+    display:block!important;
+    margin:0 0 8px!important;
+    padding:0 2px!important;
+  }
+  #sec-home .hero .eyebrow{
+    display:none!important;
+  }
+  #sec-home .hero h2{
+    display:block!important;
+    margin:0!important;
+    font-size:30px!important;
+    line-height:1.05!important;
+    letter-spacing:0!important;
+    white-space:normal!important;
+    overflow:visible!important;
+    text-overflow:unset!important;
+  }
+  #sec-home .hero p{
+    display:block!important;
+    margin:7px 0 0!important;
+    font-size:13px!important;
+    line-height:1.35!important;
+    color:var(--muted)!important;
+    white-space:normal!important;
+    overflow:visible!important;
+    text-overflow:unset!important;
+  }
+}
+@media (orientation:landscape) and (max-width:1100px){
+  #sec-home .hero-in{
+    display:grid!important;
+    grid-template-columns:minmax(220px,.9fr) minmax(360px,1fr)!important;
+    gap:12px!important;
+    align-items:center!important;
+  }
+  #sec-home .hero-in>div:first-child{
+    display:block!important;
+    margin:0!important;
+  }
+  #sec-home .hero h2{
+    font-size:28px!important;
+  }
+  #sec-home .hero p{
+    font-size:12px!important;
+  }
+}
+@media (max-width:380px){
+  #sec-home .hero h2{
+    font-size:26px!important;
+  }
+  #sec-home .hero p{
+    font-size:12px!important;
+  }
+}
+
 
 /* === Phase12 codefix: prevent shared/conti titles from being cut off === */
 .share-title,
