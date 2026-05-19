@@ -218,8 +218,14 @@ async function uploadChoir(){
     const headers={'Content-Type':'application/json'};
     if(token) headers['x-r2-sync-token']=token;
     const res=await fetch('/api/r2-choir-upload',{method:'POST',headers,body:JSON.stringify(payload)});
-    const data=await res.json().catch(()=>({}));
-    if(!res.ok || !data.ok) throw new Error(data.error || '등록 실패');
+    const text=await res.text();
+    let data={};
+    try{data=text?JSON.parse(text):{};}catch(_){data={error:text};}
+    if(!res.ok || !data.ok){
+      const localStatic=/^(localhost|127\.0\.0\.1)$/i.test(location.hostname) && (res.status===404 || res.status===501);
+      if(localStatic) throw new Error('로컬 미리보기 서버에서는 등록 API가 실행되지 않습니다. 운영 배포 주소나 Vercel 개발 서버에서 등록해주세요.');
+      throw new Error(data.error || `등록 실패 (${res.status})`);
+    }
     write(`완료: ${data.group.title} / ${data.group.files.length}개 파일 저장`, 'ok');
     write(`일정: ${data.group.schedule.date || '날짜 미정'} · ${data.group.schedule.type}`, 'ok');
     const links=document.createElement('div');
