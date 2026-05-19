@@ -12,7 +12,7 @@
 const SUPABASE_URL='https://rmtysrytveexshwzenxj.supabase.co';const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdHlzcnl0dmVleHNod3plbnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjQ3OTYsImV4cCI6MjA5MjEwMDc5Nn0.5FzzJ1rg-uRG4jAGZ75xVT3i3NH0m6J_tDeOS4GxyT8';
 const headers={apikey:KEY,Authorization:`Bearer ${KEY}`,'Content-Type':'application/json'};const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 let histories=[],songs=[],activeHistory=null,selectedSongs=[],selectedSongs2=[],activePick='main';
-async function api(path,opts={}){const res=await fetch(`${SUPABASE_URL}/rest/v1/${path}`,{headers:{...headers,...(opts.headers||{})},...opts});if(!res.ok)throw new Error(await res.text());if(res.status===204)return null;return res.json()}
+async function api(path,opts={}){const {headers:extraHeaders={},...rest}=opts;const res=await fetch(`${SUPABASE_URL}/rest/v1/${path}`,{...rest,headers:{...headers,...extraHeaders}});if(!res.ok)throw new Error(await res.text());if(res.status===204)return null;return res.json()}
 function today(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)}
 function songLabel(s){return [s.key?`Key ${s.key}`:'Key 없음',s.bpm||s.bpm_min?`BPM ${s.bpm||s.bpm_min}`:'BPM 없음'].join(' · ')}
 function fallback(){const names=['기대','가서 제자 삼으라','많은 사람들','내 마음에 주를 향한 사랑이'];document.getElementById('date').textContent='최근 콘티';document.getElementById('list').innerHTML=names.map((n,i)=>`<div class="row"><div class="num">${i+1}</div><div><div class="title">${esc(n)}</div><div class="sub">찬양콘티</div></div><span class="pill">악보</span></div>`).join('')}
