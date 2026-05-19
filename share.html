@@ -233,8 +233,10 @@ function decodeConti2Payload(raw){
 function splitContiNote(note){
   const text=String(note||'');
   const m=text.match(/\[\[WDB_CONTI2:([A-Za-z0-9_-]+)\]\]/);
+  const mm=text.match(/\[\[WDB_MEMOS:([A-Za-z0-9_-]+)\]\]/);
   const conti2=m?decodeConti2Payload(m[1]):null;
-  return {visible:text.replace(/\s*\[\[WDB_CONTI2:[A-Za-z0-9_-]+\]\]\s*/,'').trim(),conti2};
+  const memoData=mm?decodeConti2Payload(mm[1]):null;
+  return {visible:text.replace(/\s*\[\[WDB_CONTI2:[A-Za-z0-9_-]+\]\]\s*/,'').replace(/\s*\[\[WDB_MEMOS:[A-Za-z0-9_-]+\]\]\s*/,'').trim(),conti2,memos:Array.isArray(memoData?.memos)?memoData.memos:[]};
 }
 function songsEqualByBase(a,b){
   const aa=(a||[]).map(s=>`${contiBaseName(s?.name||'')||norm(s?.name||'')}@${norm(songKey(s))}@${norm(songBpm(s))}@${norm(songMemo(s))}`).join('|');
@@ -383,7 +385,7 @@ async function load(){
     try{allSongs=await api('songs?select=*&order=name&limit=2000')}catch(e){}
     shareSongMap=songMap;
     const buildSongs=(nms,ids,memos=[])=>uniqueContiSongList(pairHistorySongsBySafeId(nms,ids,songMap,allSongs).map((s,i)=>({...s,conti_memo:memos[i]||''})).filter(s=>s.name));
-    const memoList=safeArray(h.memos).length?safeArray(h.memos):safeArray(h.song_memos);
+    const memoList=noteInfo.memos.length?noteInfo.memos:(safeArray(h.memos).length?safeArray(h.memos):safeArray(h.song_memos));
     const conti1Songs=buildSongs(names,rawIds,memoList);
     const conti2Songs=c2Names.length?buildSongs(c2Names,c2Ids,safeArray(noteInfo.conti2?.memos)):conti1Songs.slice();
     shareVariants=[{label:'1번 콘티',songs:conti1Songs}];
