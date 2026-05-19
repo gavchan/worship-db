@@ -1246,19 +1246,25 @@ async function deleteSong(id) {
 
 
 function shareUrlForHistory(id){
-  const url=new URL('share.html', location.href);
+  const url=new URL('/api/share-preview', location.href);
   if(id) url.searchParams.set('id',id);
   return url.toString();
 }
+function koreanShareWeekTitle(value){
+  const d=parseLocalDate(value);
+  const weeks=['첫째주','둘째주','셋째주','넷째주','다섯째주','여섯째주'];
+  const w=weeks[Math.max(0,Math.min(5,Math.ceil(d.getDate()/7)-1))]||`${Math.ceil(d.getDate()/7)}째주`;
+  return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${w} 찬양 콘티`;
+}
 async function shareHistory(id){
   const url=shareUrlForHistory(id);
-  let text='콘티 공유';
+  let text='주일 찬양 콘티';
   try{
     const row=await api('GET',`worship_history?id=eq.${id}&select=worship_date,song_names`);
-    if(row?.[0]) text=`${row[0].worship_date} 콘티`;
+    if(row?.[0]) text=koreanShareWeekTitle(row[0].worship_date);
   }catch(e){}
   try{
-    if(navigator.share){await navigator.share({title:'콘티 공유',text,url});showToast('공유창을 열었습니다');return;}
+    if(navigator.share){await navigator.share({title:text,text,url});showToast('공유창을 열었습니다');return;}
   }catch(e){}
   try{await navigator.clipboard.writeText(url);showToast('공유 링크를 복사했습니다');}
   catch(e){prompt('이 링크를 복사해서 공유하세요',url);}

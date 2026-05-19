@@ -2294,16 +2294,17 @@ function loadHistoryAsConti(id,conti='main'){const h=history.find(x=>x.id===id);
 
 
 function shareUrlForHistory(id,conti){
-  const url=new URL('share.html', location.href);
+  const url=new URL('/api/share-preview', location.href);
   if(id) url.searchParams.set('id',id);
   if(conti) url.searchParams.set('conti',String(conti));
   return url.toString();
 }
+function koreanShareWeekTitle(value){const d=parseLocalDate(value);const weeks=['첫째주','둘째주','셋째주','넷째주','다섯째주','여섯째주'];const w=weeks[Math.max(0,Math.min(5,Math.ceil(d.getDate()/7)-1))]||`${Math.ceil(d.getDate()/7)}째주`;return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${w} 찬양 콘티`}
 async function shareHistory(id,conti){
   const h=(history||[]).find(x=>String(x.id)===String(id));
   const url=shareUrlForHistory(id,conti);
-  const title='콘티 공유';
-  const text=h?`${h.worship_date} 콘티`:title;
+  const title=h?koreanShareWeekTitle(h.worship_date):'주일 찬양 콘티';
+  const text=title;
   try{
     if(navigator.share){await navigator.share({title,text,url});toast('공유창을 열었어요');return}
   }catch(e){}

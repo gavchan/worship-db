@@ -3,7 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>콘티 공유</title>
+<title>주일 찬양 콘티</title>
+<meta name="description" content="드림찬양단 주일 찬양 콘티 악보 공유">
+<meta property="og:type" content="website">
+<meta property="og:title" content="주일 찬양 콘티">
+<meta property="og:description" content="드림찬양단 콘티 악보를 확인하세요.">
+<meta property="og:image" content="https://worship-db-sable.vercel.app/assets/main-church-bg.png">
+<meta property="og:url" content="https://worship-db-sable.vercel.app/share.html">
+<meta name="twitter:card" content="summary_large_image">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#071326;--panel:#121a2d;--panel2:#0f172a;--line:rgba(255,255,255,.16);--text:#f8fafc;--muted:#c3cad8;--accent:#d7b765;--gold:#b99545;--white:#fff;--black:#020611}
@@ -154,11 +161,13 @@ body{min-height:100vh;min-height:100dvh}
   .under-actions,.nav-actions{gap:6px;margin-top:7px}
   .mini-btn{padding:8px 9px;font-size:11px}
   .footer,.footer-actions{display:none!important}
-  .viewer-stage{inset:0 0 56px}
-  .share-song-strip{left:8px;right:78px;bottom:7px;height:40px;padding:6px;border-radius:14px}
+  .viewer-stage{inset:0;height:100%}
+  .viewer-page{height:100%;min-height:0}
+  .viewer-page img{max-height:100%}
+  .share-song-strip{left:8px;right:78px;bottom:calc(7px + env(safe-area-inset-bottom));height:40px;padding:6px;border-radius:14px}
   .share-song-strip button{font-size:10.5px;padding:6px 8px}
-  .share-lock{right:8px;bottom:7px;height:40px;border-radius:14px;padding:7px 9px;font-size:10.5px}
-  .share-memo-strip{bottom:54px;width:calc(100vw - 24px);max-height:58px;font-size:12px;padding:7px 10px}
+  .share-lock{right:8px;bottom:calc(7px + env(safe-area-inset-bottom));height:40px;border-radius:14px;padding:7px 9px;font-size:10.5px}
+  .share-memo-strip{bottom:calc(54px + env(safe-area-inset-bottom));width:calc(100vw - 24px);max-height:58px;font-size:12px;padding:7px 10px}
 }
 @media(max-width:760px){
   .layout{grid-template-rows:minmax(0,1fr) auto}
@@ -168,6 +177,32 @@ body{min-height:100vh;min-height:100dvh}
   .bookmark-num{width:26px;height:26px;border-radius:9px;font-size:12px}
   .bookmark-name{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .bookmark-meta{grid-column:auto;font-size:11px;white-space:nowrap}
+}
+
+/* Share page now opens as a score-first view. */
+.top-tabs,.bookmark-panel,.detail-head,.under-actions,.footer{display:none!important}
+.layout{grid-template-columns:minmax(0,1fr)!important}
+.detail-panel{min-height:0!important}
+.preview{height:min(72vh,880px);aspect-ratio:auto}
+.service-summary{display:none!important}
+.service-tabs{margin-top:2px}
+.service-tab{font-size:13px;padding:10px 14px}
+@media(max-width:760px){
+  html,body{overflow:auto}
+  .share-header{padding:14px 16px 0}
+  .share-brand{font-size:30px}
+  .wrap{height:auto;min-height:calc(100vh - 82px);display:block;overflow:visible;padding:14px 10px 28px}
+  .hero{padding:14px 16px;margin-bottom:10px}
+  .hero h1{font-size:26px}
+  .hero p{font-size:13px;line-height:1.45}
+  .service-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .service-tab{border-radius:18px;padding:11px 8px;font-size:13px}
+  #content,.layout,.detail-panel,#detail{height:auto;overflow:visible}
+  .detail-panel{padding:8px;border-radius:18px;background:rgba(5,10,18,.44)}
+  .preview{height:62vh;min-height:420px;border-radius:17px}
+  .memo-bar{font-size:13px;max-height:none;margin-top:8px}
+  .nav-actions{grid-template-columns:1fr 1fr;gap:8px}
+  .nav-actions .mini-btn:nth-child(2){display:none}
 }
 </style>
 </head>
@@ -208,6 +243,7 @@ const HEADERS={'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authoriz
 const STORAGE_URL=SUPABASE_URL+'/storage/v1';
 const STOR_HEADERS={'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY};
 let shareTitle='지정 콘티', shareSongs=[], shareSongMap={}, selectedIdx=0, viewerIdx=0, viewerPage=0, viewerMode=1, viewerFiles=[], scoreCache={}, wakeLock=null, singleViewer=false, shareVariants=[], activeVariant=0;
+let shareHistoryId='';
 function isPerformanceEntry(){const params=new URLSearchParams(location.search);return params.get('performance')==='1'||params.get('view')==='performance'}
 function esc(s){return String(s||'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function norm(v){return String(v??'').normalize('NFC').replace(/\s+/g,' ').trim().toLowerCase()}
@@ -236,7 +272,7 @@ function splitContiNote(note){
   const mm=text.match(/\[\[WDB_MEMOS:([A-Za-z0-9_-]+)\]\]/);
   const conti2=m?decodeConti2Payload(m[1]):null;
   const memoData=mm?decodeConti2Payload(mm[1]):null;
-  return {visible:text.replace(/\s*\[\[WDB_CONTI2:[A-Za-z0-9_-]+\]\]\s*/,'').replace(/\s*\[\[WDB_MEMOS:[A-Za-z0-9_-]+\]\]\s*/,'').trim(),conti2,memos:Array.isArray(memoData?.memos)?memoData.memos:[]};
+  return {visible:text.replace(/\s*\[\[WDB_CONTI2:[A-Za-z0-9_-]+\]\]\s*/,'').replace(/\s*\[\[WDB_MEMOS:[A-Za-z0-9_-]+\]\]\s*/,'').trim(),conti2,memos:Array.isArray(memoData?.memos)?memoData.memos:[],label1:memoData?.label1||'',label2:memoData?.label2||''};
 }
 function songsEqualByBase(a,b){
   const aa=(a||[]).map(s=>`${contiBaseName(s?.name||'')||norm(s?.name||'')}@${norm(songKey(s))}@${norm(songBpm(s))}@${norm(songMemo(s))}`).join('|');
@@ -274,6 +310,12 @@ function renderServiceNav(){
 }
 
 function parseLocalDate(value){const [y,m,d]=String(value||'').split('-').map(Number);return y&&m&&d?new Date(y,m-1,d):new Date(value)}
+function koreanWeekTitle(date){
+  const d=date instanceof Date&&!Number.isNaN(date)?date:new Date();
+  const weekNames=['첫째주','둘째주','셋째주','넷째주','다섯째주','여섯째주'];
+  const week=weekNames[Math.max(0,Math.min(5,Math.ceil(d.getDate()/7)-1))]||`${Math.ceil(d.getDate()/7)}째주`;
+  return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${week} 찬양 콘티`;
+}
 function weekBoundsFor(date=new Date()){const base=new Date(date.getFullYear(),date.getMonth(),date.getDate());const day=base.getDay();const mondayOffset=day===0?-6:1-day;const start=new Date(base);start.setDate(base.getDate()+mondayOffset);start.setHours(0,0,0,0);const end=new Date(start);end.setDate(start.getDate()+6);end.setHours(23,59,59,999);return {start,end}}
 async function api(path){const res=await fetch(SUPABASE_URL+'/rest/v1/'+path,{headers:HEADERS});if(!res.ok)throw new Error(await res.text());return await res.json()}
 function songMemo(s){return (s?.conti_memo||s?.memo||s?.note||'').trim()}
@@ -365,13 +407,15 @@ function mergeScoreFiles(dbFiles, storageFiles){
 async function listScores(songId){if(!songId)return[];if(scoreCache[songId])return scoreCache[songId];const dbFiles=await listDbScoreFiles(songId);const storageFiles=await listStorageScoreFilesRecursive(songId);scoreCache[songId]=mergeScoreFiles(dbFiles,storageFiles);return scoreCache[songId]}
 async function load(){
   const params=new URLSearchParams(location.search);const id=params.get('id');
+  shareHistoryId=id||'';
   document.body.classList.toggle('performance-entry',isPerformanceEntry());
   try{
     let rows=[];
     if(id) rows=await api(`worship_history?id=eq.${encodeURIComponent(id)}&select=*`);
     if(!rows.length){const all=await api('worship_history?select=*&order=worship_date.desc&limit=50');const {start,end}=weekBoundsFor(new Date());rows=[all.find(h=>{const d=parseLocalDate(h.worship_date);return d>=start&&d<=end})||all[0]].filter(Boolean)}
     if(!rows.length){document.getElementById('content').innerHTML='<div class="empty">공유할 콘티가 없습니다.</div>';document.getElementById('desc').textContent='콘티가 아직 등록되지 않았습니다.';return}
-    const h=rows[0]; const d=parseLocalDate(h.worship_date); shareTitle=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 콘티`;
+    const h=rows[0]; if(h.id)shareHistoryId=h.id; const d=parseLocalDate(h.worship_date); shareTitle=koreanWeekTitle(d);
+    document.title=shareTitle;
     document.getElementById('title').textContent=shareTitle;
     const noteInfo=splitContiNote(h.note||'');
     document.getElementById('desc').textContent=noteInfo.visible||'지정한 콘티의 악보, 영상, 메모를 확인할 수 있는 공유용 페이지입니다.';
@@ -388,8 +432,8 @@ async function load(){
     const memoList=noteInfo.memos.length?noteInfo.memos:(safeArray(h.memos).length?safeArray(h.memos):safeArray(h.song_memos));
     const conti1Songs=buildSongs(names,rawIds,memoList);
     const conti2Songs=c2Names.length?buildSongs(c2Names,c2Ids,safeArray(noteInfo.conti2?.memos)):conti1Songs.slice();
-    shareVariants=[{label:'1번 콘티',songs:conti1Songs}];
-    if(c2Names.length&&!songsEqualByBase(conti1Songs,conti2Songs))shareVariants.push({label:'2번 콘티',songs:conti2Songs});
+    shareVariants=[{label:noteInfo.label1||'1번 콘티',songs:conti1Songs}];
+    if(c2Names.length&&!songsEqualByBase(conti1Songs,conti2Songs))shareVariants.push({label:noteInfo.conti2?.label||noteInfo.label2||'2번 콘티',songs:conti2Songs});
     activeVariant=Math.min(requestedVariantIndex(),Math.max(0,shareVariants.length-1));
     shareSongs=shareVariants[activeVariant].songs;normalizeShareSongList();selectedIdx=0;
     document.getElementById('top-tabs').style.display=shareSongs.length?'grid':'none';
@@ -498,7 +542,8 @@ let touchX=0,touchY=0;
 document.addEventListener('touchstart',e=>{if(!document.getElementById('share-viewer')?.classList.contains('show'))return;touchX=e.changedTouches[0].clientX;touchY=e.changedTouches[0].clientY},{passive:true});
 document.addEventListener('touchend',async e=>{if(!document.getElementById('share-viewer')?.classList.contains('show'))return;const dx=e.changedTouches[0].clientX-touchX;const dy=e.changedTouches[0].clientY-touchY;if(Math.abs(dx)<55||Math.abs(dx)<Math.abs(dy))return;await shareViewerStep(dx<0?1:-1)},{passive:true});
 async function shareViewerStep(dir){const step=viewerMode===2?2:1;const max=Math.max(0,viewerFiles.length-1);const next=viewerPage+(dir*step);if(next>max){if(!document.getElementById('share-viewer')?.classList.contains('single')&&viewerIdx<shareSongs.length-1){await goShareSong(viewerIdx+1);return}viewerToast('마지막입니다');return}if(next<0){if(!document.getElementById('share-viewer')?.classList.contains('single')&&viewerIdx>0){await goShareSong(viewerIdx-1);const files=viewerFiles;viewerPage=Math.max(0,files.length-step);await renderShareViewerBody();return}viewerToast('첫 페이지입니다');return}viewerPage=next;await renderShareViewerBody()}
-async function shareThisPage(){const url=location.href;try{if(navigator.share){await navigator.share({title:shareTitle,text:shareTitle,url});return}}catch(e){}try{await navigator.clipboard.writeText(url);alert('공유 링크를 복사했습니다. 카톡에 붙여넣어 보내세요.')}catch(e){prompt('이 링크를 복사해서 공유하세요',url)}}
+function sharePreviewUrl(){const url=new URL('/api/share-preview',location.origin);if(shareHistoryId)url.searchParams.set('id',shareHistoryId);const conti=activeVariant===1?'2':'1';url.searchParams.set('conti',conti);return url.href}
+async function shareThisPage(){const url=sharePreviewUrl();try{if(navigator.share){await navigator.share({title:shareTitle,text:shareTitle,url});return}}catch(e){}try{await navigator.clipboard.writeText(url);alert('공유 링크를 복사했습니다. 카톡에 붙여넣어 보내세요.')}catch(e){prompt('이 링크를 복사해서 공유하세요',url)}}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeShareViewer()});
 document.addEventListener('error',function(e){if(e.target&&e.target.tagName==='IMG'&&String(e.target.src||'').includes('/storage/v1/object/public/scores/'))brokenScoreImage(e.target);},true);
 document.addEventListener('DOMContentLoaded',()=>{try{load()}catch(e){document.getElementById('content').innerHTML='<div class="empty">공유 페이지를 불러오지 못했습니다.</div>'}});
