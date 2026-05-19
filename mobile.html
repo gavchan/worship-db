@@ -209,9 +209,10 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
 .performance-song-strip button.perf-same{color:#fff!important;}
 .performance-song-strip button.perf-other{color:#ff5b5b!important;}
 .performance-memo-strip{position:absolute;left:50%;bottom:44px;transform:translateX(-50%);z-index:62;width:min(86vw,900px);max-height:74px;padding:8px 14px;text-align:center;color:#fff;font-size:13px;font-weight:900;line-height:1.45;text-shadow:0 1px 6px rgba(0,0,0,.95);pointer-events:none;white-space:normal;overflow:auto;text-overflow:unset;background:rgba(0,0,0,.68);border:1px solid rgba(255,255,255,.24);border-radius:0;backdrop-filter:blur(8px);word-break:keep-all;overflow-wrap:anywhere;}
+.performance-next-cue{position:absolute;right:62px;top:10px;z-index:62;border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.55);color:#fff;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:900;line-height:1.15;backdrop-filter:blur(10px);text-shadow:0 1px 6px rgba(0,0,0,.95);max-width:min(38vw,340px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
 .performance-lock{right:8px!important;bottom:8px!important;height:26px!important;background:rgba(0,0,0,.12)!important;color:rgba(255,255,255,.88)!important;border:0!important;border-radius:0!important;text-shadow:0 1px 6px rgba(0,0,0,.9)!important;z-index:61!important;}
 .performance-lock.on{color:#b8ffd0!important;}
-@media(max-width:520px){.performance-song-strip{width:calc(100vw - 12px)!important;justify-content:flex-start!important;padding-right:58px!important;gap:10px!important}.performance-song-strip button{font-size:10.5px!important;max-width:112px!important}.performance-memo-strip{bottom:48px;width:calc(100vw - 24px);max-height:62px;font-size:12px;padding:7px 10px}}
+@media(max-width:520px){.performance-song-strip{width:calc(100vw - 12px)!important;justify-content:flex-start!important;padding-right:58px!important;gap:10px!important}.performance-song-strip button{font-size:10.5px!important;max-width:112px!important}.performance-memo-strip{bottom:48px;width:calc(100vw - 24px);max-height:62px;font-size:12px;padding:7px 10px}.performance-next-cue{right:58px;max-width:42vw;font-size:10.5px;padding:6px 8px}}
 
 
 
@@ -2062,10 +2063,11 @@ async function renderPerformanceBodyOnly(){
   }).join('');
   const memoText=(s.memo||s.conti_memo||s.note||'').trim();
   const memoStrip=memoText?`<div class="performance-memo-strip">${esc(memoText)}</div>`:'';
+  const nextSongCue=(effectiveMode!==2&&contiSongs[activeIdx+1])?`<div class="performance-next-cue">다음곡 · ${esc(contiSongs[activeIdx+1].name||'곡')}</div>`:'';
   const topOverlay=`<div class="performance-top-overlay"><div class="performance-top-left"><button class="performance-chip ${mode===1?'on':''}" onclick="setPageMode(1)">1페이지 보기</button><button class="performance-chip ${mode===2?'on':''}" onclick="setPageMode(2)">2페이지 보기</button></div><div class="performance-top-right"><button class="performance-chip close-chip" onclick="closeViewer()">×</button></div></div>`;
   const bottomLock=`<button class="performance-lock ${wakeOk?'on':''}" onclick="togglePerformanceScreenLock()">화면잠금</button>`;
   const layoutClass=isLandscape?'landscape':'portrait';
-  body.innerHTML=`<div class="viewer-stage ${layoutClass} ${effectiveMode===2?'two':'one'}">${pages.join('')}${topOverlay}${memoStrip}<div class="performance-song-strip">${orderStrip}</div>${bottomLock}</div>`;
+  body.innerHTML=`<div class="viewer-stage ${layoutClass} ${effectiveMode===2?'two':'one'}">${pages.join('')}${topOverlay}${nextSongCue}${memoStrip}<div class="performance-song-strip">${orderStrip}</div>${bottomLock}</div>`;
 }
 async function requestWakeLock(){
   try{ if('wakeLock' in navigator){ wakeLock=await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release',()=>{wakeLock=null}); } }

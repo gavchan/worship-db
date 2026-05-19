@@ -90,7 +90,7 @@
 
 /* Phase 38 compact UI guard */
 button,a{touch-action:manipulation}.viewer-top,.viewer-bottom,.topbar,.header{min-height:44px}.modal,.viewer{overscroll-behavior:contain}
-.viewer-page.next-song-page{position:relative}.next-song-label{position:absolute;left:10px;top:10px;z-index:3;border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.55);color:#fff;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:900;backdrop-filter:blur(10px)}
+.viewer-page.next-song-page{position:relative}.next-song-label,.share-next-cue{position:absolute;z-index:3;border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.55);color:#fff;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:900;backdrop-filter:blur(10px);text-shadow:0 1px 5px rgba(0,0,0,.9);max-width:min(38vw,340px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.next-song-label{left:10px;top:10px}.share-next-cue{right:62px;top:10px;pointer-events:none}
 /* Phase55: mobile share layout + conti1/conti2 entry */
 .hero{display:grid;gap:10px}
 .service-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
@@ -470,7 +470,8 @@ async function renderShareViewerBody(){
   const strip=shareSongs.map((song,i)=>`<button class="${i===viewerIdx?'on':''}" onclick="goShareSong(${i})">${esc(`${i+1} ${song.name||'곡'}`)}</button>`).join('');
   const memo=songMemo(s);
   const memoStrip=memo?`<div class="share-memo-strip">${esc(memo)}</div>`:'';
-  stage.innerHTML=`${pages.join('')}<div class="share-top-overlay"><div class="share-top-left"><button class="share-chip ${viewerMode===1?'on':''}" onclick="setSharePageMode(1)">1페이지 보기</button><button class="share-chip ${viewerMode===2?'on':''}" onclick="setSharePageMode(2)">2페이지 보기</button></div><div class="share-top-right"><button class="share-chip close-chip" onclick="closeShareViewer()">×</button></div></div>${memoStrip}<div class="share-song-strip">${strip}</div><button class="share-lock ${wakeLock?'on':''}" onclick="toggleShareWakeLock()">화면잠금</button>`;
+  const nextSongCue=(effectiveMode!==2&&!singleViewer&&shareSongs[viewerIdx+1])?`<div class="share-next-cue">다음곡 · ${esc(shareSongs[viewerIdx+1].name||'곡')}</div>`:'';
+  stage.innerHTML=`${pages.join('')}<div class="share-top-overlay"><div class="share-top-left"><button class="share-chip ${viewerMode===1?'on':''}" onclick="setSharePageMode(1)">1페이지 보기</button><button class="share-chip ${viewerMode===2?'on':''}" onclick="setSharePageMode(2)">2페이지 보기</button></div><div class="share-top-right"><button class="share-chip close-chip" onclick="closeShareViewer()">×</button></div></div>${nextSongCue}${memoStrip}<div class="share-song-strip">${strip}</div><button class="share-lock ${wakeLock?'on':''}" onclick="toggleShareWakeLock()">화면잠금</button>`;
 }
 async function closeShareViewer(){document.getElementById('share-viewer')?.classList.remove('show');await requestShareWakeLock(false);if(isPerformanceEntry()){if(history.length>1)history.back();else location.href='test-main.html'}}
 async function requestShareWakeLock(on=true){try{if(!on){if(wakeLock){await wakeLock.release();wakeLock=null}return}if('wakeLock' in navigator){wakeLock=await navigator.wakeLock.request('screen');wakeLock.addEventListener('release',()=>{wakeLock=null;renderShareViewerBody()})}}catch(e){wakeLock=null}}
