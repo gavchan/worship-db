@@ -473,7 +473,15 @@ async function renderShareViewerBody(){
   const nextSongCue=(effectiveMode!==2&&!singleViewer&&shareSongs[viewerIdx+1])?`<div class="share-next-cue">다음곡 · ${esc(shareSongs[viewerIdx+1].name||'곡')}</div>`:'';
   stage.innerHTML=`${pages.join('')}<div class="share-top-overlay"><div class="share-top-left"><button class="share-chip ${viewerMode===1?'on':''}" onclick="setSharePageMode(1)">1페이지 보기</button><button class="share-chip ${viewerMode===2?'on':''}" onclick="setSharePageMode(2)">2페이지 보기</button></div><div class="share-top-right"><button class="share-chip close-chip" onclick="closeShareViewer()">×</button></div></div>${nextSongCue}${memoStrip}<div class="share-song-strip">${strip}</div><button class="share-lock ${wakeLock?'on':''}" onclick="toggleShareWakeLock()">화면잠금</button>`;
 }
-async function closeShareViewer(){document.getElementById('share-viewer')?.classList.remove('show');await requestShareWakeLock(false);if(isPerformanceEntry()){if(history.length>1)history.back();else location.href='test-main.html'}}
+async function closeShareViewer(){
+  await requestShareWakeLock(false);
+  if(isPerformanceEntry()){
+    const ref=document.referrer&&new URL(document.referrer,location.href).origin===location.origin?document.referrer:'test-main.html';
+    location.replace(ref);
+    return;
+  }
+  document.getElementById('share-viewer')?.classList.remove('show');
+}
 async function requestShareWakeLock(on=true){try{if(!on){if(wakeLock){await wakeLock.release();wakeLock=null}return}if('wakeLock' in navigator){wakeLock=await navigator.wakeLock.request('screen');wakeLock.addEventListener('release',()=>{wakeLock=null;renderShareViewerBody()})}}catch(e){wakeLock=null}}
 async function toggleShareWakeLock(){if(wakeLock){await requestShareWakeLock(false);viewerToast('화면잠금 해제')}else{await requestShareWakeLock(true);viewerToast(wakeLock?'화면잠금 켬':'화면잠금 미지원')}await renderShareViewerBody()}
 let touchX=0,touchY=0;
