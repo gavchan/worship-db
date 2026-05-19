@@ -187,6 +187,8 @@ body{min-height:100vh;min-height:100dvh}
 .service-summary{display:none!important}
 .service-tabs{margin-top:2px}
 .service-tab{font-size:13px;padding:10px 14px}
+.share-mode-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 10px}
+.share-mode-tabs .mini-btn{border-radius:999px}
 @media(max-width:760px){
   html,body{overflow:auto}
   .share-header{padding:14px 16px 0}
@@ -197,6 +199,7 @@ body{min-height:100vh;min-height:100dvh}
   .hero p{font-size:13px;line-height:1.45}
   .service-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   .service-tab{border-radius:18px;padding:11px 8px;font-size:13px}
+  .share-mode-tabs{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
   #content,.layout,.detail-panel,#detail{height:auto;overflow:visible}
   .detail-panel{padding:8px;border-radius:18px;background:rgba(5,10,18,.44)}
   .preview{height:62vh;min-height:420px;border-radius:17px}
@@ -222,8 +225,8 @@ body{min-height:100vh;min-height:100dvh}
   <nav class="top-tabs" id="top-tabs" style="display:none">
     <button class="tab-btn" onclick="openSelectedYoutube()">유튜브</button>
     <button class="tab-btn primary" onclick="openSharePerformance(selectedIdx)">연주</button>
+    <button class="tab-btn" onclick="renderDetail('full')">전체악보</button>
     <button class="tab-btn" onclick="shareThisPage()">공유</button>
-    <button class="tab-btn" onclick="visitHome()">홈페이지</button>
   </nav>
   <main id="content"><div class="loading">공유 콘티를 불러오는 중입니다.</div></main>
   <div class="footer-actions" id="footer-actions" style="display:none">
@@ -272,7 +275,7 @@ function splitContiNote(note){
   const mm=text.match(/\[\[WDB_MEMOS:([A-Za-z0-9_-]+)\]\]/);
   const conti2=m?decodeConti2Payload(m[1]):null;
   const memoData=mm?decodeConti2Payload(mm[1]):null;
-  return {visible:text.replace(/\s*\[\[WDB_CONTI2:[A-Za-z0-9_-]+\]\]\s*/,'').replace(/\s*\[\[WDB_MEMOS:[A-Za-z0-9_-]+\]\]\s*/,'').trim(),conti2,memos:Array.isArray(memoData?.memos)?memoData.memos:[],label1:memoData?.label1||'',label2:memoData?.label2||''};
+  return {visible:text.replace(/\s*\[\[WDB_CONTI2:[A-Za-z0-9_-]+\]\]\s*/,'').replace(/\s*\[\[WDB_MEMOS:[A-Za-z0-9_-]+\]\]\s*/,'').trim(),conti2,memos:Array.isArray(memoData?.memos)?memoData.memos:[],urls:Array.isArray(memoData?.urls)?memoData.urls:[],label1:memoData?.label1||'',label2:memoData?.label2||''};
 }
 function songsEqualByBase(a,b){
   const aa=(a||[]).map(s=>`${contiBaseName(s?.name||'')||norm(s?.name||'')}@${norm(songKey(s))}@${norm(songBpm(s))}@${norm(songMemo(s))}`).join('|');
@@ -405,6 +408,9 @@ function mergeScoreFiles(dbFiles, storageFiles){
   return out.sort((a,b)=>(Number(a.page_no||0)-Number(b.page_no||0))||String(scorePath('',a)).localeCompare(String(scorePath('',b))));
 }
 async function listScores(songId){if(!songId)return[];if(scoreCache[songId])return scoreCache[songId];const dbFiles=await listDbScoreFiles(songId);const storageFiles=await listStorageScoreFilesRecursive(songId);scoreCache[songId]=mergeScoreFiles(dbFiles,storageFiles);return scoreCache[songId]}
+function fullScorePrefix(){return `_full_scores/${shareHistoryId||'latest'}/`}
+function fullScoreUrl(name){return `${STORAGE_URL}/object/public/scores/${encodeURIComponent(fullScorePrefix()+name).replaceAll('%2F','/')}`}
+async function listFullScores(){if(!shareHistoryId)return[];try{const res=await fetch(`${STORAGE_URL}/object/list/scores`,{method:'POST',headers:{...STOR_HEADERS,'Content-Type':'application/json'},body:JSON.stringify({prefix:fullScorePrefix(),limit:100,sortBy:{column:'name',order:'asc'}})});if(!res.ok)return[];return(await res.json()).filter(f=>f.name&&!f.name.startsWith('.'))}catch(e){return[]}}
 async function load(){
   const params=new URLSearchParams(location.search);const id=params.get('id');
   shareHistoryId=id||'';
@@ -428,10 +434,10 @@ async function load(){
     let allSongs=[];
     try{allSongs=await api('songs?select=*&order=name&limit=2000')}catch(e){}
     shareSongMap=songMap;
-    const buildSongs=(nms,ids,memos=[])=>uniqueContiSongList(pairHistorySongsBySafeId(nms,ids,songMap,allSongs).map((s,i)=>({...s,conti_memo:memos[i]||''})).filter(s=>s.name));
+    const buildSongs=(nms,ids,memos=[],urls=[])=>uniqueContiSongList(pairHistorySongsBySafeId(nms,ids,songMap,allSongs).map((s,i)=>({...s,conti_memo:memos[i]||'',conti_url:urls[i]||''})).filter(s=>s.name));
     const memoList=noteInfo.memos.length?noteInfo.memos:(safeArray(h.memos).length?safeArray(h.memos):safeArray(h.song_memos));
-    const conti1Songs=buildSongs(names,rawIds,memoList);
-    const conti2Songs=c2Names.length?buildSongs(c2Names,c2Ids,safeArray(noteInfo.conti2?.memos)):conti1Songs.slice();
+    const conti1Songs=buildSongs(names,rawIds,memoList,noteInfo.urls||[]);
+    const conti2Songs=c2Names.length?buildSongs(c2Names,c2Ids,safeArray(noteInfo.conti2?.memos),safeArray(noteInfo.conti2?.urls)):conti1Songs.slice();
     shareVariants=[{label:noteInfo.label1||'1번 콘티',songs:conti1Songs}];
     if(c2Names.length&&!songsEqualByBase(conti1Songs,conti2Songs))shareVariants.push({label:noteInfo.conti2?.label||noteInfo.label2||'2번 콘티',songs:conti2Songs});
     activeVariant=Math.min(requestedVariantIndex(),Math.max(0,shareVariants.length-1));
@@ -460,16 +466,20 @@ async function selectSong(i,render=true){
   await renderDetail('score');
 }
 async function renderDetail(mode='score'){
-  const s=shareSongs[selectedIdx]||{};const files=s.id?await listScores(s.id):[];const first=files[0];const embed=youtubeEmbed(s.music_url);const memo=songMemo(s)||'등록된 메모가 없습니다.';
+  const s=shareSongs[selectedIdx]||{};const files=s.id?await listScores(s.id):[];const first=files[0];const embed=youtubeEmbed(s.conti_url||s.music_url);const memo=songMemo(s)||'등록된 메모가 없습니다.';
   let preview='';
   if(mode==='video'){
     preview=embed?`<iframe src="${embed}" title="${esc(s.name)} 유튜브" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`:`<div class="empty-preview">등록된 유튜브 링크가 없습니다.</div>`;
+  }else if(mode==='full'){
+    const fullFiles=await listFullScores();
+    preview=fullFiles.length?`<div class="score-scroll full-score-scroll">${fullFiles.map(f=>`<img src="${fullScoreUrl(f.name)}" alt="전체악보 ${esc(f.name)}" onerror="brokenScoreImage(this)">`).join('')}</div>`:`<div class="empty-preview">등록된 전체악보가 없습니다.<br><small>콘티관리에서 날짜별 전체악보를 업로드하면 여기에 표시됩니다.</small></div>`;
   }else{
     preview=first?`<div class="score-scroll"><img src="${scoreUrl(scorePath(s.id,first))}" alt="${esc(s.name)} 악보" onerror="brokenScoreImage(this)"></div>`:`<div class="empty-preview">악보 확인 필요<br><small>악보가 준비되면 여기에 표시됩니다.</small></div>`;
   }
   const info=[songKey(s)!=='-'?`Key ${esc(songKey(s))}`:'',songBpm(s)!=='-'?`BPM ${esc(songBpm(s))}`:'',songSeason(s)?esc(songSeason(s)):'',songSituation(s)?esc(songSituation(s)):''].filter(Boolean).join(' · ');
   document.getElementById('detail').innerHTML=`
-    <div class="detail-head"><div><div class="song-title">${esc(s.name)}</div><div class="song-sub">${info||'Key/BPM 정보 없음'}</div></div><div class="view-actions"><button class="mini-btn ${mode==='score'?'primary':''}" onclick="renderDetail('score')">악보</button><button class="mini-btn ${mode==='video'?'primary':''}" onclick="renderDetail('video')">영상</button></div></div>
+    <div class="detail-head"><div><div class="song-title">${esc(mode==='full'?'전체악보':s.name)}</div><div class="song-sub">${mode==='full'?'이 날짜 콘티용 전체악보 보기':(info||'Key/BPM 정보 없음')}</div></div></div>
+    <div class="share-mode-tabs"><button class="mini-btn ${mode==='score'?'primary':''}" onclick="renderDetail('score')">악보</button><button class="mini-btn ${mode==='video'?'primary':''}" onclick="renderDetail('video')">영상</button><button class="mini-btn ${mode==='full'?'primary':''}" onclick="renderDetail('full')">전체악보</button></div>
     <div class="preview">${preview}</div>
     <div class="memo-bar">${esc(memo)}</div>
     <div class="under-actions"><button class="mini-btn primary" onclick="openSingleScore(${selectedIdx})">악보 보기</button><button class="mini-btn" onclick="renderDetail('video')">영상 보기</button></div>
@@ -477,7 +487,7 @@ async function renderDetail(mode='score'){
 }
 async function prevSong(){if(selectedIdx>0)await selectSong(selectedIdx-1);else viewerToast('첫 곡입니다')}
 async function nextSong(){if(selectedIdx<shareSongs.length-1)await selectSong(selectedIdx+1);else viewerToast('마지막 곡입니다')}
-function openSelectedYoutube(){const s=shareSongs[selectedIdx]||{};if(s.music_url){renderDetail('video');return}viewerToast('등록된 유튜브 링크가 없습니다')}
+function openSelectedYoutube(){const s=shareSongs[selectedIdx]||{};if(s.conti_url||s.music_url){renderDetail('video');return}viewerToast('등록된 유튜브 링크가 없습니다')}
 function visitHome(){location.href='test-main.html'}
 function goBackFromShare(){if(history.length>1)history.back();else location.href='test-main.html'}
 function viewerToast(msg){const t=document.getElementById('viewer-toast');if(!t)return;t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1400)}
