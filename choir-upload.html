@@ -37,8 +37,8 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <script src="tool-theme.js" defer></script>
 </head>
 <body>
-<h1>성가곡 등록</h1>
-<p>성가대 자료는 4성부 악보를 기본 악보로 두고, 소프라노·알토·테너·베이스 파트 악보와 파트별 유튜브 연습 영상을 함께 저장합니다. PDF는 페이지별 이미지로 나눠 R2에 저장합니다.</p>
+<h1 id="page-title">성가곡 등록</h1>
+<p id="page-desc">성가대 자료는 4성부 악보를 기본 악보로 두고, 소프라노·알토·테너·베이스 파트 악보와 파트별 유튜브 연습 영상을 함께 저장합니다. PDF는 페이지별 이미지로 나눠 R2에 저장합니다.</p>
 
 <div class="panel">
   <h2>기본 정보</h2>
@@ -100,12 +100,16 @@ button:disabled{opacity:.55;cursor:not-allowed}
   <div class="actions">
     <button id="upload-btn" onclick="uploadChoir()">성가곡 등록</button>
     <button class="secondary" onclick="resetForm()" type="button">입력 초기화</button>
+    <button class="secondary" onclick="location.href='choir.html'" type="button">자료실로 돌아가기</button>
   </div>
   <div id="log">악보 이름과 4성부 악보를 넣고 등록하세요.</div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
+const EDIT_ID=new URLSearchParams(location.search).get('id') || '';
+let editSong=null;
+let existingFiles=[];
 function el(id){return document.getElementById(id)}
 function files(id){return [...el(id).files]}
 function write(message, cls=''){
@@ -193,7 +197,43 @@ function resetForm(){
   ['title','schedule-date','memo','token','video-full','video-soprano','video-alto','video-tenor','video-bass'].forEach(id=>el(id).value='');
   el('schedule-type').value='practice';
   ['full-score','soprano-file','alto-file','tenor-file','bass-file'].forEach(id=>el(id).value='');
-  el('log').textContent='악보 이름과 4성부 악보를 넣고 등록하세요.';
+  if(EDIT_ID && editSong) fillEditForm(editSong);
+  else el('log').textContent='악보 이름과 4성부 악보를 넣고 등록하세요.';
+}
+function flattenScores(song){
+  const scores=song?.scores||{};
+  return ['full','soprano','alto','tenor','bass'].flatMap(section=>(scores[section]||[]).map(file=>({...file,section:file.section||section})));
+}
+function fillEditForm(song){
+  el('title').value=song.title||'';
+  el('schedule-date').value=song.schedule?.date||'';
+  el('schedule-type').value=song.schedule?.type||'practice';
+  el('memo').value=song.memo||'';
+  el('video-full').value=song.videos?.full||'';
+  el('video-soprano').value=song.videos?.soprano||'';
+  el('video-alto').value=song.videos?.alto||'';
+  el('video-tenor').value=song.videos?.tenor||'';
+  el('video-bass').value=song.videos?.bass||'';
+  existingFiles=flattenScores(song);
+  el('page-title').textContent='성가곡 수정';
+  el('page-desc').textContent='기존 성가곡 정보를 수정합니다. 새 악보 파일을 선택하면 기존 악보 뒤에 추가되고, 선택하지 않으면 기존 악보를 유지합니다.';
+  el('upload-btn').textContent='수정 저장';
+  el('log').innerHTML=`수정 중: ${song.title}\n기존 악보 ${existingFiles.length}장 유지 중입니다. 새 파일을 선택하면 추가됩니다.`;
+}
+async function loadEditSong(){
+  if(!EDIT_ID)return;
+  try{
+    el('log').textContent='기존 성가곡 정보를 불러오는 중입니다.';
+    const res=await fetch('/api/r2-choir-upload',{cache:'no-store'});
+    const data=await res.json();
+    if(!res.ok || !data.ok) throw new Error(data.error || '목록을 불러오지 못했습니다.');
+    const groups=Array.isArray(data.manifest) ? data.manifest : (data.manifest?.groups || []);
+    editSong=groups.find(item=>item && item.id===EDIT_ID);
+    if(!editSong) throw new Error('수정할 성가곡을 찾지 못했습니다.');
+    fillEditForm(editSong);
+  }catch(e){
+    write('불러오기 실패: '+(e.message||e), 'err');
+  }
 }
 async function uploadChoir(){
   const btn=el('upload-btn');
@@ -207,9 +247,10 @@ async function uploadChoir(){
   };
   const total=fullFiles.length+Object.values(partFiles).reduce((sum,list)=>sum+list.length,0);
   if(!title){el('title').focus();return alert('악보 이름을 입력해주세요.')}
-  if(!fullFiles.length && !total){el('full-score').focus();return alert('4성부 악보 또는 파트 자료를 선택해주세요.')}
+  if(!EDIT_ID && !fullFiles.length && !total){el('full-score').focus();return alert('4성부 악보 또는 파트 자료를 선택해주세요.')}
+  if(EDIT_ID && !existingFiles.length && !total){el('full-score').focus();return alert('기존 악보가 없어서 새 악보 파일이 필요합니다.')}
   btn.disabled=true;
-  btn.textContent='등록 중...';
+  btn.textContent=EDIT_ID?'수정 저장 중...':'등록 중...';
   el('log').innerHTML='';
   try{
     write('파일을 읽는 중입니다.', 'info');
@@ -234,8 +275,8 @@ async function uploadChoir(){
       }
     };
     const token=readToken();
-    const uploadId=makeUploadId();
-    const savedFiles=[];
+    const uploadId=EDIT_ID || makeUploadId();
+    const savedFiles=[...existingFiles];
     const buckets=[
       ['full', payload.fullScoreFiles],
       ['soprano', payload.partFiles.soprano],
@@ -250,11 +291,12 @@ async function uploadChoir(){
       for(let i=0;i<list.length;i+=1){
         sent+=1;
         write(`${sent}/${fileTotal} 저장 중: ${list[i].name}`, 'info');
-        const data=await postChoir({mode:'file',uploadId,section,index:i,file:list[i]}, token);
+        const startIndex=savedFiles.filter(file=>file.section===section).length;
+        const data=await postChoir({mode:'file',uploadId,section,index:startIndex+i,file:list[i]}, token);
         savedFiles.push(data.file);
       }
     }
-    write('성가곡 목록에 등록하는 중입니다.', 'info');
+    write(EDIT_ID?'성가곡 목록을 수정하는 중입니다.':'성가곡 목록에 등록하는 중입니다.', 'info');
     const data=await postChoir({
       mode:'commit',
       uploadId,
@@ -263,9 +305,10 @@ async function uploadChoir(){
       scheduleType:payload.scheduleType,
       memo:payload.memo,
       videos:payload.videos,
-      savedFiles
+      savedFiles,
+      createdAt:editSong?.created_at || new Date().toISOString()
     }, token);
-    write(`완료: ${data.group.title} / ${data.group.files.length}개 파일 저장`, 'ok');
+    write(`${EDIT_ID?'수정 완료':'완료'}: ${data.group.title} / ${data.group.files.length}개 파일 저장`, 'ok');
     write(`일정: ${data.group.schedule.date || '날짜 미정'} · ${data.group.schedule.type}`, 'ok');
     const links=document.createElement('div');
     links.className='result-list';
@@ -274,15 +317,18 @@ async function uploadChoir(){
       ...data.group.files.map(file=>`<a href="${file.url}" target="_blank">[${file.section}] ${file.file_name}</a>`)
     ].join('');
     el('log').appendChild(links);
+    editSong=data.group;
+    existingFiles=flattenScores(data.group);
   }catch(e){
     write('실패: '+(e.message || e), 'err');
     if(String(e.message || '').includes('권한')) write('R2 보호 토큰이 설정되어 있으면 같은 값을 입력해주세요.', 'info');
     if(String(e.message || '').includes('환경변수')) write('Vercel 환경변수에 R2 계정 정보가 필요합니다.', 'info');
   }finally{
     btn.disabled=false;
-    btn.textContent='성가곡 등록';
+    btn.textContent=EDIT_ID?'수정 저장':'성가곡 등록';
   }
 }
+loadEditSong();
 </script>
 </body>
 </html>

@@ -26,6 +26,6 @@
     return;
   }
 
-  alert('비밀번호가 올바르지 않습니다. PC 화면으로 돌아갑니다.');
-  location.replace('pc.html');
+  alert('비밀번호가 올바르지 않습니다. 통합 홈으로 돌아갑니다.');
+  location.replace('test-main.html');
 })();

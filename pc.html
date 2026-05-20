@@ -7,6 +7,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="드림찬양단">
 <title>드림찬양단 찬양곡 데이터베이스</title>
+<script>
+if (!new URLSearchParams(location.search).has('legacy')) {
+  location.replace('test-main.html');
+}
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#faf8f5;--surface:#fff;--surface2:#f4f1eb;--border:#e8e2d9;--border2:#d4cec4;--text1:#1a1714;--text2:#6b6560;--text3:#9e9891;--accent:#2d5a8e;--accent2:#c4913a;--green:#3a7a52;--green-bg:#edf5f0;--blue-bg:#eaf0f8;--amber-bg:#fdf4e7;--red:#b0281f;--red-bg:#fdeaea}

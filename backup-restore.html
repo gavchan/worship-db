@@ -19,7 +19,7 @@
 <div class="wrap">
   <div class="head">
     <div><div class="eyebrow">WORSHIP DB SAFETY</div><h1>백업 / 복원</h1><p>관리 작업 전에 먼저 실행합니다. 찬양곡, 콘티, 악보 버전/연결 기록을 JSON으로 저장합니다.</p></div>
-    <button class="btn gray" onclick="location.href='pc.html'">PC 화면</button>
+    <button class="btn gray" onclick="location.href='test-main.html'">통합 화면</button>
   </div>
   <div class="grid">
     <section class="card">
@@ -97,7 +97,7 @@ async function importBackup() {
   if(backup.ai_settings) localStorage.setItem('worshipAiSettings', JSON.stringify(backup.ai_settings));
   if(backup.worship_ai_settings) localStorage.setItem('worship_ai_settings', JSON.stringify(backup.worship_ai_settings));
   if(backup.song_score_versions?.length || backup.song_score_files?.length) log('악보 버전/연결 기록은 백업에 포함되어 있습니다. 복원은 중복 위험 때문에 필요 시 별도 점검 후 진행하세요.');
-  log('복원 완료. PC 화면을 새로고침하면 반영됩니다.');
+  log('복원 완료. 통합 화면을 새로고침하면 반영됩니다.');
   alert('복원이 완료되었습니다.');
 }
 loadStats();
