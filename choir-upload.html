@@ -129,8 +129,13 @@ function fileToData(file){
     reader.readAsDataURL(file);
   });
 }
+function makeUploadId(){
+  const stamp=new Date().toISOString().slice(0,10);
+  const random=Math.random().toString(36).slice(2,8);
+  return `choir-${stamp}-${Date.now().toString(36)}-${random}`;
+}
 function canvasToDataUrl(canvas){
-  return canvas.toDataURL('image/png', .92);
+  return canvas.toDataURL('image/jpeg', .82);
 }
 async function pdfToImages(file){
   if(!window.pdfjsLib) throw new Error('PDF 변환 도구를 불러오지 못했습니다. 인터넷 연결을 확인해주세요.');
@@ -142,7 +147,7 @@ async function pdfToImages(file){
   for(let pageNo=1; pageNo<=pdf.numPages; pageNo++){
     write(`${file.name} ${pageNo}/${pdf.numPages}쪽을 이미지로 변환 중입니다.`, 'info');
     const page=await pdf.getPage(pageNo);
-    const viewport=page.getViewport({scale:2});
+    const viewport=page.getViewport({scale:1.45});
     const canvas=document.createElement('canvas');
     const ctx=canvas.getContext('2d');
     canvas.width=Math.ceil(viewport.width);
@@ -150,8 +155,8 @@ async function pdfToImages(file){
     await page.render({canvasContext:ctx, viewport}).promise;
     const dataUrl=canvasToDataUrl(canvas);
     pages.push({
-      name:`${baseName}_p${String(pageNo).padStart(2,'0')}.png`,
-      type:'image/png',
+      name:`${baseName}_p${String(pageNo).padStart(2,'0')}.jpg`,
+      type:'image/jpeg',
       size:Math.round(dataUrl.length * .75),
       data:dataUrl,
       source_pdf:file.name,
@@ -168,6 +173,21 @@ async function packFileList(list){
     else packed.push(await fileToData(file));
   }
   return packed;
+}
+async function postChoir(payload, token){
+  const headers={'Content-Type':'application/json'};
+  if(token) headers['x-r2-sync-token']=token;
+  const res=await fetch('/api/r2-choir-upload',{method:'POST',headers,body:JSON.stringify(payload)});
+  const text=await res.text();
+  let data={};
+  try{data=text?JSON.parse(text):{};}catch(_){data={error:text};}
+  if(!res.ok || !data.ok){
+    const localStatic=/^(localhost|127\.0\.0\.1)$/i.test(location.hostname) && (res.status===404 || res.status===501);
+    if(localStatic) throw new Error('로컬 미리보기 서버에서는 등록 API가 실행되지 않습니다. 운영 배포 주소나 Vercel 개발 서버에서 등록해주세요.');
+    const detail=data.error || data.message || text || `등록 실패 (${res.status})`;
+    throw new Error(String(detail).slice(0, 500));
+  }
+  return data;
 }
 function resetForm(){
   ['title','schedule-date','memo','token','video-full','video-soprano','video-alto','video-tenor','video-bass'].forEach(id=>el(id).value='');
@@ -213,19 +233,38 @@ async function uploadChoir(){
         bass:await packFileList(partFiles.bass)
       }
     };
-    write('R2 성가대 저장공간으로 보내는 중입니다.', 'info');
     const token=readToken();
-    const headers={'Content-Type':'application/json'};
-    if(token) headers['x-r2-sync-token']=token;
-    const res=await fetch('/api/r2-choir-upload',{method:'POST',headers,body:JSON.stringify(payload)});
-    const text=await res.text();
-    let data={};
-    try{data=text?JSON.parse(text):{};}catch(_){data={error:text};}
-    if(!res.ok || !data.ok){
-      const localStatic=/^(localhost|127\.0\.0\.1)$/i.test(location.hostname) && (res.status===404 || res.status===501);
-      if(localStatic) throw new Error('로컬 미리보기 서버에서는 등록 API가 실행되지 않습니다. 운영 배포 주소나 Vercel 개발 서버에서 등록해주세요.');
-      throw new Error(data.error || `등록 실패 (${res.status})`);
+    const uploadId=makeUploadId();
+    const savedFiles=[];
+    const buckets=[
+      ['full', payload.fullScoreFiles],
+      ['soprano', payload.partFiles.soprano],
+      ['alto', payload.partFiles.alto],
+      ['tenor', payload.partFiles.tenor],
+      ['bass', payload.partFiles.bass]
+    ];
+    const fileTotal=buckets.reduce((sum,[,list])=>sum+list.length,0);
+    let sent=0;
+    write(`R2 성가대 저장공간으로 ${fileTotal}개 파일을 나눠 보내는 중입니다.`, 'info');
+    for(const [section, list] of buckets){
+      for(let i=0;i<list.length;i+=1){
+        sent+=1;
+        write(`${sent}/${fileTotal} 저장 중: ${list[i].name}`, 'info');
+        const data=await postChoir({mode:'file',uploadId,section,index:i,file:list[i]}, token);
+        savedFiles.push(data.file);
+      }
     }
+    write('성가곡 목록에 등록하는 중입니다.', 'info');
+    const data=await postChoir({
+      mode:'commit',
+      uploadId,
+      title:payload.title,
+      scheduleDate:payload.scheduleDate,
+      scheduleType:payload.scheduleType,
+      memo:payload.memo,
+      videos:payload.videos,
+      savedFiles
+    }, token);
     write(`완료: ${data.group.title} / ${data.group.files.length}개 파일 저장`, 'ok');
     write(`일정: ${data.group.schedule.date || '날짜 미정'} · ${data.group.schedule.type}`, 'ok');
     const links=document.createElement('div');

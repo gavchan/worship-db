@@ -164,6 +164,78 @@ function totalFileCount(buckets) {
   return Object.values(buckets).reduce((sum, list) => sum + list.length, 0);
 }
 
+function normalizeUploadId(value) {
+  return String(value || '').trim().replace(/[^a-zA-Z0-9_-]/g, '-').slice(0, 120);
+}
+
+function emptyScores() {
+  return {
+    full: [],
+    soprano: [],
+    alto: [],
+    tenor: [],
+    bass: []
+  };
+}
+
+function makeChoirGroup(body, id, now) {
+  const title = safeText(body.title, '');
+  return {
+    id,
+    type: 'choir_song',
+    title,
+    search_title: title.replace(/\s+/g, '').toLowerCase(),
+    schedule: {
+      date: safeText(body.scheduleDate || body.date, ''),
+      type: safeText(body.scheduleType, 'practice'),
+      label: safeText(body.scheduleLabel, '')
+    },
+    memo: safeText(body.memo, ''),
+    videos: normalizeVideoMap(body.videos),
+    scores: emptyScores(),
+    files: [],
+    created_at: safeText(body.createdAt, now.toISOString()),
+    updated_at: now.toISOString()
+  };
+}
+
+function assertSection(section) {
+  const value = safeText(section, 'full');
+  if (!['full', 'soprano', 'alto', 'tenor', 'bass'].includes(value)) throw new Error('알 수 없는 성가대 악보 구분입니다.');
+  return value;
+}
+
+async function saveChoirFile(config, uploadId, section, file, index) {
+  const bucketName = assertSection(section);
+  const fileName = safeText(file.name, `${bucketName}-${index + 1}`);
+  const type = contentType(fileName, file.type);
+  if (type === 'application/pdf') throw new Error('PDF는 업로드 화면에서 페이지별 이미지로 변환한 뒤 저장해야 합니다.');
+  if (!String(type).startsWith('image/')) throw new Error(`${fileName}은 이미지 파일이 아닙니다.`);
+  const buffer = parseDataFile(file);
+  const ext = extFromFile(fileName, type);
+  const key = `${config.choirPrefix}/${uploadId}/${bucketName}/${String(index + 1).padStart(2, '0')}.${ext}`;
+  await r2Put(key, buffer, type);
+  return {
+    section: bucketName,
+    file_name: fileName,
+    content_type: type,
+    size: buffer.length,
+    page_no: index + 1,
+    source_pdf: safeText(file.source_pdf, ''),
+    source_page: file.source_page || null,
+    r2_path: key,
+    url: publicUrl(config, key)
+  };
+}
+
+async function writeChoirManifest(config, group, now) {
+  const manifest = await r2GetJson(config.manifestKey).catch(() => null) || { updated_at: null, groups: [] };
+  manifest.updated_at = now.toISOString();
+  manifest.groups = Array.isArray(manifest.groups) ? manifest.groups : [];
+  manifest.groups = [group, ...manifest.groups.filter(item => item && item.id !== group.id)];
+  await r2Put(config.manifestKey, Buffer.from(JSON.stringify(manifest, null, 2)), 'application/json; charset=utf-8');
+}
+
 module.exports = async function handler(req, res) {
   try {
     const config = envConfig();
@@ -175,6 +247,50 @@ module.exports = async function handler(req, res) {
     if (!authorized(req)) return send(res, 401, { ok: false, error: 'R2 업로드 권한이 필요합니다.' });
 
     const body = typeof req.body === 'object' && req.body ? req.body : JSON.parse(req.body || '{}');
+    const mode = safeText(body.mode, 'complete');
+    const now = new Date();
+
+    if (mode === 'file') {
+      const uploadId = normalizeUploadId(body.uploadId);
+      if (!uploadId) return send(res, 400, { ok: false, error: '업로드 묶음 ID가 없습니다.' });
+      const file = body.file || {};
+      const saved = await saveChoirFile(config, uploadId, body.section || 'full', file, Number(body.index || 0));
+      return send(res, 200, { ok: true, upload_id: uploadId, file: saved });
+    }
+
+    if (mode === 'commit') {
+      const uploadId = normalizeUploadId(body.uploadId);
+      const title = safeText(body.title, '');
+      const savedFiles = Array.isArray(body.savedFiles) ? body.savedFiles : [];
+      if (!uploadId) return send(res, 400, { ok: false, error: '업로드 묶음 ID가 없습니다.' });
+      if (!title) return send(res, 400, { ok: false, error: '성가곡 제목을 입력해주세요.' });
+      if (!savedFiles.length) return send(res, 400, { ok: false, error: '목록에 등록할 악보 파일이 없습니다.' });
+      const group = makeChoirGroup(body, uploadId, now);
+      savedFiles.forEach(file => {
+        const section = assertSection(file.section);
+        const saved = {
+          section,
+          file_name: safeText(file.file_name, ''),
+          content_type: safeText(file.content_type, ''),
+          size: Number(file.size || 0),
+          page_no: Number(file.page_no || 1),
+          source_pdf: safeText(file.source_pdf, ''),
+          source_page: file.source_page || null,
+          r2_path: safeText(file.r2_path, ''),
+          url: safeText(file.url, '')
+        };
+        group.scores[section].push(saved);
+        group.files.push(saved);
+      });
+      await writeChoirManifest(config, group, now);
+      return send(res, 200, {
+        ok: true,
+        group,
+        manifest_key: config.manifestKey,
+        manifest_url: publicUrl(config, config.manifestKey)
+      });
+    }
+
     const title = safeText(body.title, '');
     const buckets = fileBuckets(body);
     const count = totalFileCount(buckets);
@@ -182,64 +298,18 @@ module.exports = async function handler(req, res) {
     if (!count) return send(res, 400, { ok: false, error: '업로드할 4성부 악보 또는 파트 자료를 선택해주세요.' });
     if (count > 40) return send(res, 400, { ok: false, error: '한 번에 최대 40개 페이지까지 업로드할 수 있습니다.' });
 
-    const now = new Date();
     const id = `choir-${now.toISOString().slice(0, 10)}-${Date.now().toString(36)}`;
-    const group = {
-      id,
-      type: 'choir_song',
-      title,
-      search_title: title.replace(/\s+/g, '').toLowerCase(),
-      schedule: {
-        date: safeText(body.scheduleDate || body.date, ''),
-        type: safeText(body.scheduleType, 'practice'),
-        label: safeText(body.scheduleLabel, '')
-      },
-      memo: safeText(body.memo, ''),
-      videos: normalizeVideoMap(body.videos),
-      scores: {
-        full: [],
-        soprano: [],
-        alto: [],
-        tenor: [],
-        bass: []
-      },
-      files: [],
-      created_at: now.toISOString(),
-      updated_at: now.toISOString()
-    };
+    const group = makeChoirGroup(body, id, now);
 
     for (const [bucketName, files] of Object.entries(buckets)) {
       for (let i = 0; i < files.length; i += 1) {
-        const file = files[i] || {};
-        const fileName = safeText(file.name, `${bucketName}-${i + 1}`);
-        const type = contentType(fileName, file.type);
-        if (type === 'application/pdf') throw new Error('PDF는 업로드 화면에서 페이지별 이미지로 변환한 뒤 저장해야 합니다.');
-        if (!String(type).startsWith('image/')) throw new Error(`${fileName}은 이미지 파일이 아닙니다.`);
-        const buffer = parseDataFile(file);
-        const ext = extFromFile(fileName, type);
-        const key = `${config.choirPrefix}/${id}/${bucketName}/${String(i + 1).padStart(2, '0')}.${ext}`;
-        await r2Put(key, buffer, type);
-        const saved = {
-          section: bucketName,
-          file_name: fileName,
-          content_type: type,
-          size: buffer.length,
-          page_no: i + 1,
-          source_pdf: safeText(file.source_pdf, ''),
-          source_page: file.source_page || null,
-          r2_path: key,
-          url: publicUrl(config, key)
-        };
+        const saved = await saveChoirFile(config, id, bucketName, files[i] || {}, i);
         group.scores[bucketName].push(saved);
         group.files.push(saved);
       }
     }
 
-    const manifest = await r2GetJson(config.manifestKey).catch(() => null) || { updated_at: null, groups: [] };
-    manifest.updated_at = now.toISOString();
-    manifest.groups = Array.isArray(manifest.groups) ? manifest.groups : [];
-    manifest.groups = [group, ...manifest.groups.filter(item => item && item.id !== id)];
-    await r2Put(config.manifestKey, Buffer.from(JSON.stringify(manifest, null, 2)), 'application/json; charset=utf-8');
+    await writeChoirManifest(config, group, now);
 
     return send(res, 200, {
       ok: true,
