@@ -164,6 +164,16 @@ function totalFileCount(buckets) {
   return Object.values(buckets).reduce((sum, list) => sum + list.length, 0);
 }
 
+function normalizeManifest(raw) {
+  if (Array.isArray(raw)) return { updated_at: null, groups: raw };
+  const manifest = raw && typeof raw === 'object' ? raw : {};
+  return {
+    ...manifest,
+    updated_at: manifest.updated_at || null,
+    groups: Array.isArray(manifest.groups) ? manifest.groups : []
+  };
+}
+
 function normalizeUploadId(value) {
   return String(value || '').trim().replace(/[^a-zA-Z0-9_-]/g, '-').slice(0, 120);
 }
@@ -229,9 +239,8 @@ async function saveChoirFile(config, uploadId, section, file, index) {
 }
 
 async function writeChoirManifest(config, group, now) {
-  const manifest = await r2GetJson(config.manifestKey).catch(() => null) || { updated_at: null, groups: [] };
+  const manifest = normalizeManifest(await r2GetJson(config.manifestKey).catch(() => null));
   manifest.updated_at = now.toISOString();
-  manifest.groups = Array.isArray(manifest.groups) ? manifest.groups : [];
   manifest.groups = [group, ...manifest.groups.filter(item => item && item.id !== group.id)];
   await r2Put(config.manifestKey, Buffer.from(JSON.stringify(manifest, null, 2)), 'application/json; charset=utf-8');
 }
@@ -240,7 +249,7 @@ module.exports = async function handler(req, res) {
   try {
     const config = envConfig();
     if (req.method === 'GET') {
-      const manifest = await r2GetJson(config.manifestKey).catch(() => null) || { updated_at: null, groups: [] };
+      const manifest = normalizeManifest(await r2GetJson(config.manifestKey).catch(() => null));
       return send(res, 200, { ok: true, manifest });
     }
     if (req.method !== 'POST') return send(res, 405, { ok: false, error: 'GET 또는 POST만 지원합니다.' });

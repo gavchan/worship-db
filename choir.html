@@ -81,7 +81,8 @@ async function loadChoir(){
     const res=await fetch('/api/r2-choir-upload',{cache:'no-store'});
     const data=await res.json();
     if(!res.ok || !data.ok) throw new Error(data.error || '목록을 불러오지 못했습니다.');
-    choirSongs=(data.manifest.groups||[]).filter(item=>item && item.type==='choir_song');
+    const groups=Array.isArray(data.manifest) ? data.manifest : (data.manifest?.groups || []);
+    choirSongs=groups.filter(item=>item && item.type==='choir_song');
     renderList();
   }catch(e){
     document.getElementById('list').innerHTML=`<div class="empty">${esc(e.message||e)}</div>`;
