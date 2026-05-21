@@ -39,16 +39,19 @@ select option{color:#111}
 .part-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
 .part-tabs button{border:1px solid var(--line);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:9px 12px;font-weight:900}
 .part-tabs button.on{background:#fff;color:#07101f}
-.viewer-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(300px,.75fr);gap:14px}
+.viewer-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
 .score-card,.media-card,.part-summary{border:1px solid var(--line);background:rgba(255,255,255,.055);border-radius:22px;padding:14px}
+.main-viewer-card{width:100%;max-width:980px;margin:0 auto}
 .score-toolbar,.media-toolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
 .score-toolbar b,.media-toolbar b{font-size:18px}
 .score-preview{height:min(62vh,680px);background:white;border-radius:18px;overflow:auto;display:flex;justify-content:center;align-items:flex-start;color:#64748b}
 .score-preview img{display:block;width:100%;height:auto}
 .score-preview .no-score{padding:44px 18px;color:#64748b;font-weight:900}
-.media-body{min-height:280px;max-height:520px;border-radius:18px;background:#020617;display:flex;align-items:center;justify-content:center;overflow:auto;color:#cbd5e1}
-.media-body img{display:block;max-width:100%;max-height:500px;width:auto;height:auto;background:#fff;border-radius:14px;object-fit:contain}
+.media-body{height:min(66vh,720px);min-height:360px;border-radius:18px;background:#020617;display:flex;align-items:flex-start;justify-content:center;overflow:auto;color:#cbd5e1}
+.media-body img{display:block;max-width:100%;width:auto;height:auto;background:#fff;border-radius:14px;object-fit:contain}
 .media-body iframe{width:100%;aspect-ratio:16/9;border:0}
+.viewer-action-row{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin-top:10px}
+.viewer-action-row .btn{display:flex;justify-content:center}
 .memo{margin-top:12px;background:#020617;color:#f8fafc;border-radius:16px;padding:13px;font-weight:800;line-height:1.55}
 .part-list{display:grid;gap:9px;margin-top:12px}
 .part-row{display:grid;grid-template-columns:86px 1fr auto;align-items:center;gap:8px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.055);padding:10px}
@@ -73,7 +76,7 @@ select option{color:#111}
 .viewer.video .viewer-stage{display:none}.viewer.video .viewer-video{display:flex}
 .viewer-video iframe{width:min(1180px,96vw);aspect-ratio:16/9;border:0;background:#000;border-radius:18px}
 .strip{display:flex;gap:8px;overflow:auto;flex:1}.strip button{white-space:nowrap}
-@media(max-width:900px){.hero,.layout,.viewer-grid{grid-template-columns:1fr}.list{max-height:none}.score-preview{height:auto;max-height:none}.top{align-items:flex-start}.detail-head{display:block}.actions{justify-content:flex-start;margin-top:12px}.part-row{grid-template-columns:74px 1fr}.part-row .small-btn{grid-column:1/-1}.file-grid,.edit-grid{grid-template-columns:1fr}}
+@media(max-width:900px){.hero,.layout,.viewer-grid{grid-template-columns:1fr}.list{max-height:none}.score-preview{height:auto;max-height:none}.media-body{height:auto;max-height:none;min-height:0}.media-body img{width:100%;max-width:100%}.top{align-items:flex-start}.detail-head{display:block}.actions{justify-content:flex-start;margin-top:12px}.part-row{grid-template-columns:74px 1fr}.part-row .small-btn{grid-column:1/-1}.file-grid,.edit-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -205,6 +208,8 @@ function renderPartRows(song){
 function renderDetail(song){
   if(!song){document.getElementById('detail').innerHTML='<div class="empty">왼쪽에서 성가곡을 선택하세요.</div>';return}
   const partTabs=partOrder.map(part=>`<button class="${part===selectedPart?'on':''}" onclick="setPart('${part}')">${partLabels[part]}</button>`).join('');
+  const currentModeLabel=mediaMode==='video'?'영상':'악보';
+  const openMode=mediaMode==='video'?'video':'score';
   document.getElementById('detail').innerHTML=`
     <div class="detail-head">
       <div><div class="detail-title">${esc(song.title)}</div><div class="detail-sub">${esc(song.schedule?.date||'날짜 미정')} · ${esc(labels[song.schedule?.type]||song.schedule?.type||'자료')}</div></div>
@@ -216,22 +221,21 @@ function renderDetail(song){
     </div>
     <div class="part-tabs">${partTabs}</div>
     <div class="viewer-grid">
-      <div class="score-card">
-        <div class="score-toolbar"><b>${partLabels[selectedPart]} 악보</b><div><button class="small-btn primary" onclick="openViewer('${selectedPart}','score')">크게 보기</button></div></div>
-        <div class="score-preview">${renderScorePreview(song)}</div>
-      </div>
-      <div>
-        <div class="media-card">
-          <div class="media-toolbar"><b>${partLabels[selectedPart]} ${mediaMode==='video'?'영상':'미리보기'}</b><div><button class="small-btn ${mediaMode==='score'?'primary':''}" onclick="setMedia('score')">악보</button> <button class="small-btn ${mediaMode==='video'?'primary':''}" onclick="setMedia('video')">영상</button></div></div>
-          <div class="media-body">${renderMedia(song)}</div>
-          <div class="actions" style="margin-top:10px;justify-content:flex-start"><button class="btn" onclick="openViewer('${selectedPart}','video')">영상 크게 보기</button></div>
+      <div class="media-card main-viewer-card">
+        <div class="media-toolbar">
+          <b>${partLabels[selectedPart]} ${currentModeLabel}</b>
+          <div><button class="small-btn ${mediaMode==='score'?'primary':''}" onclick="setMedia('score')">악보</button> <button class="small-btn ${mediaMode==='video'?'primary':''}" onclick="setMedia('video')">영상</button></div>
         </div>
-        <div class="part-summary">
-          <b>성부별 자료</b>
-          <div class="part-list">${renderPartRows(song)}</div>
+        <div class="media-body">${renderMedia(song)}</div>
+        <div class="viewer-action-row">
+          <button class="btn ${mediaMode==='video'?'primary':''}" onclick="openViewer('${selectedPart}','${openMode}')">${currentModeLabel} 크게 보기</button>
         </div>
-        ${song.memo ? `<div class="memo">${esc(song.memo)}</div>` : '<div class="memo">등록된 메모가 없습니다.</div>'}
       </div>
+      <div class="part-summary">
+        <b>성부별 자료</b>
+        <div class="part-list">${renderPartRows(song)}</div>
+      </div>
+      ${song.memo ? `<div class="memo">${esc(song.memo)}</div>` : '<div class="memo">등록된 메모가 없습니다.</div>'}
     </div>`;
 }
 async function keepAwake(on){
