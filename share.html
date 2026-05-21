@@ -221,11 +221,20 @@ body{min-height:100vh;min-height:100dvh}
 .viewer.controls-hidden .viewer-stage{inset:0!important}
 .viewer.controls-hidden .viewer-page img{max-height:100%!important}
 .share-top-overlay,.share-song-strip,.share-lock,.share-memo-strip,.share-next-cue{transition:opacity .18s ease,transform .18s ease}
+.performance-start{width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:24px;background:#020611}
+.performance-start-card{width:min(92vw,520px);border:1px solid rgba(255,255,255,.16);background:rgba(5,10,18,.78);border-radius:24px;padding:26px;text-align:center;box-shadow:0 28px 70px rgba(0,0,0,.4)}
+.performance-start-card h2{font-size:26px;letter-spacing:-.04em;margin-bottom:10px}
+.performance-start-card p{color:#cbd5e1;font-size:14px;line-height:1.6;margin-bottom:18px}
+.performance-start-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.performance-start-actions button{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#fff;border-radius:999px;padding:13px 12px;font:inherit;font-weight:900;cursor:pointer}
+.performance-start-actions button.primary{background:#fff;color:#050816;border-color:#fff}
 @media(max-width:760px){
   .share-actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
   .share-action{padding:10px 7px;font-size:12px}
   .nav-actions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}
   .nav-actions .mini-btn{display:block!important;min-width:0}
+  .performance-start-card{padding:22px 16px}
+  .performance-start-card h2{font-size:23px}
 }
 </style>
 </head>
@@ -473,7 +482,7 @@ async function load(){
     renderServiceNav();
     renderShell();
     await selectSong(0,false);
-    if(isPerformanceEntry())await openSharePerformance(0);
+    if(isPerformanceEntry())showPerformanceStartPrompt();
   }catch(e){document.getElementById('content').innerHTML='<div class="empty">콘티를 불러오지 못했습니다.<br>'+esc(e.message)+'</div>'}
 }
 function renderShell(){
@@ -522,7 +531,25 @@ async function openSharePerformance(i=0){
   normalizeShareSongList();
   if(!shareSongs.length){viewerToast('콘티 곡이 없습니다');return}
   viewerIdx=Math.max(0,Math.min(i,shareSongs.length-1));viewerPage=0;singleViewer=!!singleViewer;
-  const v=document.getElementById('share-viewer');v.classList.add('show');v.classList.remove('controls-hidden');v.classList.toggle('single',singleViewer);await requestShareWakeLock(false);await renderShareViewer();requestShareFullscreen();scheduleViewerControlsHide(1800);singleViewer=false;
+  const v=document.getElementById('share-viewer');
+  v.classList.add('show');
+  v.classList.remove('controls-hidden');
+  v.classList.toggle('single',singleViewer);
+  const fullscreenAttempt=requestShareFullscreen();
+  await requestShareWakeLock(false);
+  await renderShareViewer();
+  const fullscreenOk=await fullscreenAttempt;
+  if(!fullscreenOk)viewerToast('전체화면 버튼을 한번 더 눌러주세요');
+  scheduleViewerControlsHide(1800);
+  singleViewer=false;
+}
+function showPerformanceStartPrompt(){
+  const v=document.getElementById('share-viewer');
+  const stage=document.getElementById('share-viewer-stage');
+  if(!v||!stage)return;
+  v.className='viewer one show';
+  const label=shareTitle||'찬양 콘티';
+  stage.innerHTML=`<div class="performance-start"><div class="performance-start-card"><h2>연주화면 시작</h2><p>${esc(label)}<br>주소창과 아래 바를 숨기려면 아래 버튼을 한 번 눌러 전체화면으로 시작하세요.</p><div class="performance-start-actions"><button type="button" onclick="closeShareViewer()">뒤로</button><button type="button" class="primary" onclick="openSharePerformance(0)">전체화면 시작</button></div></div></div>`;
 }
 async function goShareSong(i){normalizeShareSongList();viewerIdx=Math.max(0,Math.min(i,shareSongs.length-1));viewerPage=0;await renderShareViewer()}
 async function setSharePageMode(mode){viewerMode=mode===2?2:1;await renderShareViewerBody()}
