@@ -54,9 +54,13 @@ select option{color:#111}
 .score-preview{height:min(62vh,680px);background:white;border-radius:18px;overflow:auto;display:flex;justify-content:center;align-items:flex-start;color:#64748b}
 .score-preview img{display:block;width:100%;height:auto}
 .score-preview .no-score{padding:44px 18px;color:#64748b;font-weight:900}
-.media-body{height:min(66vh,720px);min-height:360px;border-radius:18px;background:#020617;display:flex;align-items:flex-start;justify-content:center;overflow:auto;color:#cbd5e1}
-.media-body img{display:block;max-width:100%;width:auto;height:auto;background:#fff;border-radius:14px;object-fit:contain}
-.media-body iframe{width:100%;aspect-ratio:16/9;border:0}
+.media-body{border-radius:18px;background:#020617;display:flex;align-items:center;justify-content:center;overflow:hidden;color:#cbd5e1}
+.media-body.score-mode{height:min(58vh,560px);min-height:320px}
+.media-body.video-mode{aspect-ratio:16/9;min-height:0}
+.media-body img{display:block;max-width:100%;background:#fff;border-radius:14px;object-fit:contain}
+.media-body iframe{width:100%;height:100%;aspect-ratio:16/9;border:0}
+.score-spread{width:100%;height:100%;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;padding:12px;align-items:center}
+.score-spread img{width:100%;height:100%;object-fit:contain}
 .viewer-action-row{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin-top:10px}
 .viewer-action-row .btn{display:flex;justify-content:center}
 .memo{margin-top:12px;background:#020617;color:#f8fafc;border-radius:16px;padding:13px;font-weight:800;line-height:1.55}
@@ -83,7 +87,7 @@ select option{color:#111}
 .viewer.video .viewer-stage{display:none}.viewer.video .viewer-video{display:flex}
 .viewer-video iframe{width:min(1180px,96vw);aspect-ratio:16/9;border:0;background:#000;border-radius:18px}
 .strip{display:flex;gap:8px;overflow:auto;flex:1}.strip button{white-space:nowrap}
-@media(max-width:900px){.hero,.layout,.viewer-grid{grid-template-columns:1fr}.list{max-height:none}.score-preview{height:auto;max-height:none}.media-body{height:auto;max-height:none;min-height:0}.media-body img{width:100%;max-width:100%}.top{align-items:flex-start}.detail-head{display:block}.actions{justify-content:flex-start;margin-top:12px}.part-row{grid-template-columns:74px 1fr}.part-row .small-btn{grid-column:1/-1}.file-grid,.edit-grid{grid-template-columns:1fr}}
+@media(max-width:900px){.hero,.layout,.viewer-grid{grid-template-columns:1fr}.list{max-height:none}.score-preview{height:auto;max-height:none}.media-body.score-mode{height:54vh;min-height:300px}.media-body img{width:100%;max-width:100%}.score-spread{grid-template-columns:1fr}.score-spread img:nth-child(n+2){display:none}.top{align-items:flex-start}.detail-head{display:block}.actions{justify-content:flex-start;margin-top:12px}.part-row{grid-template-columns:74px 1fr}.part-row .small-btn{grid-column:1/-1}.file-grid,.edit-grid{grid-template-columns:1fr}}
 @media(max-width:680px){.search{grid-template-columns:1fr}.search input,.search select{min-height:48px}}
 </style>
 </head>
@@ -213,7 +217,7 @@ function setMedia(mode){mediaMode=mode;renderDetail(songById(selectedId))}
 function renderScorePreview(song){
   const pages=pagesOf(song);
   if(!pages.length) return '<div class="no-score">이 성부에 등록된 악보가 없습니다.</div>';
-  return `<img src="${esc(pages[0].url)}" alt="${esc(song.title)} ${esc(partLabels[selectedPart])} 악보">`;
+  return `<div class="score-spread">${pages.slice(0,2).map((page,idx)=>`<img src="${esc(page.url)}" alt="${esc(song.title)} ${esc(partLabels[selectedPart])} 악보 ${idx+1}쪽">`).join('')}</div>`;
 }
 function renderMedia(song){
   if(mediaMode==='video'){
@@ -250,7 +254,7 @@ function renderDetail(song){
           <b>${partLabels[selectedPart]} ${currentModeLabel}</b>
           <div><button class="small-btn ${mediaMode==='score'?'primary':''}" onclick="setMedia('score')">악보</button> <button class="small-btn ${mediaMode==='video'?'primary':''}" onclick="setMedia('video')">영상</button></div>
         </div>
-        <div class="media-body">${renderMedia(song)}</div>
+        <div class="media-body ${mediaMode==='video'?'video-mode':'score-mode'}">${renderMedia(song)}</div>
         <div class="viewer-action-row">
           <button class="btn ${mediaMode==='video'?'primary':''}" onclick="openViewer('${selectedPart}','${openMode}')">${currentModeLabel} 크게 보기</button>
         </div>
