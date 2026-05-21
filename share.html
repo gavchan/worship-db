@@ -210,16 +210,6 @@ body{min-height:100vh;min-height:100dvh}
 .share-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:4px}
 .share-action{border:1px solid var(--line);background:rgba(5,10,18,.58);backdrop-filter:blur(14px);color:var(--text);border-radius:999px;padding:11px 10px;font:inherit;font-size:13px;font-weight:900;cursor:pointer}
 .share-action.primary{background:linear-gradient(135deg,var(--accent),var(--gold));color:#111827;border-color:rgba(215,183,101,.85)}
-.viewer.controls-hidden .share-top-overlay,
-.viewer.controls-hidden .share-song-strip,
-.viewer.controls-hidden .share-lock,
-.viewer.controls-hidden .share-memo-strip,
-.viewer.controls-hidden .share-next-cue{opacity:0;pointer-events:none;transform:translateY(-6px)}
-.viewer.controls-hidden .share-song-strip,
-.viewer.controls-hidden .share-lock,
-.viewer.controls-hidden .share-memo-strip{transform:translateY(6px)}
-.viewer.controls-hidden .viewer-stage{inset:0!important}
-.viewer.controls-hidden .viewer-page img{max-height:100%!important}
 .share-top-overlay,.share-song-strip,.share-lock,.share-memo-strip,.share-next-cue{transition:opacity .18s ease,transform .18s ease}
 .performance-start{width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:24px;background:#020611}
 .performance-start-card{width:min(92vw,520px);border:1px solid rgba(255,255,255,.16);background:rgba(5,10,18,.78);border-radius:24px;padding:26px;text-align:center;box-shadow:0 28px 70px rgba(0,0,0,.4)}
@@ -280,7 +270,7 @@ const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 const HEADERS={'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY};
 const STORAGE_URL=SUPABASE_URL+'/storage/v1';
 const STOR_HEADERS={'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY};
-let shareTitle='지정 콘티', shareSongs=[], shareSongMap={}, selectedIdx=0, viewerIdx=0, viewerPage=0, viewerMode=1, viewerFiles=[], scoreCache={}, wakeLock=null, singleViewer=false, shareVariants=[], activeVariant=0, viewerControlsTimer=null;
+let shareTitle='지정 콘티', shareSongs=[], shareSongMap={}, selectedIdx=0, viewerIdx=0, viewerPage=0, viewerMode=1, viewerFiles=[], scoreCache={}, wakeLock=null, singleViewer=false, shareVariants=[], activeVariant=0;
 let shareHistoryId='';
 function isPerformanceEntry(){const params=new URLSearchParams(location.search);return params.get('performance')==='1'||params.get('view')==='performance'}
 function esc(s){return String(s||'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
@@ -533,14 +523,12 @@ async function openSharePerformance(i=0){
   viewerIdx=Math.max(0,Math.min(i,shareSongs.length-1));viewerPage=0;singleViewer=!!singleViewer;
   const v=document.getElementById('share-viewer');
   v.classList.add('show');
-  v.classList.remove('controls-hidden');
   v.classList.toggle('single',singleViewer);
   const fullscreenAttempt=requestShareFullscreen();
   await requestShareWakeLock(false);
   await renderShareViewer();
   const fullscreenOk=await fullscreenAttempt;
   if(!fullscreenOk)viewerToast('전체화면 버튼을 한번 더 눌러주세요');
-  scheduleViewerControlsHide(1800);
   singleViewer=false;
 }
 function showPerformanceStartPrompt(){
@@ -588,11 +576,10 @@ async function renderShareViewerBody(){
   const memo=songMemo(s);
   const memoStrip=memo?`<div class="share-memo-strip">${esc(memo)}</div>`:'';
   const nextSongCue=(effectiveMode!==2&&!singleViewer&&shareSongs[viewerIdx+1])?`<div class="share-next-cue">다음곡 · ${esc(shareSongs[viewerIdx+1].name||'곡')}</div>`:'';
-  stage.innerHTML=`${pages.join('')}<div class="share-top-overlay"><div class="share-top-left"><button class="share-chip ${viewerMode===1?'on':''}" onclick="setSharePageMode(1)">1페이지 보기</button><button class="share-chip ${viewerMode===2?'on':''}" onclick="setSharePageMode(2)">2페이지 보기</button><button class="share-chip" onclick="requestShareFullscreen()">전체화면</button></div><div class="share-top-right"><button class="share-chip" onclick="setViewerControlsHidden(true)">악보만</button><button class="share-chip close-chip" onclick="closeShareViewer()">×</button></div></div>${nextSongCue}${memoStrip}<div class="share-song-strip">${strip}</div><button class="share-lock ${wakeLock?'on':''}" onclick="toggleShareWakeLock()">화면잠금</button>`;
+  stage.innerHTML=`${pages.join('')}<div class="share-top-overlay"><div class="share-top-left"><button class="share-chip ${viewerMode===1?'on':''}" onclick="setSharePageMode(1)">1페이지 보기</button><button class="share-chip ${viewerMode===2?'on':''}" onclick="setSharePageMode(2)">2페이지 보기</button><button class="share-chip" onclick="requestShareFullscreen()">전체화면</button></div><div class="share-top-right"><button class="share-chip close-chip" onclick="closeShareViewer()">×</button></div></div>${nextSongCue}${memoStrip}<div class="share-song-strip">${strip}</div><button class="share-lock ${wakeLock?'on':''}" onclick="toggleShareWakeLock()">화면잠금</button>`;
 }
 async function closeShareViewer(){
   await requestShareWakeLock(false);
-  setViewerControlsHidden(false);
   try{if(document.fullscreenElement)await document.exitFullscreen()}catch(e){}
   if(isPerformanceEntry()){
     const ref=document.referrer&&new URL(document.referrer,location.href).origin===location.origin?document.referrer:'test-main.html';
@@ -612,22 +599,6 @@ async function requestShareFullscreen(){
   }catch(e){}
   return false;
 }
-function setViewerControlsHidden(hidden){
-  const v=document.getElementById('share-viewer');
-  if(!v)return;
-  v.classList.toggle('controls-hidden',!!hidden);
-  if(viewerControlsTimer){clearTimeout(viewerControlsTimer);viewerControlsTimer=null}
-}
-function scheduleViewerControlsHide(delay=2200){
-  if(viewerControlsTimer)clearTimeout(viewerControlsTimer);
-  viewerControlsTimer=setTimeout(()=>setViewerControlsHidden(true),delay);
-}
-function showViewerControlsTemporarily(){
-  const v=document.getElementById('share-viewer');
-  if(!v?.classList.contains('show'))return;
-  setViewerControlsHidden(false);
-  scheduleViewerControlsHide(2600);
-}
 async function requestShareWakeLock(on=true){try{if(!on){if(wakeLock){await wakeLock.release();wakeLock=null}return}if('wakeLock' in navigator){wakeLock=await navigator.wakeLock.request('screen');wakeLock.addEventListener('release',()=>{wakeLock=null;renderShareViewerBody()})}}catch(e){wakeLock=null}}
 async function toggleShareWakeLock(){if(wakeLock){await requestShareWakeLock(false);viewerToast('화면잠금 해제')}else{await requestShareWakeLock(true);viewerToast(wakeLock?'화면잠금 켬':'화면잠금 미지원')}await renderShareViewerBody()}
 let touchX=0,touchY=0;
@@ -640,8 +611,6 @@ async function copyShareLink(){const url=sharePreviewUrl();try{await navigator.c
 function shareToBand(){const url=sharePreviewUrl();const text=`${shareMessage()}\n${url}`;location.href=`https://band.us/plugin/share?body=${encodeURIComponent(text)}&route=${encodeURIComponent(url)}`}
 async function shareThisPage(){const url=sharePreviewUrl();const text=shareMessage();try{if(navigator.share){await navigator.share({title:shareTitle,text,url});return}}catch(e){}await copyShareLink()}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeShareViewer()});
-document.getElementById('share-viewer')?.addEventListener('click',e=>{if(e.target.closest('button'))return;showViewerControlsTemporarily()});
-document.addEventListener('fullscreenchange',()=>{if(document.fullscreenElement)showViewerControlsTemporarily()});
 document.addEventListener('error',function(e){if(e.target&&e.target.tagName==='IMG'&&String(e.target.src||'').includes('/storage/v1/object/public/scores/'))brokenScoreImage(e.target);},true);
 document.addEventListener('DOMContentLoaded',()=>{try{load()}catch(e){document.getElementById('content').innerHTML='<div class="empty">공유 페이지를 불러오지 못했습니다.</div>'}});
 </script>
