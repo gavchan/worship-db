@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>성가대 자료실</title>
+<meta name="description" content="성가대 4성부 악보와 파트별 연습 자료">
+<meta property="og:type" content="website">
+<meta property="og:title" content="성가대 자료실">
+<meta property="og:description" content="4성부 악보와 소프라노·알토·테너·베이스 연습 자료를 확인하세요.">
+<meta property="og:image" content="https://worship-db-sable.vercel.app/assets/main-church-bg.png">
+<meta name="twitter:card" content="summary_large_image">
 <style>
 :root{--gold:#d7b765;--gold2:#b99545;--bg:#050b16;--panel:rgba(7,13,25,.74);--panel2:rgba(255,255,255,.07);--line:rgba(255,255,255,.15);--muted:#c6cedd;--text:#f8fafc}
 *{box-sizing:border-box}
@@ -16,11 +22,12 @@ a{color:inherit;text-decoration:none}
 .brand{font-size:24px;font-weight:900;letter-spacing:-.04em}
 .nav{display:flex;gap:8px;flex-wrap:wrap}
 .nav a,.nav button,.btn{border:1px solid var(--line);background:rgba(5,10,18,.58);color:#fff;border-radius:999px;padding:11px 15px;font-weight:900;backdrop-filter:blur(14px)}
+body.shared-view .nav{display:none}
 .btn.primary,.nav .primary{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#07101f;border-color:rgba(255,255,255,.18)}
 .hero{display:grid;grid-template-columns:minmax(280px,1fr) minmax(260px,420px);gap:16px;align-items:end;border:1px solid var(--line);background:var(--panel);border-radius:28px;padding:22px;margin-bottom:16px;backdrop-filter:blur(18px)}
 h1{font-size:clamp(38px,6vw,70px);line-height:1.02;letter-spacing:-.055em;margin:0 0 12px}
 p{margin:0;color:var(--muted);line-height:1.6}
-.search{display:grid;grid-template-columns:1fr auto;gap:8px}
+.search{display:grid;grid-template-columns:1fr 180px 170px;gap:8px}
 .search input,.search select,.edit-form input,.edit-form select,.edit-form textarea{width:100%;border:1px solid var(--line);background:rgba(255,255,255,.08);color:#fff;border-radius:15px;padding:13px;outline:none}
 select option{color:#111}
 .layout{display:grid;grid-template-columns:360px minmax(0,1fr);gap:16px}
@@ -77,16 +84,17 @@ select option{color:#111}
 .viewer-video iframe{width:min(1180px,96vw);aspect-ratio:16/9;border:0;background:#000;border-radius:18px}
 .strip{display:flex;gap:8px;overflow:auto;flex:1}.strip button{white-space:nowrap}
 @media(max-width:900px){.hero,.layout,.viewer-grid{grid-template-columns:1fr}.list{max-height:none}.score-preview{height:auto;max-height:none}.media-body{height:auto;max-height:none;min-height:0}.media-body img{width:100%;max-width:100%}.top{align-items:flex-start}.detail-head{display:block}.actions{justify-content:flex-start;margin-top:12px}.part-row{grid-template-columns:74px 1fr}.part-row .small-btn{grid-column:1/-1}.file-grid,.edit-grid{grid-template-columns:1fr}}
+@media(max-width:680px){.search{grid-template-columns:1fr}.search input,.search select{min-height:48px}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header class="top">
-    <a class="brand" href="test-choir.html">성가대 자료실</a>
+    <a class="brand" id="brand-link" href="test-choir.html">성가대 자료실</a>
     <nav class="nav">
-      <a href="index.html">초기화면</a>
-      <a href="test-choir.html">성가대 홈</a>
-      <a class="primary" href="choir-upload.html">성가곡 등록</a>
+      <a class="home-link" href="index.html">초기화면</a>
+      <a class="home-link" href="test-choir.html">성가대 홈</a>
+      <a class="admin-link primary" href="choir-upload.html">성가곡 등록</a>
     </nav>
   </header>
   <section class="hero">
@@ -101,6 +109,11 @@ select option{color:#111}
         <option value="service">이번 주일 할 곡</option>
         <option value="practice">앞으로 연습할 곡</option>
         <option value="archive">자료만 보관</option>
+      </select>
+      <select id="sort" onchange="renderList()">
+        <option value="date">날짜순</option>
+        <option value="practice">연습곡 먼저</option>
+        <option value="title">이름순</option>
       </select>
     </div>
   </section>
@@ -137,6 +150,7 @@ select option{color:#111}
 <script>
 let choirSongs=[], selectedId='', selectedPart='full', mediaMode='score';
 let viewerState={song:null,part:'full',page:0,pages:1,mode:'score',wake:null,touchX:0};
+const sharedView=new URLSearchParams(location.search).get('shared')==='1'||new URLSearchParams(location.search).get('view')==='shared';
 const labels={service:'이번 주일 할 곡',practice:'앞으로 연습할 곡',archive:'자료만 보관'};
 const partLabels={full:'4성부',soprano:'소프라노',alto:'알토',tenor:'테너',bass:'베이스'};
 const partOrder=['full','soprano','alto','tenor','bass'];
@@ -169,11 +183,21 @@ async function loadChoir(){
 function filtered(){
   const q=norm(document.getElementById('q').value);
   const kind=document.getElementById('kind').value;
+  const sort=document.getElementById('sort').value;
+  const typeRank={service:0,practice:1,archive:2};
   return choirSongs.filter(song=>{
     const okTitle=!q || norm(song.title).includes(q) || norm(song.search_title).includes(q);
     const okKind=kind==='all' || song.schedule?.type===kind;
     return okTitle && okKind;
-  }).sort((a,b)=>String(a.schedule?.date||'9999').localeCompare(String(b.schedule?.date||'9999')));
+  }).sort((a,b)=>{
+    if(sort==='title') return String(a.title||'').localeCompare(String(b.title||''),'ko');
+    if(sort==='practice'){
+      const rank=(typeRank[a.schedule?.type]??9)-(typeRank[b.schedule?.type]??9);
+      if(rank)return rank;
+    }
+    const date=String(a.schedule?.date||'9999').localeCompare(String(b.schedule?.date||'9999'));
+    return date || String(a.title||'').localeCompare(String(b.title||''),'ko');
+  });
 }
 function renderList(){
   const list=filtered();
@@ -213,11 +237,11 @@ function renderDetail(song){
   document.getElementById('detail').innerHTML=`
     <div class="detail-head">
       <div><div class="detail-title">${esc(song.title)}</div><div class="detail-sub">${esc(song.schedule?.date||'날짜 미정')} · ${esc(labels[song.schedule?.type]||song.schedule?.type||'자료')}</div></div>
-      <div class="actions">
+      ${sharedView?'':`<div class="actions">
         <a class="btn" href="test-choir.html">성가대 홈</a>
         <a class="btn" href="index.html">초기화면</a>
         <a class="btn primary" href="choir-upload.html?id=${encodeURIComponent(song.id)}">수정</a>
-      </div>
+      </div>`}
     </div>
     <div class="part-tabs">${partTabs}</div>
     <div class="viewer-grid">
@@ -276,6 +300,12 @@ function renderViewer(){
 document.getElementById('viewer').addEventListener('touchstart',e=>{viewerState.touchX=e.touches[0].clientX},{passive:true});
 document.getElementById('viewer').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-viewerState.touchX;if(Math.abs(dx)>45){dx<0?viewerNext():viewerPrev()}},{passive:true});
 document.addEventListener('keydown',e=>{if(!document.getElementById('viewer').classList.contains('show'))return;if(e.key==='Escape')closeViewer();if(e.key==='ArrowRight')viewerNext();if(e.key==='ArrowLeft')viewerPrev();});
+if(sharedView){
+  document.body.classList.add('shared-view');
+  document.querySelectorAll('.admin-link,.home-link').forEach(el=>el.remove());
+  const brand=document.getElementById('brand-link');
+  if(brand)brand.removeAttribute('href');
+}
 loadChoir();
 </script>
 </body>

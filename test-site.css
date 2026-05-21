@@ -6,8 +6,8 @@ body{min-height:100vh;font-family:'Noto Sans KR',system-ui,sans-serif;color:#fff
 .top{position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:28px 34px 0;display:flex;justify-content:space-between;align-items:center;gap:20px}
 .brand{font-size:22px;font-weight:900;letter-spacing:-.03em;text-decoration:none;color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.45)}
 .nav{display:flex;align-items:center;gap:2px;padding:6px;border:1px solid var(--line);border-radius:999px;background:rgba(2,7,18,.36);backdrop-filter:blur(16px)}
-.nav a{color:#fff;text-decoration:none;font-size:14px;font-weight:900;padding:10px 16px;border-radius:999px;opacity:.84}
-.nav a:hover,.nav a.on{background:rgba(183,146,65,.92);opacity:1;color:#111827}
+.nav a,.nav button{border:0;background:transparent;color:#fff;text-decoration:none;font:inherit;font-size:14px;font-weight:900;padding:10px 16px;border-radius:999px;opacity:.84;cursor:pointer}
+.nav a:hover,.nav a.on,.nav button:hover{background:rgba(183,146,65,.92);opacity:1;color:#111827}
 .wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:70px 34px 70px}
 .eyebrow{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:rgba(255,255,255,.08);border-radius:999px;padding:8px 13px;font-size:13px;color:#e7ecf8;backdrop-filter:blur(14px);margin-bottom:16px}
 h1{font-size:clamp(40px,5vw,70px);line-height:1.04;letter-spacing:-.055em;text-shadow:0 8px 36px rgba(0,0,0,.45)}
