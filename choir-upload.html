@@ -24,6 +24,7 @@ input:focus,select:focus,textarea:focus{border-color:#2563eb;box-shadow:0 0 0 3p
 .actions{display:flex;gap:8px;align-items:center;margin-top:14px}
 button{border:0;border-radius:999px;background:#1d4ed8;color:white;font-weight:900;padding:12px 16px;cursor:pointer;font-size:.92rem}
 button.secondary{background:#e2e8f0;color:#334155}
+button.danger{background:#7f1d1d;color:white}
 button:disabled{opacity:.55;cursor:not-allowed}
 #log{margin-top:14px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;padding:13px;min-height:96px;white-space:pre-wrap;font-size:.82rem;line-height:1.65;color:#334155}
 .ok{color:#15803d}.err{color:#b91c1c}.info{color:#1d4ed8}
@@ -101,6 +102,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
     <button id="upload-btn" onclick="uploadChoir()">성가곡 등록</button>
     <button class="secondary" onclick="resetForm()" type="button">입력 초기화</button>
     <button class="secondary" onclick="location.href='choir.html'" type="button">자료실로 돌아가기</button>
+    <button id="delete-btn" class="danger" onclick="deleteChoirSong()" type="button" style="display:none">성가곡 삭제</button>
   </div>
   <div id="log">악보 이름과 4성부 악보를 넣고 등록하세요.</div>
 </div>
@@ -218,6 +220,7 @@ function fillEditForm(song){
   el('page-title').textContent='성가곡 수정';
   el('page-desc').textContent='기존 성가곡 정보를 수정합니다. 새 악보 파일을 선택하면 기존 악보 뒤에 추가되고, 선택하지 않으면 기존 악보를 유지합니다.';
   el('upload-btn').textContent='수정 저장';
+  el('delete-btn').style.display='inline-flex';
   el('log').innerHTML=`수정 중: ${song.title}\n기존 악보 ${existingFiles.length}장 유지 중입니다. 새 파일을 선택하면 추가됩니다.`;
 }
 async function loadEditSong(){
@@ -326,6 +329,26 @@ async function uploadChoir(){
   }finally{
     btn.disabled=false;
     btn.textContent=EDIT_ID?'수정 저장':'성가곡 등록';
+  }
+}
+async function deleteChoirSong(){
+  if(!EDIT_ID || !editSong)return alert('삭제할 성가곡을 먼저 불러와야 합니다.');
+  if(!confirm(`성가곡 "${editSong.title}"을 삭제할까요?\\n자료실 목록과 R2 악보 파일이 함께 정리됩니다.`))return;
+  const btn=el('delete-btn');
+  btn.disabled=true;
+  btn.textContent='삭제 중...';
+  try{
+    const token=readToken();
+    const data=await postChoir({mode:'delete',id:EDIT_ID}, token);
+    write(`삭제 완료: ${EDIT_ID} / 파일 ${data.deleted_files||0}개 정리`, 'ok');
+    alert('삭제했습니다. 자료실로 이동합니다.');
+    location.href='choir.html';
+  }catch(e){
+    write('삭제 실패: '+(e.message||e), 'err');
+    alert('삭제 실패: '+(e.message||e));
+  }finally{
+    btn.disabled=false;
+    btn.textContent='성가곡 삭제';
   }
 }
 loadEditSong();

@@ -127,6 +127,15 @@ async function r2Put(key, body, type) {
   }
 }
 
+async function r2Delete(key) {
+  const { response } = await r2Request('DELETE', key);
+  if (response.status === 404) return;
+  if (!response.ok) {
+    const text = await response.text().catch(() => '');
+    throw new Error(`R2 삭제 실패 ${response.status}: ${text.slice(0, 500)}`);
+  }
+}
+
 async function r2GetJson(key) {
   const { response } = await r2Request('GET', key);
   if (response.status === 404) return null;
@@ -245,6 +254,27 @@ async function writeChoirManifest(config, group, now) {
   await r2Put(config.manifestKey, Buffer.from(JSON.stringify(manifest, null, 2)), 'application/json; charset=utf-8');
 }
 
+async function deleteChoirGroup(config, id, now) {
+  const manifest = normalizeManifest(await r2GetJson(config.manifestKey).catch(() => null));
+  const target = manifest.groups.find(item => item && item.id === id);
+  if (!target) return { deleted: false, files: 0 };
+  const files = Array.isArray(target.files) ? target.files : [];
+  const paths = [...new Set(files.map(file => safeText(file.r2_path, '')).filter(Boolean))];
+  const failures = [];
+  for (const path of paths) {
+    try {
+      await r2Delete(path);
+    } catch (e) {
+      failures.push(`${path}: ${e.message || e}`);
+    }
+  }
+  if (failures.length) throw new Error('일부 R2 파일 삭제 실패: ' + failures.slice(0, 3).join(' / '));
+  manifest.updated_at = now.toISOString();
+  manifest.groups = manifest.groups.filter(item => item && item.id !== id);
+  await r2Put(config.manifestKey, Buffer.from(JSON.stringify(manifest, null, 2)), 'application/json; charset=utf-8');
+  return { deleted: true, files: paths.length };
+}
+
 module.exports = async function handler(req, res) {
   try {
     const config = envConfig();
@@ -298,6 +328,14 @@ module.exports = async function handler(req, res) {
         manifest_key: config.manifestKey,
         manifest_url: publicUrl(config, config.manifestKey)
       });
+    }
+
+    if (mode === 'delete') {
+      const id = normalizeUploadId(body.id || body.uploadId);
+      if (!id) return send(res, 400, { ok: false, error: '삭제할 성가곡 ID가 없습니다.' });
+      const result = await deleteChoirGroup(config, id, now);
+      if (!result.deleted) return send(res, 404, { ok: false, error: '삭제할 성가곡을 찾지 못했습니다.' });
+      return send(res, 200, { ok: true, deleted_id: id, deleted_files: result.files });
     }
 
     const title = safeText(body.title, '');
