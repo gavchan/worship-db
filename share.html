@@ -244,12 +244,12 @@ body{min-height:100vh;min-height:100dvh}
       <button type="button" class="share-action primary" onclick="shareThisPage()">카톡/밴드 공유</button>
       <button type="button" class="share-action" onclick="copyShareLink()">링크 복사</button>
       <button type="button" class="share-action" onclick="shareToBand()">밴드 열기</button>
-      <button type="button" class="share-action" onclick="openSharePerformance(selectedIdx)">연주하기</button>
+      <button type="button" class="share-action" onclick="openSharePerformance(selectedIdx)">전체화면 악보</button>
     </div>
   </section>
   <nav class="top-tabs" id="top-tabs" style="display:none">
     <button class="tab-btn" onclick="openSelectedYoutube()">유튜브</button>
-    <button class="tab-btn primary" onclick="openSharePerformance(selectedIdx)">연주</button>
+    <button class="tab-btn primary" onclick="openSharePerformance(selectedIdx)">전체화면 악보</button>
     <button class="tab-btn" onclick="renderDetail('full')">전체악보</button>
     <button class="tab-btn" onclick="shareThisPage()">공유</button>
   </nav>
@@ -508,7 +508,7 @@ async function renderDetail(mode='score'){
     <div class="preview">${preview}</div>
     <div class="memo-bar">${esc(memo)}</div>
     <div class="under-actions"><button class="mini-btn primary" onclick="openSingleScore(${selectedIdx})">악보 보기</button><button class="mini-btn" onclick="renderDetail('video')">영상 보기</button></div>
-    <div class="nav-actions"><button class="mini-btn" onclick="prevSong()">이전</button><button class="mini-btn primary" onclick="openSharePerformance(${selectedIdx})">연주</button><button class="mini-btn" onclick="nextSong()">다음</button></div>`;
+    <div class="nav-actions"><button class="mini-btn" onclick="prevSong()">이전</button><button class="mini-btn primary" onclick="openSharePerformance(${selectedIdx})">전체화면 악보</button><button class="mini-btn" onclick="nextSong()">다음</button></div>`;
 }
 async function prevSong(){if(selectedIdx>0)await selectSong(selectedIdx-1);else viewerToast('첫 곡입니다')}
 async function nextSong(){if(selectedIdx<shareSongs.length-1)await selectSong(selectedIdx+1);else viewerToast('마지막 곡입니다')}
@@ -537,7 +537,7 @@ function showPerformanceStartPrompt(){
   if(!v||!stage)return;
   v.className='viewer one show';
   const label=shareTitle||'찬양 콘티';
-  stage.innerHTML=`<div class="performance-start"><div class="performance-start-card"><h2>연주화면 시작</h2><p>${esc(label)}<br>주소창과 아래 바를 숨기려면 아래 버튼을 한 번 눌러 전체화면으로 시작하세요.</p><div class="performance-start-actions"><button type="button" onclick="closeShareViewer()">뒤로</button><button type="button" class="primary" onclick="openSharePerformance(0)">전체화면 시작</button></div></div></div>`;
+  stage.innerHTML=`<div class="performance-start"><div class="performance-start-card"><h2>전체화면 악보 시작</h2><p>${esc(label)}<br>주소창과 아래 바를 숨기려면 아래 버튼을 한 번 눌러 전체화면 악보로 시작하세요.</p><div class="performance-start-actions"><button type="button" onclick="closeShareViewer()">뒤로</button><button type="button" class="primary" onclick="openSharePerformance(0)">전체화면 악보 시작</button></div></div></div>`;
 }
 async function goShareSong(i){normalizeShareSongList();viewerIdx=Math.max(0,Math.min(i,shareSongs.length-1));viewerPage=0;await renderShareViewer()}
 async function setSharePageMode(mode){viewerMode=mode===2?2:1;await renderShareViewerBody()}
@@ -567,7 +567,7 @@ async function renderShareViewerBody(){
   const s=shareSongs[viewerIdx]||{};
   const v=document.getElementById('share-viewer');
   const stage=document.getElementById('share-viewer-stage');
-  if(!v||!stage){viewerToast('연주화면을 열 수 없습니다');return}
+  if(!v||!stage){viewerToast('전체화면 악보를 열 수 없습니다');return}
   const pages=await buildShareSpreadPages(s,viewerFiles,viewerPage,viewerMode);
   const effectiveMode=(viewerMode===2 && pages.length<2)?1:viewerMode;
   v.classList.toggle('two',effectiveMode===2);

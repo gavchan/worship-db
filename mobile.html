@@ -1061,7 +1061,7 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
         </div>
         <div class="actions">
           <button class="action primary" onclick="openCurrentYoutube()"><b>🎧 유튜브 보기</b><span>지정된 찬양콘티 플레이리스트 열기</span></button>
-          <button class="action" onclick="openSongViewer()"><b>🎼 연주화면</b><span>악보 중심 연주 화면으로 들어갑니다</span></button>
+          <button class="action" onclick="openSongViewer()"><b>🎼 전체화면 악보</b><span>악보 중심 화면으로 들어갑니다</span></button>
           <button class="action" onclick="openFullScore()"><b>🖼 한눈에보기</b><span>콘티 악보를 한눈에 확인합니다</span></button>
           <button class="action" onclick="shareCurrentConti()"><b id="current-share-label">💬 콘티 공유</b><span>공유 전용 페이지 링크 보내기</span></button>
         </div>
@@ -1393,13 +1393,13 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
 
 <div class="modal" id="performance-orientation-modal">
   <div class="sheet orientation-sheet">
-    <div class="sheet-head"><h3>연주모드 방향 선택</h3><button class="close" onclick="closeOrientationChooser()">✕</button></div>
-    <p class="orientation-help">연주 중에는 선택한 방향으로 화면 고정을 시도합니다. 자동 회전으로 화면이 꼬이지 않도록 먼저 방향을 골라주세요.</p>
+    <div class="sheet-head"><h3>전체화면 악보 방향 선택</h3><button class="close" onclick="closeOrientationChooser()">✕</button></div>
+    <p class="orientation-help">악보를 볼 때는 선택한 방향으로 화면 고정을 시도합니다. 자동 회전으로 화면이 꼬이지 않도록 먼저 방향을 골라주세요.</p>
     <div class="orientation-actions">
-      <button onclick="startPerformanceWithOrientation('portrait')"><b>📱 세로 연주모드</b><span>휴대폰/태블릿 세로용 · 한 화면 고정</span></button>
-      <button onclick="startPerformanceWithOrientation('landscape')"><b>📲 가로 연주모드</b><span>태블릿 가로용 · 1장/2장 보기 전환</span></button>
+      <button onclick="startPerformanceWithOrientation('portrait')"><b>📱 세로 악보보기</b><span>휴대폰/태블릿 세로용 · 한 화면 고정</span></button>
+      <button onclick="startPerformanceWithOrientation('landscape')"><b>📲 가로 악보보기</b><span>태블릿 가로용 · 1장/2장 보기 전환</span></button>
     </div>
-    <div class="orientation-note">브라우저 정책상 방향 고정은 전체화면 상태에서만 동작할 수 있습니다. 실패해도 연주모드는 열리며, 기기 회전잠금을 함께 사용하면 더 안정적입니다.</div>
+    <div class="orientation-note">브라우저 정책상 방향 고정은 전체화면 상태에서만 동작할 수 있습니다. 실패해도 악보보기는 열리며, 기기 회전잠금을 함께 사용하면 더 안정적입니다.</div>
   </div>
 </div>
 
@@ -1415,7 +1415,7 @@ body.performance-active{overflow:hidden!important;position:fixed!important;inset
 <div class="viewer performance" id="viewer">
   <div class="viewer-top">
     <div class="viewer-title-wrap">
-      <div class="viewer-title-main" id="viewer-title">연주 모드</div>
+      <div class="viewer-title-main" id="viewer-title">전체화면 악보</div>
       <div class="viewer-title-sub" id="viewer-subtitle">이전 · 현재 · 다음</div>
     </div>
     <button class="close" onclick="closeViewer()">✕</button>
@@ -1908,7 +1908,7 @@ async function lockPerformanceOrientation(mode){
     if(screen.orientation && screen.orientation.lock){
       await screen.orientation.lock(mode==='landscape'?'landscape':'portrait');
       orientationLocked=true;
-      toast('모바일 연주모드로 화면 고정을 시도했어요');
+      toast('모바일 전체화면 악보로 화면 고정을 시도했어요');
     }else{
       toast('이 브라우저는 방향 고정을 지원하지 않아요');
     }

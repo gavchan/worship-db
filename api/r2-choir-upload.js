@@ -197,6 +197,28 @@ function emptyScores() {
   };
 }
 
+function parseScoreOrderValue(value) {
+  if (Array.isArray(value)) {
+    return value.map(item => Number(item)).filter(num => Number.isInteger(num) && num > 0).slice(0, 200);
+  }
+  return String(value || '')
+    .split(/[^0-9]+/)
+    .map(item => Number(item))
+    .filter(num => Number.isInteger(num) && num > 0)
+    .slice(0, 200);
+}
+
+function normalizeScoreOrder(scoreOrder) {
+  const source = scoreOrder && typeof scoreOrder === 'object' ? scoreOrder : {};
+  return {
+    full: parseScoreOrderValue(source.full),
+    soprano: parseScoreOrderValue(source.soprano),
+    alto: parseScoreOrderValue(source.alto),
+    tenor: parseScoreOrderValue(source.tenor),
+    bass: parseScoreOrderValue(source.bass)
+  };
+}
+
 function makeChoirGroup(body, id, now) {
   const title = safeText(body.title, '');
   return {
@@ -211,6 +233,7 @@ function makeChoirGroup(body, id, now) {
     },
     memo: safeText(body.memo, ''),
     videos: normalizeVideoMap(body.videos),
+    score_order: normalizeScoreOrder(body.scoreOrder || body.score_order),
     scores: emptyScores(),
     files: [],
     created_at: safeText(body.createdAt, now.toISOString()),
@@ -252,6 +275,22 @@ async function writeChoirManifest(config, group, now) {
   manifest.updated_at = now.toISOString();
   manifest.groups = [group, ...manifest.groups.filter(item => item && item.id !== group.id)];
   await r2Put(config.manifestKey, Buffer.from(JSON.stringify(manifest, null, 2)), 'application/json; charset=utf-8');
+}
+
+async function updateChoirScoreOrder(config, id, section, order, now) {
+  const targetSection = assertSection(section);
+  const manifest = normalizeManifest(await r2GetJson(config.manifestKey).catch(() => null));
+  const target = manifest.groups.find(item => item && item.id === id);
+  if (!target) return null;
+  const scores = target.scores && typeof target.scores === 'object' ? target.scores : emptyScores();
+  const max = Array.isArray(scores[targetSection]) ? scores[targetSection].length : 0;
+  const cleanOrder = parseScoreOrderValue(order).filter(pageNo => pageNo <= max);
+  target.score_order = normalizeScoreOrder(target.score_order);
+  target.score_order[targetSection] = cleanOrder;
+  target.updated_at = now.toISOString();
+  manifest.updated_at = now.toISOString();
+  await r2Put(config.manifestKey, Buffer.from(JSON.stringify(manifest, null, 2)), 'application/json; charset=utf-8');
+  return target;
 }
 
 async function deleteChoirGroup(config, id, now) {
@@ -321,6 +360,10 @@ module.exports = async function handler(req, res) {
         group.scores[section].push(saved);
         group.files.push(saved);
       });
+      for (const section of ['full', 'soprano', 'alto', 'tenor', 'bass']) {
+        const max = group.scores[section].length;
+        group.score_order[section] = group.score_order[section].filter(pageNo => pageNo <= max);
+      }
       await writeChoirManifest(config, group, now);
       return send(res, 200, {
         ok: true,
@@ -336,6 +379,14 @@ module.exports = async function handler(req, res) {
       const result = await deleteChoirGroup(config, id, now);
       if (!result.deleted) return send(res, 404, { ok: false, error: '삭제할 성가곡을 찾지 못했습니다.' });
       return send(res, 200, { ok: true, deleted_id: id, deleted_files: result.files });
+    }
+
+    if (mode === 'score-order') {
+      const id = normalizeUploadId(body.id || body.uploadId);
+      if (!id) return send(res, 400, { ok: false, error: '순서를 저장할 성가곡 ID가 없습니다.' });
+      const group = await updateChoirScoreOrder(config, id, body.section || 'full', body.order || [], now);
+      if (!group) return send(res, 404, { ok: false, error: '순서를 저장할 성가곡을 찾지 못했습니다.' });
+      return send(res, 200, { ok: true, group, manifest_key: config.manifestKey });
     }
 
     const title = safeText(body.title, '');
@@ -354,6 +405,10 @@ module.exports = async function handler(req, res) {
         group.scores[bucketName].push(saved);
         group.files.push(saved);
       }
+    }
+    for (const section of ['full', 'soprano', 'alto', 'tenor', 'bass']) {
+      const max = group.scores[section].length;
+      group.score_order[section] = group.score_order[section].filter(pageNo => pageNo <= max);
     }
 
     await writeChoirManifest(config, group, now);
