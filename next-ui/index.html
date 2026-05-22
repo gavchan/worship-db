@@ -1,10 +1,11 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Worship DB Next UI v6</title>
-  <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./choir-hotfix.css">
 </head>
 <body>
   <div class="app-shell">
@@ -15,33 +16,33 @@
         <p>기존 DB는 읽기 전용으로 확인하고, 콘티와 성가대 세트는 이 하위폴더 안에서만 임시 저장합니다.</p>
       </div>
       <div class="top-actions">
-        <button class="ghost" id="reloadBtn" type="button">다시 읽기</button>
+        <button id="reloadBtn" class="ghost" type="button">다시 읽기</button>
         <a class="ghost" href="../index.html">기존 홈</a>
         <a class="ghost" href="../choir.html">기존 성가대</a>
       </div>
     </header>
 
-    <nav class="mode-tabs" aria-label="작업 모드">
-      <button class="active" data-view="status" type="button">현황</button>
-      <button data-view="browse" type="button">곡 탐색</button>
-      <button data-view="builder" type="button">세트 만들기</button>
-      <button data-view="perform" type="button">연주</button>
-      <button data-view="share" type="button">공유</button>
-      <button data-view="choir" type="button">성가대</button>
+    <nav class="mode-tabs" aria-label="화면 전환">
+      <button type="button" class="active" data-view="status">현황</button>
+      <button type="button" data-view="songs">곡 탐색</button>
+      <button type="button" data-view="builder">세트 만들기</button>
+      <button type="button" data-view="perform">연주</button>
+      <button type="button" data-view="share">공유</button>
+      <button type="button" data-view="choir">성가대</button>
     </nav>
 
     <main>
-      <section class="view active" id="view-status">
+      <section id="view-status" class="view active">
         <div class="status-grid">
           <article class="panel glow">
-            <h2>연결 상태</h2>
-            <div class="status-lines" id="statusLines"></div>
+            <div class="eyebrow">연결 상태</div>
+            <div id="statusLines"></div>
           </article>
           <article class="panel">
-            <h2>이번 작업 범위</h2>
+            <div class="eyebrow">이번 작업 범위</div>
             <ul class="checklist">
               <li class="done">/next-ui 하위폴더 전용</li>
-              <li class="done">기존 운영 파일 수정 없음</li>
+              <li class="safe">기존 운영 파일 수정 없음</li>
               <li class="done">찬양곡 songs 읽기</li>
               <li class="done">악보 song_score_files 읽기</li>
               <li class="done">기존 공유 worship_history 읽기</li>
@@ -50,7 +51,7 @@
             </ul>
           </article>
           <article class="panel wide">
-            <h2>작업 단계</h2>
+            <div class="eyebrow">작업 단계</div>
             <div class="roadmap">
               <span class="done">1 읽기 연결</span>
               <span class="done">2 로컬 콘티</span>
@@ -64,134 +65,134 @@
         </div>
       </section>
 
-      <section class="view" id="view-browse">
-        <div class="toolbar panel flat">
-          <input id="songSearch" placeholder="곡명, 태그, Key, BPM 검색" />
-          <select id="songFilter">
+      <section id="view-songs" class="view">
+        <div class="toolbar">
+          <input id="songSearch" type="search" placeholder="곡명, 키, 태그 검색">
+          <select id="songFilter" aria-label="곡 필터">
             <option value="all">전체</option>
             <option value="score">악보 있음</option>
             <option value="youtube">유튜브 있음</option>
             <option value="ready">준비/사용곡</option>
           </select>
-          <button class="primary" id="openBuilderBtn" type="button">세트 만들기</button>
+          <button id="openBuilderBtn" class="primary" type="button">세트 만들기</button>
         </div>
         <div class="song-layout">
-          <div class="song-list" id="songList"></div>
-          <aside class="panel detail-card" id="songDetail"></aside>
+          <div id="songList" class="song-list"></div>
+          <aside id="songDetail" class="panel detail-card">
+            <div class="eyebrow">선택곡 확인</div>
+            <h2>곡을 선택하세요</h2>
+          </aside>
         </div>
       </section>
 
-      <section class="view" id="view-builder">
+      <section id="view-builder" class="view">
         <div class="builder-grid">
-          <section class="panel media-panel">
-            <div class="panel-head">
+          <article class="panel glow">
+            <div class="panel-head compact">
               <div>
-                <span class="eyebrow">선택곡 확인</span>
+                <div class="eyebrow">선택곡 확인</div>
                 <h2 id="builderTitle">곡을 선택하세요</h2>
               </div>
-              <button class="primary" id="builderAddBtn" type="button">현재곡 콘티 추가</button>
+              <button id="builderAddBtn" class="primary" type="button">현재곡 콘티 추가</button>
             </div>
             <div class="dual-media">
-              <article class="media-box">
+              <section class="media-box">
                 <div class="media-box-head">
                   <b>악보</b>
-                  <span id="builderScoreCount" class="muted">0장</span>
+                  <span id="builderScoreCount" class="badge ok">악보 0장</span>
                 </div>
-                <div class="media-stage score-stage" id="builderScore"></div>
-              </article>
-              <article class="media-box">
+                <div id="builderScore" class="media-stage score-stage empty">곡 탐색에서 세트 만들기를 누르세요.</div>
+              </section>
+              <section class="media-box">
                 <div class="media-box-head">
                   <b>유튜브</b>
-                  <span id="builderVideoState" class="muted">확인 대기</span>
+                  <span id="builderVideoState" class="badge warn">확인 대기</span>
                 </div>
-                <div class="media-stage video-stage" id="builderVideo"></div>
-              </article>
+                <div id="builderVideo" class="media-stage video-stage empty">곡을 선택하면 유튜브가 여기에 표시됩니다.</div>
+              </section>
             </div>
-          </section>
-
+          </article>
           <aside class="panel set-panel">
             <div class="panel-head compact">
               <div>
-                <span class="eyebrow">콘티바</span>
+                <div class="eyebrow">콘티바</div>
                 <h2>현재 세트</h2>
               </div>
-              <button class="ghost danger" id="clearSetBtn" type="button">비우기</button>
+              <button id="clearSetBtn" class="ghost" type="button">비우기</button>
             </div>
-            <input id="setName" value="이번 주일 콘티" />
+            <input id="setName" type="text" placeholder="세트 이름">
             <div id="setList" class="set-list"></div>
             <div class="action-row">
-              <button class="primary" data-view-jump="perform" type="button">연주모드</button>
-              <button class="ghost" data-view-jump="share" type="button">공유화면</button>
+              <button class="primary" type="button" data-view-jump="perform">연주모드</button>
+              <button class="ghost" type="button" data-view-jump="share">공유화면</button>
             </div>
           </aside>
         </div>
       </section>
 
-      <section class="view" id="view-perform">
-        <div class="perform-shell panel">
+      <section id="view-perform" class="view">
+        <article class="panel perform-shell">
           <div class="perform-head">
-            <button class="ghost" id="prevPageBtn" type="button">이전장</button>
+            <button id="prevPageBtn" class="ghost" type="button">이전장</button>
             <div>
-              <span id="performMeta" class="eyebrow">연주 대기</span>
+              <div id="performMeta" class="muted">연주 대기</div>
               <h2 id="performTitle">콘티에 곡을 추가하세요</h2>
             </div>
-            <button class="ghost" id="nextPageBtn" type="button">다음장</button>
+            <button id="nextPageBtn" class="ghost" type="button">다음장</button>
           </div>
-          <div class="perform-score" id="performScore"></div>
+          <div id="performScore" class="perform-score empty">연주할 곡이 없습니다.</div>
           <div class="perform-actions">
-            <button class="ghost" id="prevSongBtn" type="button">이전곡</button>
-            <div class="perform-bar" id="performBar"></div>
-            <button class="ghost" id="nextSongBtn" type="button">다음곡</button>
+            <button id="prevSongBtn" class="ghost" type="button">이전곡</button>
+            <div id="performBar" class="perform-bar"></div>
+            <button id="nextSongBtn" class="ghost" type="button">다음곡</button>
           </div>
-        </div>
+        </article>
       </section>
 
-      <section class="view" id="view-share">
+      <section id="view-share" class="view">
         <div class="share-grid">
-          <article class="panel share-phone">
-            <div class="share-header">로컬 콘티 미리보기</div>
-            <div id="sharePreview"></div>
+          <article class="panel">
+            <div class="eyebrow">로컬 콘티 미리보기</div>
+            <div id="sharePreview" class="share-phone"></div>
           </article>
           <article class="panel">
-            <h2>공유 상태</h2>
+            <div class="eyebrow">공유 상태</div>
             <p class="muted">현재 화면은 공유 형태만 확인합니다. 실제 저장은 기존 <code>worship_history</code> 규칙과 충돌 검토 후 연결해야 합니다.</p>
-            <button class="primary" id="copyShareBtn" type="button">공유 문구 복사</button>
+            <button id="copyShareBtn" class="primary" type="button">공유 문구 복사</button>
             <textarea id="shareText" readonly></textarea>
           </article>
           <article class="panel wide">
-            <div class="panel-head compact">
-              <div>
-                <span class="eyebrow">기존 DB 공유 자료</span>
-                <h2>최근 worship_history</h2>
-              </div>
-              <a class="ghost" href="../share.html">기존 공유화면</a>
-            </div>
+            <div class="eyebrow">기존 DB 공유 자료</div>
+            <h2>최근 worship_history</h2>
             <div id="historyPreview" class="history-preview"></div>
+            <a class="ghost" href="../share.html">기존 공유화면</a>
           </article>
         </div>
       </section>
 
-      <section class="view" id="view-choir">
-        <div class="toolbar panel flat">
-          <input id="choirSearch" placeholder="성가곡 검색" />
-          <select id="choirFilter">
+      <section id="view-choir" class="view">
+        <div class="toolbar">
+          <input id="choirSearch" type="search" placeholder="성가곡 검색">
+          <select id="choirFilter" aria-label="성가대 자료 필터">
             <option value="all">전체</option>
-            <option value="service">이번 주일</option>
+            <option value="this_week">이번 주일</option>
             <option value="practice">연습 예정</option>
             <option value="archive">자료 보관</option>
           </select>
-          <button class="primary" id="addChoirSetBtn" type="button">성가대 세트 추가</button>
+          <button id="addChoirSetBtn" class="primary" type="button">성가대 세트 추가</button>
         </div>
         <div class="choir-grid">
-          <div class="panel choir-list" id="choirList"></div>
-          <div class="panel choir-detail" id="choirDetail"></div>
+          <aside id="choirList" class="panel choir-list"></aside>
+          <article id="choirDetail" class="panel choir-detail">
+            <div class="empty">성가곡을 선택하세요.</div>
+          </article>
           <aside class="panel choir-set-panel">
             <div class="panel-head compact">
               <div>
-                <span class="eyebrow">성가대 콘티</span>
+                <div class="eyebrow">성가대 콘티</div>
                 <h2>성가대 세트</h2>
               </div>
-              <button class="ghost danger" id="clearChoirSetBtn" type="button">비우기</button>
+              <button id="clearChoirSetBtn" class="ghost" type="button">비우기</button>
             </div>
             <div id="choirSetList" class="set-list"></div>
           </aside>
@@ -199,7 +200,9 @@
       </section>
     </main>
   </div>
-  <div id="toast" class="toast"></div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="./app.js"></script>
+  <script src="./choir-hotfix.js"></script>
 </body>
 </html>
