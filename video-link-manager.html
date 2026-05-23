@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="admin-guard.js"></script>
+<title>영상 링크 점검 / 선택</title>
+<style>
+body{font-family:'Noto Sans KR',system-ui,sans-serif;max-width:1180px;margin:0 auto;padding:18px;background:#030712;color:#f8fafc}
+.head{display:flex;justify-content:space-between;gap:16px;align-items:flex-end}.head h1{margin-bottom:6px}.head p{max-width:760px;line-height:1.5;margin:0}
+.panel{margin-top:12px;padding:14px;border:1px solid rgba(255,255,255,.14);border-radius:22px;background:rgba(5,10,18,.72)}
+.toolbar{display:grid;grid-template-columns:minmax(240px,1fr) auto auto auto;gap:8px;align-items:center}
+input,textarea,select{width:100%;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);color:#fff;border-radius:14px;padding:9px 11px;font:inherit;font-weight:800;outline:none}
+textarea{min-height:120px;resize:vertical;line-height:1.55}.btn,button,a.btn{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:9px 12px;font:inherit;font-weight:900;text-decoration:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.btn.primary,button.primary{background:linear-gradient(135deg,#d7b765,#b99545);color:#111827}.btn:disabled,button:disabled{opacity:.5;cursor:not-allowed}
+.grid{display:grid;grid-template-columns:340px minmax(0,1fr);gap:14px;margin-top:12px}.song-list{display:grid;gap:7px;max-height:68vh;overflow:auto;padding-right:4px}
+.song-item{display:grid;grid-template-columns:1fr auto;gap:9px;text-align:left;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);border-radius:15px;padding:10px;color:#fff;cursor:pointer}.song-item.on{border-color:rgba(215,183,101,.70);background:rgba(183,146,65,.16)}.song-item b{display:block;font-size:14px}.song-item span{display:block;color:#cbd5e1;font-size:11px;margin-top:3px}.badge{align-self:start;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:4px 7px;font-size:10px;font-weight:900;color:#cbd5e1}.badge.bad{color:#fca5a5;background:rgba(127,29,29,.22)}.badge.ok{color:#86efac;background:rgba(22,101,52,.22)}.badge.warn{color:#f8e7b2;background:rgba(183,146,65,.18)}
+.detail{display:grid;gap:9px;align-content:start}.detail-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.detail-head h2{margin:0;font-size:22px}.muted{color:#cbd5e1;font-size:12px;line-height:1.45}
+.video-preview{width:70%;min-width:420px;justify-self:center;border:1px solid rgba(255,255,255,.12);border-radius:16px;background:#020611;overflow:hidden;aspect-ratio:16/9;display:grid;place-items:center;color:#94a3b8;font-weight:900}.video-preview iframe{width:100%;height:100%;border:0;display:block}
+.provider-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.provider-grid a{min-width:0}.form-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:7px}.status-line{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.045);border-radius:14px;padding:9px 10px;color:#dbe4f0;font-size:12px;line-height:1.4}.bulk-log{white-space:pre-wrap;max-height:180px;overflow:auto;font-size:12px;line-height:1.65;color:#dbe4f0}.mini-table{display:grid;gap:5px}.mini-table div{display:grid;grid-template-columns:94px minmax(0,1fr);gap:8px;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:5px;font-size:11px}.mini-table b{color:#f8e7b2}
+@media(max-width:820px){.toolbar,.grid,.form-row{grid-template-columns:1fr}.provider-grid{grid-template-columns:1fr 1fr}.song-list{max-height:none}.video-preview{width:100%;min-width:0}}
+</style>
+<link rel="stylesheet" href="tool-theme.css?v=layout-20260523j">
+<script src="tool-theme.js?v=layout-20260523j" defer></script>
+</head>
+<body>
+<section class="head">
+  <div>
+    <h1>영상 링크 점검 / 선택</h1>
+    <p class="muted">재생 안 되는 영상 링크를 임의로 바꾸지 않고, 예람워십 → 피아 → 마커스 → 어노인팅 순서로 검색해서 직접 확인한 링크만 저장합니다.</p>
+  </div>
+  <button class="primary" type="button" onclick="loadSongs()">새로고침</button>
+</section>
+
+<section class="panel">
+  <div class="toolbar">
+    <input id="q" placeholder="곡명, 링크, 상태 검색" oninput="renderList()">
+    <select id="filter" onchange="renderList()">
+      <option value="problem">문제/미등록</option>
+      <option value="missing">영상 없음</option>
+      <option value="broken">재생 확인 필요</option>
+      <option value="ok">정상</option>
+      <option value="all">전체</option>
+    </select>
+    <button type="button" onclick="checkVisibleLinks()">보이는 곡 점검</button>
+    <button type="button" onclick="openBulkBox()">일괄 입력</button>
+  </div>
+  <div class="status-line" id="summary">곡 목록을 불러오는 중입니다.</div>
+  <div class="grid">
+    <aside class="song-list" id="song-list"></aside>
+    <section class="detail">
+      <div class="detail-head">
+        <div><h2 id="song-title">곡을 선택해주세요</h2><div class="muted" id="song-meta">왼쪽 목록에서 곡을 선택하면 링크를 확인합니다.</div></div>
+        <span class="badge" id="song-state">대기</span>
+      </div>
+      <div class="mini-table" id="song-info"></div>
+      <div class="video-preview" id="preview">영상 링크를 선택하면 이곳에서 미리 봅니다.</div>
+      <div class="provider-grid" id="provider-links"></div>
+      <div class="form-row">
+        <input id="candidate-url" placeholder="확인한 유튜브 링크를 붙여넣기" oninput="previewCandidate()">
+        <button type="button" onclick="checkCandidate()">링크 확인</button>
+        <button class="primary" type="button" onclick="saveCandidate()">저장</button>
+      </div>
+      <div class="status-line" id="candidate-status">유튜브 검색에서 실제 영상을 확인한 뒤 링크를 붙여넣어 주세요.</div>
+      <div class="form-row">
+        <button type="button" onclick="copyCurrentSearch()">우선순위 검색어 복사</button>
+        <button type="button" onclick="clearCurrentVideo()">현재 곡 영상 비우기</button>
+        <button type="button" onclick="selectNextProblem()">다음 문제 곡</button>
+      </div>
+    </section>
+  </div>
+</section>
+
+<section class="panel" id="bulk-box" style="display:none">
+  <h2>일괄 입력</h2>
+  <p class="muted">한 줄에 하나씩 <b>곡명 탭 링크</b> 또는 <b>곡명,링크</b> 형식으로 넣으면, 곡명이 정확히 맞는 항목만 저장합니다.</p>
+  <textarea id="bulk-text" placeholder="예: 감사&#9;https://youtu.be/..."></textarea>
+  <div class="form-row">
+    <button type="button" onclick="previewBulk()">미리 확인</button>
+    <button class="primary" type="button" onclick="applyBulk()">확인된 항목 저장</button>
+    <button type="button" onclick="document.getElementById('bulk-box').style.display='none'">닫기</button>
+  </div>
+  <div class="bulk-log" id="bulk-log">아직 확인 전입니다.</div>
+</section>
+
+<script>
+const SUPABASE_URL='https://rmtysrytveexshwzenxj.supabase.co';
+const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdHlzcnl0dmVleHNod3plbnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjQ3OTYsImV4cCI6MjA5MjEwMDc5Nn0.5FzzJ1rg-uRG4jAGZ75xVT3i3NH0m6J_tDeOS4GxyT8';
+const HEADERS={apikey:KEY,Authorization:`Bearer ${KEY}`};
+const JSON_HEADERS={...HEADERS,'Content-Type':'application/json','Prefer':'return=representation'};
+const PROVIDERS=['예람워십','피아워십','마커스워십','어노인팅'];
+let songs=[],shown=[],selected=null,bulkRows=[];
+const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const norm=v=>String(v||'').replace(/\s+/g,'').toLowerCase();
+function youtubeId(url){const u=String(url||'').trim();if(!u)return'';let m=u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/))([A-Za-z0-9_-]{6,})/);if(m)return m[1];try{return new URL(u).searchParams.get('v')||''}catch(e){return''}}
+function watchUrl(url){const id=youtubeId(url);return id?`https://www.youtube.com/watch?v=${id}`:''}
+function embedUrl(url){const id=youtubeId(url);return id?`https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`:''}
+function stateLabel(s){if(!s.music_url)return ['영상 없음','warn'];if(s.video_state==='ok')return ['정상','ok'];if(s.video_state==='bad')return ['재생 확인 필요','bad'];return ['미점검','warn']}
+function searchUrl(song,provider){const q=encodeURIComponent(`${song.name} ${provider} 찬양`);return `https://www.youtube.com/results?search_query=${q}`}
+async function api(path,opts={}){const res=await fetch(`${SUPABASE_URL}/rest/v1/${path}`,{headers:HEADERS,...opts});if(!res.ok)throw new Error(await res.text());return await res.json()}
+async function patchSong(id,payload){const res=await fetch(`${SUPABASE_URL}/rest/v1/songs?id=eq.${encodeURIComponent(id)}`,{method:'PATCH',headers:JSON_HEADERS,body:JSON.stringify({...payload,updated_at:new Date().toISOString()})});if(!res.ok)throw new Error(await res.text());return await res.json()}
+async function checkYoutube(url){const id=youtubeId(url);if(!id)return {ok:false,reason:'유튜브 영상 ID를 찾지 못했습니다.'};const target=`https://www.youtube.com/watch?v=${id}`;try{const res=await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(target)}&format=json`);if(res.ok){const data=await res.json();return {ok:true,reason:data.title||'oEmbed 확인됨'}}return {ok:false,reason:`YouTube 확인 실패 ${res.status}`}}catch(e){try{const res=await fetch(`https://noembed.com/embed?url=${encodeURIComponent(target)}`);const data=await res.json();if(data&&data.title&&!data.error)return {ok:true,reason:data.title};return {ok:false,reason:data?.error||'외부 확인 실패'}}catch(err){return {ok:null,reason:'브라우저에서 외부 확인이 막혔습니다. 미리보기로 직접 확인하세요.'}}}
+}
+async function loadSongs(){document.getElementById('summary').textContent='곡 목록을 불러오는 중입니다.';songs=await api('songs?select=id,name,key,bpm,music_url,has_score,status&order=name.asc&limit=2000');songs=songs.map(s=>({...s,video_state:s.music_url?'unchecked':'missing',video_note:''}));selected=songs[0]||null;renderList();renderDetail();document.getElementById('summary').textContent=`총 ${songs.length}곡을 불러왔습니다. 문제가 있는 곡부터 확인하세요.`}
+function renderList(){const q=norm(document.getElementById('q').value);const f=document.getElementById('filter').value;shown=songs.filter(s=>{const [label]=stateLabel(s);if(q&&!norm(`${s.name} ${s.music_url||''} ${label}`).includes(q))return false;if(f==='missing')return !s.music_url;if(f==='broken')return s.video_state==='bad'||s.video_state==='unchecked';if(f==='ok')return s.video_state==='ok';if(f==='problem')return !s.music_url||s.video_state==='bad'||s.video_state==='unchecked';return true}).slice(0,220);document.getElementById('song-list').innerHTML=shown.map(s=>{const [label,cls]=stateLabel(s);return `<button class="song-item ${selected&&String(selected.id)===String(s.id)?'on':''}" type="button" onclick="selectSong('${esc(s.id)}')"><span><b>${esc(s.name)}</b><span>${esc(s.music_url||'등록된 링크 없음')}</span></span><em class="badge ${cls}">${label}</em></button>`}).join('')||'<div class="status-line">조건에 맞는 곡이 없습니다.</div>';const missing=songs.filter(s=>!s.music_url).length,bad=songs.filter(s=>s.video_state==='bad').length,unchecked=songs.filter(s=>s.music_url&&s.video_state==='unchecked').length,ok=songs.filter(s=>s.video_state==='ok').length;document.getElementById('summary').textContent=`전체 ${songs.length}곡 · 영상 없음 ${missing} · 확인 필요 ${bad+unchecked} · 정상 ${ok}`}
+function selectSong(id){selected=songs.find(s=>String(s.id)===String(id))||selected;renderList();renderDetail()}
+function renderDetail(){const s=selected;if(!s)return;const [label,cls]=stateLabel(s);document.getElementById('song-title').textContent=s.name||'곡';document.getElementById('song-meta').textContent=`Key ${s.key||'미정'} · BPM ${s.bpm||'미정'} · ${s.has_score?'악보 있음':'악보 확인 필요'}`;document.getElementById('song-state').className=`badge ${cls}`;document.getElementById('song-state').textContent=label;document.getElementById('song-info').innerHTML=`<div><b>현재 링크</b><span>${esc(s.music_url||'없음')}</span></div><div><b>확인 결과</b><span>${esc(s.video_note||'아직 확인하지 않았습니다.')}</span></div><div><b>우선순위</b><span>${PROVIDERS.join(' > ')}</span></div>`;document.getElementById('candidate-url').value=s.music_url||'';renderPreview(s.music_url);document.getElementById('provider-links').innerHTML=PROVIDERS.map(p=>`<a class="btn" href="${searchUrl(s,p)}" target="_blank" rel="noopener">${esc(p)} 검색</a>`).join('');document.getElementById('candidate-status').textContent=s.video_note||'유튜브 검색에서 실제 영상을 확인한 뒤 링크를 붙여넣어 주세요.'}
+function renderPreview(url){const embed=embedUrl(url);document.getElementById('preview').innerHTML=embed?`<iframe src="${embed}" title="유튜브 미리보기" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`:'영상 링크를 선택하면 이곳에서 미리 봅니다.'}
+function previewCandidate(){renderPreview(document.getElementById('candidate-url').value.trim())}
+async function checkCandidate(){const url=document.getElementById('candidate-url').value.trim();const result=await checkYoutube(url);document.getElementById('candidate-status').textContent=result.reason;return result}
+async function saveCandidate(){if(!selected)return;const url=document.getElementById('candidate-url').value.trim();if(url&&!youtubeId(url))return alert('유튜브 링크 형식이 아닙니다.');const result=url?await checkYoutube(url):{ok:true,reason:'링크 비움'};if(result.ok===false&&!confirm(`자동 확인 결과 문제가 있습니다.\n${result.reason}\n그래도 저장할까요?`))return;await patchSong(selected.id,{music_url:url});Object.assign(selected,{music_url:url,video_state:url?(result.ok?'ok':'unchecked'):'missing',video_note:result.reason});renderList();renderDetail();alert('영상 링크를 저장했습니다.')}
+async function clearCurrentVideo(){if(!selected)return;if(!confirm(`'${selected.name}' 영상 링크를 비울까요?`))return;document.getElementById('candidate-url').value='';await saveCandidate()}
+async function checkVisibleLinks(){for(const s of shown.filter(x=>x.music_url).slice(0,80)){s.video_state='checking';s.video_note='확인 중';renderList();const r=await checkYoutube(s.music_url);s.video_state=r.ok?'ok':r.ok===false?'bad':'unchecked';s.video_note=r.reason}renderList();if(selected)renderDetail()}
+function selectNextProblem(){const current=selected?shown.findIndex(s=>String(s.id)===String(selected.id)):-1;const next=shown.slice(current+1).find(s=>!s.music_url||s.video_state==='bad'||s.video_state==='unchecked')||shown.find(s=>!s.music_url||s.video_state==='bad'||s.video_state==='unchecked');if(next){selected=next;renderList();renderDetail()}}
+async function copyCurrentSearch(){if(!selected)return;const text=PROVIDERS.map(p=>`${selected.name} ${p} 찬양`).join('\n');await navigator.clipboard.writeText(text);document.getElementById('candidate-status').textContent='우선순위 검색어를 클립보드에 복사했습니다.'}
+function openBulkBox(){document.getElementById('bulk-box').style.display='block'}
+function parseBulk(){return document.getElementById('bulk-text').value.split('\n').map(line=>line.trim()).filter(Boolean).map(line=>{const parts=line.includes('\t')?line.split('\t'):line.split(',');const name=(parts[0]||'').trim();const url=(parts.slice(1).join(',')||'').trim();const song=songs.find(s=>norm(s.name)===norm(name));return {name,url,song,valid:!!song&&!!youtubeId(url)}})}
+function previewBulk(){bulkRows=parseBulk();document.getElementById('bulk-log').textContent=bulkRows.map(r=>`${r.valid?'저장 가능':'확인 필요'} | ${r.name} | ${r.song?r.song.name:'곡명 불일치'} | ${r.url}`).join('\n')||'입력된 내용이 없습니다.'}
+async function applyBulk(){if(!bulkRows.length)previewBulk();const rows=bulkRows.filter(r=>r.valid);if(!rows.length)return alert('저장 가능한 항목이 없습니다.');if(!confirm(`${rows.length}곡의 영상 링크를 저장할까요?`))return;let ok=0,fail=0;for(const r of rows){try{await patchSong(r.song.id,{music_url:r.url});Object.assign(r.song,{music_url:r.url,video_state:'unchecked',video_note:'일괄 저장됨'});ok++}catch(e){fail++}}renderList();renderDetail();document.getElementById('bulk-log').textContent+=`\n\n완료: 저장 ${ok}곡 · 실패 ${fail}곡`}
+loadSongs().catch(e=>{document.getElementById('summary').textContent='곡 목록을 불러오지 못했습니다: '+e.message});
+</script>
+</body>
+</html>

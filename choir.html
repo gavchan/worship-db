@@ -67,7 +67,6 @@ select option{color:#111}
 .part-list{display:grid;gap:9px;margin-top:12px}
 .part-row{display:grid;grid-template-columns:86px 1fr auto;align-items:center;gap:8px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.055);padding:10px}
 .part-row b{font-size:14px}.part-row span{font-size:12px;color:var(--muted)}
-.order-chip{display:inline-flex;align-items:center;border:1px solid rgba(215,183,101,.32);background:rgba(183,146,65,.16);border-radius:999px;padding:4px 8px;color:#f8e7b2;font-size:12px;font-weight:900;margin-left:6px}
 .small-btn{border:1px solid var(--line);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:8px 10px;font-size:13px;font-weight:900}
 .small-btn.primary{background:#fff;color:#07101f}
 .small-btn.subtle{font-size:12px;padding:7px 9px;opacity:.72}
@@ -77,6 +76,8 @@ select option{color:#111}
 .order-editor summary{list-style:none;cursor:pointer;font-weight:900;color:#f8e7b2;display:flex;justify-content:space-between;gap:10px}
 .order-editor summary::-webkit-details-marker{display:none}
 .order-editor p{font-size:13px;margin:9px 0 0}
+.order-summary-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.order-summary-title .small-btn{padding:5px 10px;font-size:12px}
 .order-columns{display:grid;grid-template-columns:minmax(220px,.8fr) minmax(0,1.2fr);gap:12px;margin-top:12px}
 .order-box{border:1px solid var(--line);background:rgba(255,255,255,.055);border-radius:16px;padding:11px}
 .order-box h3{font-size:14px;margin:0 0 8px}
@@ -275,9 +276,8 @@ function renderMedia(song){
 function renderPartRows(song){
   return partOrder.map(part=>{
     const count=pagesOf(song,part).length;
-    const order=orderOf(song,part).filter(pageNo=>pageNo>=1 && pageNo<=count);
     const hasVideo=!!videoOf(song,part);
-    return `<div class="part-row"><b>${partLabels[part]}</b><span>원본 ${count}장 · 영상 ${hasVideo?'있음':'없음'}${order.length?` · 반주용 ${order.length}단계 <span class="order-chip">${esc(order.join('-'))}</span>`:''}</span><button class="small-btn ${part===selectedPart?'primary':''}" onclick="setPart('${part}')">보기</button></div>`;
+    return `<div class="part-row"><b>${partLabels[part]}</b><span>원본 ${count}장 · 영상 ${hasVideo?'있음':'없음'}</span><button class="small-btn ${part===selectedPart?'primary':''}" onclick="setPart('${part}')">보기</button></div>`;
   }).join('');
 }
 function renderOrderEditor(song){
@@ -287,7 +287,7 @@ function renderOrderEditor(song){
   if(!orderDraftReady){orderDraft=draftBase(song,selectedPart);orderDraftReady=true;}
   const saved=orderOf(song,selectedPart).filter(pageNo=>pageNo>=1&&pageNo<=pages.length);
   return `<details class="order-editor" ${orderEditorOpen?'open':''} ontoggle="orderEditorOpen=this.open">
-    <summary><span>반주용 순서 편집</span><span>${saved.length?'저장됨':'원본 순서 사용 중'}</span></summary>
+    <summary><span class="order-summary-title">반주용 순서 편집 ${saved.length?`<button class="small-btn" type="button" onclick="event.preventDefault();event.stopPropagation();openViewer('${selectedPart}','score',true)">보기</button>`:''}</span><span>${saved.length?'저장됨':'원본 순서 사용 중'}</span></summary>
     <p>원본 악보는 그대로 두고, 반주용 악보에서만 페이지를 복사하거나 순서를 바꿉니다. 일반 성가대원은 원본 악보를 크게 보면 됩니다.</p>
     <div class="order-columns">
       <div class="order-box">
@@ -330,7 +330,6 @@ function renderDetail(song){
         <div class="media-body ${mediaMode==='video'?'video-mode':'score-mode'}">${renderMedia(song)}</div>
         <div class="viewer-action-row with-secondary">
           <button class="btn primary" onclick="openViewer('${selectedPart}','score',false)">원본 악보 크게 보기</button>
-          ${orderOf(song,selectedPart).length?`<button class="small-btn subtle" onclick="openViewer('${selectedPart}','score',true)">반주용 악보</button>`:''}
           ${mediaMode==='video'?`<button class="small-btn primary" onclick="openViewer('${selectedPart}','${openMode}',false)">영상 크게 보기</button>`:''}
         </div>
       </div>

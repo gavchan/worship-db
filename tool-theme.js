@@ -15,8 +15,8 @@ document.addEventListener('DOMContentLoaded',()=>{
     <nav class="tool-nav" aria-label="도구 이동">
       <a href="index.html">통합 홈</a>
       <a href="test-conti.html">찬양콘티</a>
-      <a href="song-search.html">곡별 검색</a>
-      <a href="test-songs.html">세부검색</a>
+      <a href="test-songs.html">곡별검색</a>
+      <a href="song-search.html">세부검색</a>
       <a href="test-tools.html">관리도구</a>
       <a href="test-choir.html">성가대</a>
     </nav>`;
