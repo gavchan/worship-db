@@ -81,10 +81,13 @@ select option{color:#111}
 .order-box{border:1px solid var(--line);background:rgba(255,255,255,.055);border-radius:16px;padding:11px}
 .order-box h3{font-size:14px;margin:0 0 8px}
 .source-pages,.order-sequence{display:flex;gap:7px;flex-wrap:wrap}
+.order-sequence{min-height:46px}
 .source-page,.sequence-chip{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.07);color:#fff;border-radius:14px;padding:8px 10px;font-size:12px;font-weight:900}
 .source-page{display:grid;gap:5px;text-align:center}
 .source-page button,.sequence-chip button{border:0;background:rgba(255,255,255,.12);color:#fff;border-radius:999px;padding:4px 7px;font-size:11px;font-weight:900}
-.sequence-chip{display:flex;align-items:center;gap:5px}
+.sequence-chip{display:flex;align-items:center;gap:5px;cursor:grab;user-select:none}
+.sequence-chip:active{cursor:grabbing}
+.drag-handle{border:1px solid rgba(215,183,101,.32);background:rgba(183,146,65,.18);border-radius:999px;padding:3px 7px;color:#f8e7b2;font-size:11px}
 .sequence-chip b{color:#f8e7b2}
 .order-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .edit-panel{display:none;margin-top:14px}
@@ -170,7 +173,7 @@ select option{color:#111}
 </div>
 
 <script>
-let choirSongs=[], selectedId='', selectedPart='full', mediaMode='score', orderDraft=[];
+let choirSongs=[], selectedId='', selectedPart='full', mediaMode='score', orderDraft=[], orderDraftReady=false, orderEditorOpen=false, orderDragIndex=null;
 let viewerState={song:null,part:'full',page:0,pages:1,mode:'score',useOrder:false,wake:null,touchX:0};
 const sharedView=new URLSearchParams(location.search).get('shared')==='1'||new URLSearchParams(location.search).get('view')==='shared';
 const labels={service:'이번 주일 할 곡',practice:'앞으로 연습할 곡',archive:'자료만 보관'};
@@ -253,8 +256,9 @@ function renderList(){
   box.innerHTML=list.map(song=>`<button class="item ${song.id===selectedId?'on':''}" onclick="selectSong('${esc(song.id)}')"><strong>${esc(song.title)}</strong><span>${esc(song.schedule?.date||'날짜 미정')} · ${esc(labels[song.schedule?.type]||song.schedule?.type||'자료')} · 악보 ${song.files?.length||0}장</span></button>`).join('');
   renderDetail(songById(selectedId));
 }
-function selectSong(id){selectedId=id;selectedPart='full';mediaMode='score';orderDraft=[];renderList()}
-function setPart(part){selectedPart=part;mediaMode='score';orderDraft=[];renderDetail(songById(selectedId))}
+function resetOrderEditorState(open=false){orderDraft=[];orderDraftReady=false;orderEditorOpen=open;orderDragIndex=null}
+function selectSong(id){selectedId=id;selectedPart='full';mediaMode='score';resetOrderEditorState(false);renderList()}
+function setPart(part){selectedPart=part;mediaMode='score';resetOrderEditorState(false);renderDetail(songById(selectedId))}
 function setMedia(mode){mediaMode=mode;renderDetail(songById(selectedId))}
 function renderScorePreview(song){
   const pages=originalPagesOf(song);
@@ -280,9 +284,9 @@ function renderOrderEditor(song){
   if(sharedView) return '';
   const pages=originalPagesOf(song,selectedPart);
   if(!pages.length) return '';
-  if(!orderDraft.length) orderDraft=draftBase(song,selectedPart);
+  if(!orderDraftReady){orderDraft=draftBase(song,selectedPart);orderDraftReady=true;}
   const saved=orderOf(song,selectedPart).filter(pageNo=>pageNo>=1&&pageNo<=pages.length);
-  return `<details class="order-editor">
+  return `<details class="order-editor" ${orderEditorOpen?'open':''} ontoggle="orderEditorOpen=this.open">
     <summary><span>반주용 순서 편집</span><span>${saved.length?'저장됨':'원본 순서 사용 중'}</span></summary>
     <p>원본 악보는 그대로 두고, 반주용 악보에서만 페이지를 복사하거나 순서를 바꿉니다. 일반 성가대원은 원본 악보를 크게 보면 됩니다.</p>
     <div class="order-columns">
@@ -292,7 +296,7 @@ function renderOrderEditor(song){
       </div>
       <div class="order-box">
         <h3>반주용 순서</h3>
-        <div class="order-sequence">${orderDraft.map((pageNo,index)=>`<div class="sequence-chip"><span>${index+1}</span><b>원본 ${pageNo}</b><button type="button" onclick="moveOrderStep(${index},-1)">←</button><button type="button" onclick="moveOrderStep(${index},1)">→</button><button type="button" onclick="removeOrderStep(${index})">제거</button></div>`).join('') || '<div class="empty">반주용 순서가 비어 있습니다.</div>'}</div>
+        <div class="order-sequence" ondragover="event.preventDefault()" ondrop="dropOrderStep(event,orderDraft.length)">${orderDraft.map((pageNo,index)=>`<div class="sequence-chip" draggable="true" ondragstart="startOrderDrag(event,${index})" ondragover="event.preventDefault()" ondrop="dropOrderStep(event,${index})"><span class="drag-handle">끌기</span><span>${index+1}</span><b>원본 ${pageNo}</b><button type="button" onclick="removeOrderStep(${index})">제거</button></div>`).join('') || '<div class="empty">반주용 순서가 비어 있습니다.</div>'}</div>
         <div class="order-actions">
           <button class="small-btn primary" type="button" onclick="saveScoreOrder()">반주용 순서 저장</button>
           <button class="small-btn" type="button" onclick="resetOrderDraft()">원본 순서로</button>
@@ -378,10 +382,13 @@ function renderViewer(){
   document.getElementById('viewer-video').innerHTML=video ? `<iframe src="${esc(video)}" allowfullscreen></iframe>` : '<div class="empty">등록된 영상이 없습니다.</div>';
   document.getElementById('viewer-strip').innerHTML=partOrder.map(part=>`<button class="small-btn ${part===viewerState.part?'primary':''}" onclick="viewerState.part='${part}';viewerState.page=0;renderViewer()">${partLabels[part]}</button>`).join('');
 }
-function appendOrderPage(pageNo){orderDraft.push(pageNo);renderDetail(songById(selectedId))}
-function moveOrderStep(index,dir){const next=index+dir;if(next<0||next>=orderDraft.length)return;[orderDraft[index],orderDraft[next]]=[orderDraft[next],orderDraft[index]];renderDetail(songById(selectedId))}
-function removeOrderStep(index){orderDraft.splice(index,1);renderDetail(songById(selectedId))}
-function resetOrderDraft(){const song=songById(selectedId);orderDraft=draftBase(song,selectedPart);renderDetail(song)}
+function ensureOrderDraft(){if(!orderDraftReady){const song=songById(selectedId);orderDraft=draftBase(song,selectedPart);orderDraftReady=true;}}
+function appendOrderPage(pageNo){const song=songById(selectedId);const n=Number(pageNo);if(!song||!Number.isInteger(n))return;ensureOrderDraft();if(n<1||n>pagesOf(song,selectedPart).length)return;orderDraft.push(n);orderEditorOpen=true;renderDetail(song)}
+function moveOrderStep(index,dir){ensureOrderDraft();const next=index+dir;if(next<0||next>=orderDraft.length)return;[orderDraft[index],orderDraft[next]]=[orderDraft[next],orderDraft[index]];orderEditorOpen=true;renderDetail(songById(selectedId))}
+function startOrderDrag(event,index){orderDragIndex=index;event.dataTransfer.effectAllowed='move';event.dataTransfer.setData('text/plain',String(index))}
+function dropOrderStep(event,index){event.preventDefault();ensureOrderDraft();const raw=event.dataTransfer.getData('text/plain');const from=Number.isInteger(orderDragIndex)?orderDragIndex:Number(raw);if(!Number.isInteger(from)||from<0||from>=orderDraft.length)return;let to=Math.max(0,Math.min(Number(index),orderDraft.length));const [moved]=orderDraft.splice(from,1);if(from<to)to-=1;orderDraft.splice(to,0,moved);orderDragIndex=null;orderEditorOpen=true;renderDetail(songById(selectedId))}
+function removeOrderStep(index){ensureOrderDraft();orderDraft.splice(index,1);orderEditorOpen=true;renderDetail(songById(selectedId))}
+function resetOrderDraft(){const song=songById(selectedId);orderDraft=draftBase(song,selectedPart);orderDraftReady=true;orderEditorOpen=true;renderDetail(song)}
 function readChoirToken(){
   const token=prompt('반주용 순서 저장용 관리자 토큰을 입력해주세요.')||'';
   if(token){sessionStorage.setItem('worshipR2SyncToken',token);localStorage.setItem('worshipR2SyncToken',token)}
@@ -408,14 +415,14 @@ async function saveScoreOrder(){
     const group=await postScoreOrder(clean);
     const idx=choirSongs.findIndex(item=>item.id===group.id);
     if(idx>=0) choirSongs[idx]=group;
-    orderDraft=[];
+    resetOrderEditorState(false);
     renderList();
     alert('반주용 순서를 저장했습니다.');
   }catch(e){alert(e.message||e)}
 }
 async function clearScoreOrder(){
   if(!confirm('이 성부의 반주용 순서만 삭제할까요? 원본 악보는 그대로 유지됩니다.'))return;
-  orderDraft=[];
+  resetOrderEditorState(true);
   try{
     const group=await postScoreOrder([]);
     const idx=choirSongs.findIndex(item=>item.id===group.id);

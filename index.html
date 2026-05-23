@@ -3,124 +3,262 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>예배 자료실</title>
+<title>Worship DB</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
-:root{--gold:#b99545;--gold2:#d7b765;--ink:#07111f;--panel:rgba(5,10,18,.68);--line:rgba(255,255,255,.16);--muted:#c3cad8}
+:root{--gold:#b99545;--gold2:#d7b765;--bg:#06101f;--panel:rgba(5,10,18,.68);--panel2:rgba(12,18,31,.72);--line:rgba(255,255,255,.14);--muted:#c3cad8;--text:#f8fafc;--blue:#243b63}
 *{box-sizing:border-box;margin:0;padding:0}
-body{min-height:100vh;font-family:'Noto Sans KR',system-ui,sans-serif;color:#fff;background:#08111f;overflow-x:hidden}
-.page{min-height:100vh;position:relative;background:
-  linear-gradient(90deg,rgba(2,6,16,.66) 0%,rgba(3,9,23,.28) 42%,rgba(5,11,23,.42) 100%),
-  linear-gradient(180deg,rgba(0,0,0,.08) 0%,rgba(0,0,0,.06) 44%,rgba(0,0,0,.62) 100%),
+body{min-height:100vh;font-family:'Noto Sans KR',system-ui,sans-serif;color:var(--text);background:#08111f;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+.app{min-height:100vh;position:relative;background:
+  linear-gradient(90deg,rgba(2,6,16,.88) 0%,rgba(2,6,16,.62) 42%,rgba(2,6,16,.82) 100%),
+  linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.74)),
   url("assets/main-church-bg.png");
-  background-size:cover,cover,cover;background-position:center,center,left center}
-.stars{position:absolute;inset:0;background:radial-gradient(circle at 84% 72%,rgba(255,166,69,.24),transparent 23%);pointer-events:none}
-.top{position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:28px 34px 0;display:flex;justify-content:space-between;align-items:center;gap:20px}
-.brand{font-weight:900;letter-spacing:-.03em;font-size:22px;text-shadow:0 2px 14px rgba(0,0,0,.45)}
-.nav{display:flex;align-items:center;gap:2px;padding:6px;border:1px solid rgba(255,255,255,.15);border-radius:999px;background:rgba(2,7,18,.32);backdrop-filter:blur(16px)}
-.nav a{color:#fff;text-decoration:none;font-size:14px;font-weight:800;padding:10px 16px;border-radius:999px;opacity:.84}
-.nav a:hover,.nav a.on{background:rgba(183,146,65,.92);opacity:1}
-.hero{position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:94px 34px 44px;display:grid;grid-template-columns:minmax(420px,1fr) 430px;gap:28px;align-items:end;min-height:calc(100vh - 90px)}
-.copy{padding-left:min(28vw,420px)}
-.eyebrow{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);border-radius:999px;padding:8px 13px;font-size:13px;color:#e7ecf8;backdrop-filter:blur(14px);margin-bottom:18px}
-h1{font-size:clamp(42px,4.7vw,76px);line-height:1.02;letter-spacing:-.055em;text-shadow:0 8px 36px rgba(0,0,0,.45);white-space:nowrap;word-break:keep-all}
-.lead{margin-top:16px;color:#d9dfeb;font-size:20px;line-height:1.55;font-weight:600;text-shadow:0 4px 24px rgba(0,0,0,.48)}
-.cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid rgba(255,255,255,.18);border-radius:999px;background:rgba(5,10,18,.52);color:#fff;text-decoration:none;font-weight:900;padding:13px 18px;backdrop-filter:blur(14px)}
-.btn.primary{background:linear-gradient(135deg,var(--gold2),var(--gold));border-color:rgba(255,255,255,.16);color:#111827}
-.btn:hover{transform:translateY(-1px)}
-.panel-stack{display:grid;gap:14px}
-.card{border:1px solid var(--line);border-radius:22px;background:var(--panel);box-shadow:0 24px 80px rgba(0,0,0,.28);backdrop-filter:blur(18px);overflow:hidden}
-.card-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 20px;border-bottom:1px solid rgba(255,255,255,.1)}
-.card-head h2{font-size:24px;letter-spacing:-.04em}
-.date{font-size:13px;color:var(--muted);white-space:nowrap}
-.conti-list{display:grid;padding:4px 20px 12px}
-.song-row{display:grid;grid-template-columns:38px 1fr auto;gap:13px;align-items:center;padding:13px 0;border-bottom:1px solid rgba(255,255,255,.1)}
-a.song-row{color:#fff;text-decoration:none}
-a.song-row:hover .song-title{text-decoration:underline}
-.song-row:last-child{border-bottom:0}
-.num{width:34px;height:34px;border-radius:12px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-weight:900}
-.song-title{font-size:17px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.song-meta{font-size:12px;color:var(--muted);margin-top:2px}
-.pill{border:1px solid rgba(255,255,255,.13);border-radius:999px;padding:5px 8px;font-size:12px;color:#e8ecf6;white-space:nowrap}
-.quick{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.mini{display:block;text-decoration:none;color:#fff;padding:17px;border:1px solid var(--line);border-radius:19px;background:rgba(5,10,18,.56);backdrop-filter:blur(15px)}
-.mini b{display:block;font-size:17px;margin-bottom:5px}
-.mini span{display:block;color:var(--muted);font-size:12px;line-height:1.45}
-.player{position:relative;z-index:2;border-top:1px solid rgba(255,255,255,.1);background:rgba(1,5,13,.78);backdrop-filter:blur(18px)}
-.player-inner{max-width:1280px;margin:0 auto;padding:16px 34px;display:grid;grid-template-columns:260px 1fr auto;gap:22px;align-items:center}
-.now b{display:block;font-size:15px}.now span{display:block;font-size:12px;color:var(--muted);margin-top:3px}
-.wave{height:42px;border-radius:999px;background:repeating-linear-gradient(90deg,rgba(183,146,65,.35) 0 4px,transparent 4px 12px),linear-gradient(90deg,rgba(183,146,65,.7),rgba(124,58,237,.68),rgba(255,255,255,.2));mask:linear-gradient(#000,#000);opacity:.78}
-.more{color:#fff;text-decoration:none;background:#000;border-radius:999px;padding:12px 17px;font-weight:900}
-@media(max-width:1180px) and (min-width:721px){
-  .hero{grid-template-columns:1fr;align-items:start;padding-top:44vh}
-  .copy{padding-left:0;max-width:520px}
-  .panel-stack{max-width:620px;margin-top:22px}
-  .player-inner{grid-template-columns:1fr}
+  background-size:cover,cover,cover;background-position:center,center,left center;background-attachment:fixed}
+.shell{position:relative;z-index:1;min-height:100vh;display:grid;grid-template-columns:250px minmax(0,1fr) 320px;gap:18px;padding:18px}
+.sidebar,.main,.rail{border:1px solid var(--line);background:rgba(5,10,18,.58);backdrop-filter:blur(18px);box-shadow:0 28px 80px rgba(0,0,0,.30)}
+.sidebar{border-radius:24px;padding:18px 14px;display:flex;flex-direction:column;gap:16px;min-height:calc(100vh - 36px);position:sticky;top:18px}
+.brand{display:flex;align-items:center;gap:10px;padding:8px 8px 18px;font-size:20px;font-weight:900;letter-spacing:-.03em}
+.brand-mark{width:28px;height:28px;border-radius:10px;border:1px solid rgba(215,183,101,.45);background:rgba(183,146,65,.18);display:grid;place-items:center;color:#f8e7b2}
+.side-nav{display:grid;gap:6px}
+.side-link{display:flex;align-items:center;gap:10px;border:1px solid transparent;border-radius:14px;padding:12px 13px;color:#e8edf7;font-weight:900;font-size:14px}
+.side-link.on{background:rgba(36,59,99,.72);border-color:rgba(80,124,190,.35)}
+.side-link:hover{background:rgba(255,255,255,.08)}
+.side-icon{width:22px;text-align:center;color:#f8e7b2}
+.side-block{margin-top:auto;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.045);border-radius:18px;padding:13px;display:grid;gap:9px}
+.side-block small{color:var(--muted);font-weight:900}
+.side-video-card{position:relative;min-height:116px;border:1px solid rgba(215,183,101,.26);border-radius:16px;overflow:hidden;background:#101827;display:grid;align-items:end}
+.side-video-card:before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(4,8,18,.84),rgba(4,8,18,.44)),linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.38)),url("assets/main-church-bg.png");background-size:cover;background-position:left center;filter:saturate(.95)}
+.side-video-card:after{content:'';position:absolute;inset:0;border:1px solid transparent;border-radius:16px;pointer-events:none}.side-video-card:hover:after{border-color:rgba(215,183,101,.65)}
+.side-video-content{position:relative;z-index:1;padding:13px;display:grid;gap:6px}.side-video-content small{color:#f8e7b2;font-size:11px}.side-video-content b{font-size:16px;line-height:1.22}.side-video-content span{color:var(--muted);font-size:11px;font-weight:900;line-height:1.35}
+.church-day{border:1px solid rgba(215,183,101,.30);background:rgba(183,146,65,.10);border-radius:14px;padding:11px;display:grid;gap:6px}
+.church-day small{color:#f8e7b2}.church-day b{font-size:15px;line-height:1.35}.church-day span{color:var(--muted);font-size:11px;font-weight:900;line-height:1.45}
+.mini-line{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:900;color:#fff}
+.main{border-radius:28px;padding:24px;min-height:calc(100vh - 36px)}
+.topbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center}
+.search{display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.08);border-radius:999px;padding:13px 17px;min-width:0}
+.search span{font-size:18px;color:#f8e7b2}.search input{width:100%;border:0;background:transparent;color:#fff;outline:0;font:inherit;font-weight:900}.search input::placeholder{color:#aeb7c8}
+.history-btn{border:1px solid var(--line);background:rgba(5,10,18,.62);color:#fff;border-radius:16px;padding:13px 16px;font:inherit;font-weight:900;white-space:nowrap}
+.section-head{display:flex;align-items:end;justify-content:space-between;gap:14px;margin:24px 0 14px}
+.section-head h1{font-size:38px;line-height:1.08;letter-spacing:-.05em}
+.section-head p{color:var(--muted);font-size:13px;font-weight:800;line-height:1.5;margin-top:6px}
+.count{color:#d7dfed;font-size:13px;font-weight:900;white-space:nowrap}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.work-card{position:relative;min-height:156px;border:1px solid rgba(255,255,255,.12);border-radius:20px;overflow:hidden;background:#101827;box-shadow:0 18px 60px rgba(0,0,0,.28)}
+.work-card:before{content:'';position:absolute;inset:0;background:
+  linear-gradient(90deg,rgba(4,8,18,.70),rgba(4,8,18,.36)),
+  var(--card-bg,url("assets/main-church-bg.png"));
+  background-size:cover;background-position:center;filter:saturate(.95)}
+.work-card:after{content:'';position:absolute;inset:0;border:1px solid transparent;border-radius:20px;pointer-events:none}
+.work-card:hover:after{border-color:rgba(215,183,101,.65)}
+.work-content{position:relative;z-index:1;height:100%;display:grid;align-content:space-between;gap:18px;padding:18px}
+.work-title{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.work-title b{font-size:21px;letter-spacing:-.04em;line-height:1.25}
+.star{color:#f8d46a;font-size:20px}
+.meta{display:flex;gap:7px;flex-wrap:wrap;color:#d8dfec;font-size:12px;font-weight:900}
+.tag{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.10);border-radius:999px;padding:5px 8px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.16);background:rgba(5,10,18,.58);color:#fff;border-radius:999px;padding:9px 12px;font-size:13px;font-weight:900;backdrop-filter:blur(10px)}
+.btn.primary{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#111827;border-color:rgba(215,183,101,.75)}
+.playlist-card{margin-top:14px;border:1px solid rgba(255,255,255,.12);border-radius:20px;overflow:hidden;background:rgba(12,18,31,.70);box-shadow:0 18px 60px rgba(0,0,0,.22);display:grid;grid-template-columns:minmax(0,1.35fr) minmax(260px,.8fr)}
+.playlist-video{background:#020611;min-height:236px;aspect-ratio:16/9}.playlist-video iframe{width:100%;height:100%;border:0;display:block}
+.playlist-content{position:relative;overflow:hidden;padding:24px;display:grid;align-content:center;gap:12px;min-height:236px}
+.playlist-content:before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(4,8,18,.92),rgba(4,8,18,.58)),linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.44)),url("assets/main-church-bg.png");background-size:cover;background-position:left center;filter:saturate(.95);z-index:0}
+.playlist-content>*{position:relative;z-index:1}.playlist-content small{color:#f8e7b2;font-weight:900}.playlist-content h2{font-size:28px;letter-spacing:-.04em;line-height:1.18}.playlist-content p{color:#d9dfeb;font-size:14px;font-weight:800;line-height:1.55}.playlist-content .btn{width:max-content}
+.rail{border-radius:24px;padding:16px;display:grid;gap:14px;align-content:start;min-height:calc(100vh - 36px);position:sticky;top:18px}
+.rail-card{border:1px solid rgba(255,255,255,.11);background:rgba(255,255,255,.055);border-radius:18px;padding:14px}
+.rail-card h2{font-size:18px;letter-spacing:-.04em;margin-bottom:10px}
+.random-video{border:1px solid rgba(255,255,255,.10);background:#020611;border-radius:14px;overflow:hidden;aspect-ratio:16/9}.random-video iframe{width:100%;height:100%;border:0;display:block}.empty-random{height:100%;display:grid;place-items:center;color:var(--muted);font-size:12px;font-weight:900;text-align:center;padding:12px;line-height:1.45}.random-song-title{display:block;margin-top:10px;font-size:14px;line-height:1.35}.random-song-meta{display:block;color:var(--muted);font-size:11px;font-weight:800;margin-top:4px}.random-actions{display:flex;gap:8px;margin-top:10px}.random-actions .btn{width:100%;padding:8px 10px;font-size:12px}
+.recommend-split{display:grid;gap:10px}.recommend-box{border:1px solid rgba(255,255,255,.10);background:rgba(5,10,18,.36);border-radius:15px;padding:10px}.recommend-box-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.recommend-box-title b{font-size:13px}.recommend-box-title span{color:#f8e7b2;font-size:10px;font-weight:900}.recommend-list{display:grid;gap:8px}.recommend-item{display:grid;grid-template-columns:26px minmax(0,1fr);gap:9px;align-items:start;border:1px solid rgba(255,255,255,.10);background:rgba(5,10,18,.48);border-radius:14px;padding:9px;color:#fff}.recommend-rank{width:24px;height:24px;border-radius:9px;background:rgba(183,146,65,.20);color:#f8e7b2;display:grid;place-items:center;font-size:11px;font-weight:900}.recommend-item b{display:block;font-size:13px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.recommend-item span{display:block;color:var(--muted);font-size:11px;font-weight:800;line-height:1.35;margin-top:3px}.recommend-note{display:block;color:#f8e7b2;font-size:11px;font-weight:900;line-height:1.45;margin-bottom:9px}
+.quick-list{display:grid;gap:8px}
+.quick-link{display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.10);background:rgba(5,10,18,.48);border-radius:14px;padding:9px}
+.quick-num{width:30px;height:30px;border-radius:10px;background:rgba(183,146,65,.18);color:#f8e7b2;display:grid;place-items:center;font-weight:900}
+.quick-link b{font-size:14px}.quick-link span{display:block;color:var(--muted);font-size:11px;font-weight:800;margin-top:2px}.quick-pill{font-size:11px;color:#111827;background:#fff;border-radius:999px;padding:5px 7px;font-weight:900}
+.today{display:grid;gap:8px;color:#e8edf7;font-size:13px;font-weight:900;line-height:1.5}
+.today-row{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid rgba(255,255,255,.09);padding-bottom:8px}.today-row:last-child{border-bottom:0;padding-bottom:0}
+.mobile-top{display:none}
+@media(max-width:1180px){
+  .shell{grid-template-columns:220px minmax(0,1fr)}
+  .rail{grid-column:2}
 }
-@media(max-width:900px){.nav{display:none}}
-@media(max-width:720px){
-  body{background:#06101f}
-  .page{min-height:100dvh;background:linear-gradient(180deg,#071326 0%,#06101f 58%,#030712 100%)}
-  .page:before{content:'';position:absolute;z-index:1;left:16px;right:16px;top:62px;height:210px;border-radius:24px;border:1px solid rgba(255,255,255,.16);background:
-    linear-gradient(90deg,rgba(1,5,13,.08),rgba(1,5,13,.58)),
-    linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.26)),
-    url("assets/main-church-bg.png");
-    background-size:cover,cover,auto 118%;background-position:center,center,left center;background-repeat:no-repeat;box-shadow:0 22px 70px rgba(0,0,0,.36);overflow:hidden}
-  .stars{background:radial-gradient(circle at 72% 30%,rgba(255,166,69,.16),transparent 28%)}
-  .top{padding:18px 16px 0}.brand{font-size:18px}
-  .hero{padding:282px 16px 28px;min-height:auto;display:block}
-  .copy{padding:0}.eyebrow{font-size:12px;padding:7px 11px;margin-bottom:12px}
-  h1{font-size:42px;white-space:normal;letter-spacing:-.05em}
-  .lead{font-size:16px;line-height:1.55;margin-top:10px;max-width:310px}
-  .cta{display:grid;grid-template-columns:1fr;gap:8px;margin-top:18px;max-width:310px}
-  .btn{width:100%;padding:12px 15px}
-  .panel-stack{margin-top:20px;max-width:none;gap:10px}
-  .card{border-radius:18px}.card-head{padding:15px 16px}.card-head h2{font-size:21px}.date{font-size:12px}
-  .conti-list{padding:2px 16px 10px}.song-row{grid-template-columns:32px 1fr auto;gap:10px;padding:11px 0}.num{width:30px;height:30px;border-radius:10px}.song-title{font-size:15px}.pill{font-size:11px;padding:4px 7px}
-  .quick{grid-template-columns:1fr 1fr;gap:8px}.mini{padding:13px;border-radius:15px}.mini b{font-size:15px}.mini span{font-size:11px}
-  .player{display:none}
+@media(max-width:820px){
+  .app{background-attachment:scroll;background-position:left center}
+  .shell{display:block;padding:14px}
+  .sidebar{display:none}
+  .mobile-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+  .mobile-top .brand{padding:0;font-size:18px}
+  .main,.rail{min-height:0;border-radius:22px;padding:16px}
+  .rail{position:relative;top:auto;margin-top:14px}
+  .topbar{grid-template-columns:1fr}.history-btn{width:100%}
+  .section-head{display:block}.section-head h1{font-size:34px}.count{display:block;margin-top:8px}
+  .cards{grid-template-columns:1fr}.work-card{min-height:142px}
+  .playlist-card{grid-template-columns:1fr}.playlist-video{min-height:auto}.playlist-content{min-height:180px;padding:18px}.playlist-content h2{font-size:24px}.playlist-content .btn{width:100%}
 }
 </style>
 </head>
 <body>
-<div class="page">
-  <div class="stars"></div>
-  <header class="top">
-    <div class="brand">예배 자료실</div>
-    <nav class="nav">
-      <a class="on" href="index.html">홈</a>
-      <a href="test-main.html">찬양단</a>
-      <a href="test-choir.html">성가대</a>
-    </nav>
-  </header>
-  <main class="hero">
-    <section class="copy">
-      <div class="eyebrow">✦ 찬양단 · 성가대 통합 입구</div>
-      <h1>예배 자료실</h1>
-      <p class="lead">찬양단 콘티와 성가대 연습 자료를 같은 테마 안에서 나누어 관리합니다.</p>
-      <div class="cta">
-        <a class="btn primary" href="test-main.html">찬양단 들어가기</a>
-        <a class="btn" href="test-choir.html">성가대 들어가기</a>
-      </div>
-    </section>
-    <section class="panel-stack">
-      <div class="card">
-        <div class="card-head"><h2>찬양단</h2><span class="date">콘티 · 찬양곡</span></div>
-        <div class="conti-list">
-          <a class="song-row" href="test-main.html"><div class="num">1</div><div><div class="song-title">주일 찬양콘티</div><div class="song-meta">콘티1·콘티2, 공유, 전체화면 악보</div></div><span class="pill">열기</span></a>
-          <a class="song-row" href="test-songs.html"><div class="num">2</div><div><div class="song-title">찬양곡 데이터베이스</div><div class="song-meta">곡 검색, 수정, 악보·영상 관리</div></div><span class="pill">관리</span></a>
+<div class="app">
+  <div class="shell">
+    <div class="mobile-top">
+      <div class="brand"><span class="brand-mark">W</span> Worship DB</div>
+      <a class="btn primary" href="index.html">찬양단</a>
+    </div>
+
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">W</span> Worship DB</div>
+      <nav class="side-nav">
+        <a class="side-link on" href="test-conti.html"><span class="side-icon">□</span>콘티</a>
+        <a class="side-link" href="test-songs.html"><span class="side-icon">⌕</span>곡별검색</a>
+        <a class="side-link" href="song-search.html"><span class="side-icon">◎</span>세부검색</a>
+        <a class="side-link" href="test-choir.html"><span class="side-icon">♪</span>성가대</a>
+        <a class="side-link" href="test-tools.html"><span class="side-icon">⚙</span>관리도구</a>
+        <a class="side-link" href="share.html"><span class="side-icon">↗</span>공유관리</a>
+      </nav>
+      <div class="side-block">
+        <a class="side-video-card" href="https://youtube.com/playlist?list=PL_PTDB_rnKMJ3auZsgilJUx_C_S_o1dsL&si=e96jHe6Wv9WLeY1C" target="_blank" rel="noopener">
+          <span class="side-video-content">
+            <small>드림찬양단</small>
+            <b>이번 주 콘티영상</b>
+            <span>콘티에 맞춘 찬양 영상 바로가기</span>
+          </span>
+        </a>
+        <div class="church-day">
+          <small id="church-date">오늘의 교회력</small>
+          <b id="church-season">불러오는 중</b>
+          <span id="church-note">오늘 날짜를 기준으로 계산합니다.</span>
         </div>
+        <small>오늘의 바로가기</small>
+        <a class="mini-line" href="test-conti.html">● 이번 주 콘티</a>
+        <a class="mini-line" href="choir.html">● 성가대 자료보기</a>
       </div>
-      <div class="card">
-        <div class="card-head"><h2>성가대</h2><span class="date">4성부 · 파트별 영상</span></div>
-        <div class="conti-list">
-          <a class="song-row" href="test-choir.html"><div class="num">1</div><div><div class="song-title">성가대 자료실</div><div class="song-meta">4성부 악보와 파트별 연습 자료</div></div><span class="pill">열기</span></a>
-          <a class="song-row" href="choir-upload.html"><div class="num">2</div><div><div class="song-title">성가곡 등록</div><div class="song-meta">PDF/이미지 업로드와 R2 저장</div></div><span class="pill">등록</span></a>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <label class="search"><span>⌕</span><input id="home-search" placeholder="곡명, 콘티, 성가곡 검색..." onkeydown="if(event.key==='Enter') location.href='test-songs.html'"></label>
+        <a class="history-btn" href="song-search.html">세부검색</a>
+      </div>
+      <div class="section-head">
+        <div>
+          <h1>예배 자료실</h1>
+          <p>찬양단 콘티, 찬양곡 악보와 영상, 성가대 자료를 한 작업대에서 바로 엽니다.</p>
         </div>
+        <div class="count">주요 작업 6개</div>
       </div>
-    </section>
-  </main>
+      <section class="cards">
+        <a class="work-card" href="test-conti.html">
+          <div class="work-content">
+            <div class="work-title"><b>찬양콘티</b><span class="star">★</span></div>
+            <div class="meta"><span class="tag">콘티 기록</span><span class="tag">공유</span><span class="tag">전체화면 악보</span></div>
+            <div class="actions"><span class="btn primary">콘티 열기</span><span class="btn">곡 수정</span></div>
+          </div>
+        </a>
+        <a class="work-card" href="test-songs.html">
+          <div class="work-content">
+            <div class="work-title"><b>곡별 검색</b><span class="star">☆</span></div>
+            <div class="meta"><span class="tag">악보</span><span class="tag">유튜브</span><span class="tag">같이 보기</span></div>
+            <div class="actions"><span class="btn primary">곡 검색</span><span class="btn">악보+영상</span></div>
+          </div>
+        </a>
+        <a class="work-card" href="share.html">
+          <div class="work-content">
+            <div class="work-title"><b>공유 화면</b><span class="star">☆</span></div>
+            <div class="meta"><span class="tag">읽기 전용</span><span class="tag">악보보기</span><span class="tag">영상</span></div>
+            <div class="actions"><span class="btn primary">공유 열기</span><span class="btn">전체악보</span></div>
+          </div>
+        </a>
+        <a class="work-card" href="test-choir.html">
+          <div class="work-content">
+            <div class="work-title"><b>성가대 홈</b><span class="star">★</span></div>
+            <div class="meta"><span class="tag">4성부</span><span class="tag">파트 영상</span><span class="tag">자료실</span></div>
+            <div class="actions"><span class="btn primary">성가대 열기</span><span class="btn">공유 관리</span></div>
+          </div>
+        </a>
+        <a class="work-card" href="choir.html">
+          <div class="work-content">
+            <div class="work-title"><b>성가대 자료보기</b><span class="star">☆</span></div>
+            <div class="meta"><span class="tag">원본 악보</span><span class="tag">반주용 순서</span><span class="tag">연습 영상</span></div>
+            <div class="actions"><span class="btn primary">자료 보기</span><span class="btn">반주용 악보</span></div>
+          </div>
+        </a>
+        <a class="work-card" href="test-tools.html">
+          <div class="work-content">
+            <div class="work-title"><b>관리도구</b><span class="star">☆</span></div>
+            <div class="meta"><span class="tag">업로드</span><span class="tag">점검</span><span class="tag">정리</span></div>
+            <div class="actions"><span class="btn primary">도구 열기</span><span class="btn">DB 점검</span></div>
+          </div>
+        </a>
+      </section>
+      <section class="playlist-card" aria-label="성경읽기 프로젝트">
+        <div class="playlist-video">
+          <iframe src="https://www.youtube.com/embed/videoseries?list=PL_PTDB_rnKMKHmCe7ZYdWv3iucm49ocKY&rel=0&modestbranding=1" title="성경읽기 프로젝트 플레이리스트" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+        </div>
+        <div class="playlist-content">
+          <small>성경읽기 프로젝트</small>
+          <h2>오늘의 성경읽기</h2>
+          <p>성경읽기 플레이리스트를 영상으로 바로 확인하고, 전체 목록은 유튜브에서 이어서 엽니다.</p>
+          <a class="btn primary" href="https://youtube.com/playlist?list=PL_PTDB_rnKMKHmCe7ZYdWv3iucm49ocKY&si=o5iUFG4p-pctdasH" target="_blank" rel="noopener">성경읽기 열기</a>
+        </div>
+      </section>
+    </main>
+
+    <aside class="rail">
+      <section class="rail-card">
+        <h2>빠른 시작</h2>
+        <div class="quick-list">
+          <a class="quick-link" href="test-conti.html"><span class="quick-num">1</span><span><b>이번 주 콘티</b><span>곡순서, 메모, 공유</span></span><span class="quick-pill">열기</span></a>
+          <a class="quick-link" href="test-songs.html"><span class="quick-num">2</span><span><b>곡별검색</b><span>곡 정보와 추천 연결곡 확인</span></span><span class="quick-pill">검색</span></a>
+          <a class="quick-link" href="choir.html"><span class="quick-num">3</span><span><b>성가대 자료</b><span>원본 악보 우선</span></span><span class="quick-pill">보기</span></a>
+        </div>
+      </section>
+      <section class="rail-card">
+        <h2>이주의 추천곡</h2>
+        <span class="recommend-note" id="weekly-note">절기와 상황, 보유 곡 기준으로 추천합니다.</span>
+        <div class="recommend-split">
+          <div class="recommend-box">
+            <div class="recommend-box-title"><b>AI 추천</b><span>상황 기반</span></div>
+            <div class="recommend-list" id="ai-recommend-list"><div class="empty-random">추천곡을 불러오는 중입니다.</div></div>
+          </div>
+          <div class="recommend-box">
+            <div class="recommend-box-title"><b>내 곡 랜덤</b><span>5곡</span></div>
+            <div class="recommend-list" id="random-recommend-list"><div class="empty-random">추천곡을 불러오는 중입니다.</div></div>
+          </div>
+        </div>
+      </section>
+      <section class="rail-card">
+        <h2>오늘의 추천곡</h2>
+        <strong class="random-song-title" id="today-song-title">찬양곡 영상</strong>
+        <span class="random-song-meta" id="today-song-meta">보유 곡 중 한 곡을 보여줍니다.</span>
+        <div class="random-video" id="today-video"><div class="empty-random">영상을 불러오는 중입니다.</div></div>
+        <div class="random-actions"><button class="btn primary" type="button" onclick="loadHomeRecommendations()">다시 추천</button></div>
+      </section>
+    </aside>
+  </div>
 </div>
+<script>
+const SUPABASE_URL='https://rmtysrytveexshwzenxj.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdHlzcnl0dmVleHNod3plbnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjQ3OTYsImV4cCI6MjA5MjEwMDc5Nn0.5FzzJ1rg-uRG4jAGZ75xVT3i3NH0m6J_tDeOS4GxyT8';
+const HEADERS={apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`};
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function addDays(date,days){const d=new Date(date);d.setDate(d.getDate()+days);return d}
+function sameDay(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()}
+function dayDiff(a,b){return Math.round((new Date(a.getFullYear(),a.getMonth(),a.getDate())-new Date(b.getFullYear(),b.getMonth(),b.getDate()))/86400000)}
+function easterDate(year){const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),month=Math.floor((h+l-7*m+114)/31),day=((h+l-7*m+114)%31)+1;return new Date(year,month-1,day)}
+function adventStart(year){const d=new Date(year,10,27);while(d.getDay()!==0)d.setDate(d.getDate()+1);return d}
+function churchCalendar(date=new Date()){const y=date.getFullYear();const easter=easterDate(y);const diff=dayDiff(date,easter);const dow=['주일','월요일','화요일','수요일','목요일','금요일','토요일'][date.getDay()];let title='성령강림 후 절기',note='말씀과 예배 흐름을 따라 준비합니다.';if(sameDay(date,easter)){title='부활주일';note='부활의 기쁨으로 예배를 준비합니다.'}else if(diff>0&&diff<49){const week=Math.floor(diff/7)+1;title=`부활절기 제${week}주 ${dow}`;note=diff===48?'내일은 성령강림주일입니다.':'부활절기 안에서 찬양을 준비합니다.'}else if(diff===39){title='주님 승천일';note='부활하신 주님의 승천을 기억합니다.'}else if(diff===49){title='성령강림주일';note='성령의 임재와 교회의 시작을 기억합니다.'}else if(diff>=-46&&diff<0){title=diff>=-7?`고난주간 ${dow}`:`사순절 ${Math.floor((diff+46)/7)+1}주 ${dow}`;note='십자가를 바라보며 차분한 예배 흐름을 준비합니다.'}else if(diff===-7){title='종려주일';note='고난주간으로 들어가는 주일입니다.'}else if(date>=new Date(y,11,25)||date<new Date(y,0,6)){title='성탄절기';note='성탄의 기쁨을 이어가는 절기입니다.'}else if(date>=adventStart(y)){title=`대림절 ${Math.floor(dayDiff(date,adventStart(y))/7)+1}주 ${dow}`;note='주님 오심을 기다리는 절기입니다.'}else if(date>=new Date(y,0,6)&&date<addDays(easter,-46)){title='주현절 후 절기';note='그리스도의 나타나심을 기억합니다.'}else if(diff>49){title=`성령강림 후 ${Math.floor((diff-49)/7)+1}주 ${dow}`;note='일상의 예배와 사역을 이어갑니다.'}return{title,note,dateText:date.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'long'})}}
+function renderChurchCalendar(){const c=churchCalendar();document.getElementById('church-date').textContent=c.dateText;document.getElementById('church-season').textContent=c.title;document.getElementById('church-note').textContent=c.note}
+function youtubeId(url){const u=String(url||'').trim();if(!u)return'';let m=u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/))([A-Za-z0-9_-]{6,})/);if(m)return m[1];try{return new URL(u).searchParams.get('v')||''}catch(e){return''}}
+function youtubeEmbed(url){const id=youtubeId(url);return id?`https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`:''}
+function norm(v){return String(v||'').replace(/\s+/g,'').toLowerCase()}
+function tagText(v){return Array.isArray(v)?v.join(' '):String(v||'')}
+function recommendationKeywords(calendar){const text=`${calendar.title} ${calendar.note}`;if(/사순|고난|종려|십자가/.test(text))return ['십자가','보혈','회개','고난','은혜','겸손'];if(/부활/.test(text))return ['부활','승리','생명','기쁨','영광','찬양'];if(/성령/.test(text))return ['성령','충만','임재','기름','능력','새롭게'];if(/성탄|대림/.test(text))return ['성탄','임마누엘','기다림','소망','기쁨','평화'];if(/주현/.test(text))return ['빛','영광','경배','왕','주님','나타나심'];return ['예배','감사','은혜','경배','소망','찬양']}
+function scoreSongForToday(song,keywords){const haystack=[song.name,song.key,song.bpm,tagText(song.seasons||song.season),tagText(song.situations||song.situation),tagText(song.tags||song.tag),song.memo,song.note,song.lyrics].join(' ');let score=0;keywords.forEach(k=>{if(norm(haystack).includes(norm(k)))score+=4});if(song.has_score)score+=1;if(youtubeEmbed(song.music_url))score+=1;if(song.usage_count||song.count)score+=Math.min(Number(song.usage_count||song.count)||0,4)*.25;return score}
+function randomPick(rows,count=5){const pool=[...(rows||[])];for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}return pool.slice(0,count)}
+function renderRecommendList(id,picks,metaText){const list=document.getElementById(id);if(!list)return;list.innerHTML=picks.length?picks.map((song,i)=>`<a class="recommend-item" href="test-songs.html?songId=${encodeURIComponent(song.id||'')}"><span class="recommend-rank">${i+1}</span><span><b>${esc(song.name||'곡')}</b><span>Key ${esc(song.key||'미정')} · BPM ${esc(song.bpm||'미정')} · ${metaText(song)}</span></span></a>`).join(''):'<div class="empty-random">추천곡을 불러오지 못했습니다.</div>'}
+function renderTodayRecommendation(rows){const video=document.getElementById('today-video');const title=document.getElementById('today-song-title');const meta=document.getElementById('today-song-meta');if(!video||!title||!meta)return;const videoSongs=(rows||[]).filter(song=>youtubeEmbed(song.music_url));const song=(videoSongs.length?videoSongs:rows||[])[Math.floor(Math.random()*Math.max((videoSongs.length?videoSongs:rows||[]).length,1))];if(!song){video.innerHTML='<div class="empty-random">추천할 곡이 없습니다.</div>';title.textContent='오늘의 추천곡';meta.textContent='곡 DB가 연결되면 표시됩니다.';return}title.textContent=song.name||'오늘의 추천곡';meta.textContent=`Key ${esc(song.key||'미정')} · BPM ${esc(song.bpm||'미정')} · 내 곡 랜덤 추천`;const embed=youtubeEmbed(song.music_url);video.innerHTML=embed?`<iframe src="${embed}" title="${esc(song.name||'찬양곡 영상')}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`:'<div class="empty-random">이 곡에는 유튜브 영상이 없습니다.</div>'}
+async function loadHomeRecommendations(){const aiList=document.getElementById('ai-recommend-list');const randomList=document.getElementById('random-recommend-list');const weeklyNote=document.getElementById('weekly-note');const video=document.getElementById('today-video');const calendar=churchCalendar();const keywords=recommendationKeywords(calendar);if(weeklyNote)weeklyNote.textContent=`${calendar.title} · ${keywords.slice(0,3).join(', ')} 기준`;if(aiList)aiList.innerHTML='<div class="empty-random">추천곡을 불러오는 중입니다.</div>';if(randomList)randomList.innerHTML='<div class="empty-random">추천곡을 불러오는 중입니다.</div>';if(video)video.innerHTML='<div class="empty-random">영상을 불러오는 중입니다.</div>';try{const res=await fetch(`${SUPABASE_URL}/rest/v1/songs?select=*&order=name.asc&limit=1000`,{headers:HEADERS});if(!res.ok)throw new Error('load failed');const rows=await res.json();const ranked=rows.map(song=>({...song,_score:scoreSongForToday(song,keywords)})).sort((a,b)=>b._score-a._score||String(a.name||'').localeCompare(String(b.name||'')));const aiPicks=(ranked.some(s=>s._score>0)?ranked.filter(s=>s._score>0):ranked).slice(0,5);renderRecommendList('ai-recommend-list',aiPicks,song=>song._score>0?'AI/상황 추천':'보유 곡 추천');renderRecommendList('random-recommend-list',randomPick(rows,5),()=> '내 곡 랜덤');renderTodayRecommendation(rows)}catch(e){if(aiList)aiList.innerHTML='<div class="empty-random">추천곡을 불러오지 못했습니다.</div>';if(randomList)randomList.innerHTML='<div class="empty-random">추천곡을 불러오지 못했습니다.</div>';renderTodayRecommendation([]);if(weeklyNote)weeklyNote.textContent='곡 DB가 연결되면 추천곡이 표시됩니다.'}}
+renderChurchCalendar();
+loadHomeRecommendations();
+</script>
 </body>
 </html>

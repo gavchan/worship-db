@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>세부검색</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="test-site.css?v=layout-20260523i">
+</head>
+<body>
+<div class="test-page">
+  <header class="top">
+    <a class="brand" href="index.html">드림찬양단</a>
+    <nav class="nav">
+      <a href="index.html">통합 홈</a>
+      <a href="test-conti.html">찬양콘티</a>
+      <a href="test-songs.html">곡별검색</a>
+      <a class="on" href="song-search.html">세부검색</a>
+      <a href="test-tools.html">관리도구</a>
+    </nav>
+  </header>
+  <main class="wrap song-search-page">
+    <div class="eyebrow">✦ 세부검색 · 악보 · 유튜브</div>
+    <h1>세부검색</h1>
+    <p class="lead">필터로 곡을 좁히고, 악보와 영상을 한 화면에서 확인합니다.</p>
+    <div class="filter-panel"><div class="filter-head"><b>빠른 필터</b><button id="filter-clear" type="button" onclick="clearFilters()" disabled>초기화</button></div><div id="filter-options"></div><div class="filter-group filter-status-search"><b>상태</b><div id="status-filter-options"></div><label class="filter-search"><span>통합검색</span><input id="q" placeholder="곡명, 코드, BPM, 상황, 메모" oninput="renderList()"></label></div></div>
+
+    <div class="song-search-workspace">
+      <section class="song-search-list" id="song-list"></section>
+      <section class="song-search-viewer">
+        <div class="song-search-head">
+          <div>
+            <b id="song-title">곡을 선택해주세요</b>
+            <span id="song-meta">악보와 영상이 이 화면에 함께 표시됩니다.</span>
+          </div>
+        </div>
+        <div class="song-tool-grid">
+          <button class="mini-btn" type="button" onclick="stepSong(-1)">이전 곡</button>
+          <button class="mini-btn primary" type="button" onclick="addSelectedToActiveConti()">콘티 추가</button>
+          <button class="mini-btn" type="button" onclick="stepSong(1)">다음 곡</button>
+          <button class="mini-btn primary" type="button" data-mode="combo" onclick="setViewMode('combo')">같이 보기</button>
+          <button class="mini-btn" type="button" data-mode="score" onclick="setViewMode('score')">악보 크게</button>
+          <button class="mini-btn" type="button" data-mode="video" onclick="setViewMode('video')">영상만</button>
+        </div>
+        <div class="song-pair-viewer" id="viewer">
+          <div class="empty-preview">왼쪽에서 곡을 선택해주세요.</div>
+        </div>
+        <div class="song-search-info" id="song-info"></div>
+      </section>
+    </div>
+  </main>
+</div>
+<script>
+const SUPABASE_URL='https://rmtysrytveexshwzenxj.supabase.co';
+const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtdHlzcnl0dmVleHNod3plbnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MjQ3OTYsImV4cCI6MjA5MjEwMDc5Nn0.5FzzJ1rg-uRG4jAGZ75xVT3i3NH0m6J_tDeOS4GxyT8';
+const STORAGE_URL=SUPABASE_URL+'/storage/v1';
+const HEADERS={apikey:KEY,Authorization:`Bearer ${KEY}`};
+let songs=[],shownSongs=[],selectedSong=null,scoreCache={},scorePage=0,viewMode=new URLSearchParams(location.search).get('mode')||'combo',activeFilters={key:'',tempo:'',situation:'',status:''};
+const SITUATION_FILTERS=['경배·예배','감사·은혜','회개·정결','십자가·보혈','부활·승리','성령·충만','소망·위로','기도·간구','전도·선교','치유·회복','주와동행','기쁨·찬양','고난·시련','헌신·부르심','가족·교제','평강·평안'];
+const presetSongId=new URLSearchParams(location.search).get('songId');
+const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const norm=v=>String(v||'').replace(/\s+/g,'').toLowerCase();
+function keyText(s){return s.key||s.score_key||s.song_key||'미정'}
+function bpmText(s){return s.bpm||s.bpm_min||s.tempo||'미정'}
+function statusText(s){return s.status==='ready'||s.has_score?'악보 완료':s.status==='plan'?'작업 예정':'사용 가능'}
+function tagText(v){return Array.isArray(v)?v.join(', '):(v||'없음')}
+function valuesOf(v){if(Array.isArray(v))return v.map(x=>String(x||'').trim()).filter(Boolean);return String(v||'').split(/[,\n·]/).map(x=>x.trim()).filter(Boolean)}
+function bpmNumber(s){const n=Number(bpmText(s));return Number.isFinite(n)?n:0}
+function tempoText(s){const n=bpmNumber(s);return !n?'미정':n<80?'느림':n<=110?'보통':'빠름'}
+function searchText(s){return [s.name,keyText(s),bpmText(s),s.status,statusText(s),tagText(s.situations||s.situation),tagText(s.tags||s.tag),s.memo,s.note,s.lyrics].join(' ')}
+function situationText(s){return [tagText(s.situations||s.situation),tagText(s.tags||s.tag),s.memo,s.note,s.name].join(' ')}
+function matchesSituation(s,value){const hay=norm(situationText(s));return value.split('·').some(v=>hay.includes(norm(v)))}
+function matchesFilters(s){if(activeFilters.key&&norm(keyText(s))!==norm(activeFilters.key))return false;if(activeFilters.tempo&&tempoText(s)!==activeFilters.tempo)return false;if(activeFilters.situation&&!matchesSituation(s,activeFilters.situation))return false;if(activeFilters.status&&statusText(s)!==activeFilters.status)return false;return true}
+function topValues(getter,limit=12){const count=new Map();songs.forEach(s=>getter(s).forEach(v=>{if(v&&v!=='없음'&&v!=='미정')count.set(v,(count.get(v)||0)+1)}));return [...count.entries()].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,limit).map(([v])=>v)}
+function filterGroup(label,type,values){return `<div class="filter-group"><b>${label}</b><div>${values.map(v=>`<button type="button" class="${activeFilters[type]===v?'on':''}" onclick="setFilter('${type}','${esc(v)}')">${esc(v)}</button>`).join('')}</div></div>`}
+function renderFilters(){const box=document.getElementById('filter-options');if(!box)return;const has=Object.values(activeFilters).some(Boolean);const clear=document.getElementById('filter-clear');if(clear)clear.disabled=!has;box.innerHTML=`${filterGroup('코드','key',topValues(s=>[keyText(s)],14))}${filterGroup('템포','tempo',['느림','보통','빠름'])}${filterGroup('상황','situation',SITUATION_FILTERS)}`;const statusBox=document.getElementById('status-filter-options');if(statusBox)statusBox.innerHTML=['악보 완료','사용 가능','작업 예정'].map(v=>`<button type="button" class="${activeFilters.status===v?'on':''}" onclick="setFilter('status','${esc(v)}')">${esc(v)}</button>`).join('')}
+function setFilter(type,value){activeFilters[type]=activeFilters[type]===value?'':value;renderList()}
+function clearFilters(){activeFilters={key:'',tempo:'',situation:'',status:''};renderList()}
+function youtubeId(url){const u=String(url||'').trim();if(!u)return'';let m=u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/))([A-Za-z0-9_-]{6,})/);if(m)return m[1];try{return new URL(u).searchParams.get('v')||''}catch(e){return''}}
+function youtubeEmbed(url){const id=youtubeId(url);return id?`https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`:''}
+function scoreUrl(path){return `${STORAGE_URL}/object/public/scores/${encodeURIComponent(path).replaceAll('%2F','/')}`}
+function isScoreImagePath(path){return /\.(png|jpe?g|webp|gif)$/i.test(String(path||''))}
+async function api(path){const res=await fetch(`${SUPABASE_URL}/rest/v1/${path}`,{headers:HEADERS});if(!res.ok)throw new Error(await res.text());return await res.json()}
+async function patchHistory(id,payload){const res=await fetch(`${SUPABASE_URL}/rest/v1/worship_history?id=eq.${encodeURIComponent(id)}`,{method:'PATCH',headers:{...HEADERS,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(payload)});if(!res.ok)throw new Error(await res.text());return await res.json()}
+async function listScores(songId){if(!songId)return[];if(scoreCache[songId])return scoreCache[songId];try{const rows=await api(`song_score_files?select=storage_path,file_name,page_no&song_id=eq.${encodeURIComponent(songId)}&order=page_no.asc,created_at.asc`);scoreCache[songId]=(rows||[]).filter(r=>isScoreImagePath(r.storage_path));return scoreCache[songId]}catch(e){scoreCache[songId]=[];return[]}}
+function renderList(){const q=norm(document.getElementById('q').value);shownSongs=songs.filter(s=>(!q||norm(searchText(s)).includes(q))&&matchesFilters(s)).slice(0,80);renderFilters();document.getElementById('song-list').innerHTML=shownSongs.map((s,i)=>{const on=selectedSong&&String(selectedSong.id)===String(s.id);return `<button class="tile song-list-item ${on?'on':''}" type="button" onclick="openSong(${i})"><b>${esc(s.name||'곡')}</b><span>Key ${esc(keyText(s))} · BPM ${esc(bpmText(s))}<br>${s.has_score?'악보 연결됨':'악보 준비중'} · ${s.music_url?'영상 있음':'영상 없음'}</span></button>`}).join('')||'<div class="card" style="padding:22px">검색 결과가 없습니다.</div>'}
+function setViewMode(mode){viewMode=['score','video'].includes(mode)?mode:'combo';document.querySelectorAll('[data-mode]').forEach(btn=>btn.classList.toggle('primary',btn.dataset.mode===viewMode));renderViewer()}
+async function openSong(i){const s=shownSongs[i];if(!s)return;selectedSong=s;scorePage=0;renderList();await renderViewer()}
+async function stepSong(dir){if(!shownSongs.length){renderList();return}const current=selectedSong?shownSongs.findIndex(s=>String(s.id)===String(selectedSong.id)):0;const next=Math.max(0,Math.min((current>=0?current:0)+dir,shownSongs.length-1));await openSong(next)}
+async function changePage(dir){const files=await listScores(selectedSong?.id);if(!files.length)return;scorePage=Math.max(0,Math.min(scorePage+dir,files.length-1));renderViewer()}
+function renderInfo(files){const s=selectedSong;document.getElementById('song-info').innerHTML=s?[
+  ['Key',keyText(s)],['BPM',bpmText(s)],['상태',statusText(s)],['악보',files.length?`${files.length}장`:'없음'],['상황',tagText(s.situations||s.situation)],['메모',s.memo||s.note||'없음']
+].map(([k,v])=>`<div><small>${esc(k)}</small><b>${esc(v)}</b></div>`).join(''):''}
+async function activeHistory(){const id=localStorage.getItem('wdb_active_history_id');let rows=[];if(id)rows=await api(`worship_history?id=eq.${encodeURIComponent(id)}&select=*`).catch(()=>[]);if(!rows.length)rows=await api('worship_history?select=*&order=worship_date.desc&limit=1').catch(()=>[]);return rows[0]||null}
+async function addSelectedToActiveConti(){const s=selectedSong;if(!s)return alert('곡을 먼저 선택해주세요.');try{const h=await activeHistory();if(!h)return alert('추가할 콘티 기록이 없습니다. 찬양콘티에서 콘티를 먼저 선택하거나 저장해주세요.');const ids=Array.isArray(h.song_ids)?[...h.song_ids]:[];const names=Array.isArray(h.song_names)?[...h.song_names]:[];ids.push(s.id||null);names.push(s.name||'곡');await patchHistory(h.id,{song_ids:ids.filter(Boolean),song_names:names,note:h.note||''});localStorage.setItem('wdb_active_history_id',h.id);alert(`${h.worship_date||'선택한'} 콘티에 '${s.name||'곡'}'을 추가했습니다.`)}catch(e){alert('콘티 추가 실패: '+e.message)}}
+async function renderViewer(){document.querySelectorAll('[data-mode]').forEach(btn=>btn.classList.toggle('primary',btn.dataset.mode===viewMode));const viewer=document.getElementById('viewer');const title=document.getElementById('song-title');const meta=document.getElementById('song-meta');const s=selectedSong;if(!s){viewer.innerHTML='<div class="empty-preview">왼쪽에서 곡을 선택해주세요.</div>';renderInfo([]);return}title.textContent=s.name||'곡';meta.textContent=`Key ${keyText(s)} · BPM ${bpmText(s)} · ${statusText(s)}`;viewer.innerHTML='<div class="empty-preview">불러오는 중입니다.</div>';const [files,embed]=[await listScores(s.id),youtubeEmbed(s.music_url)];if(scorePage>=files.length)scorePage=0;const score=files.length?`<div class="score-scroll"><img src="${scoreUrl(files[scorePage].storage_path)}" alt="${esc(s.name)} 악보"></div><div class="score-controls"><button class="mini-btn" type="button" onclick="changePage(-1)">‹</button><b>${scorePage+1} / ${files.length}</b><button class="mini-btn" type="button" onclick="changePage(1)">›</button></div>`:'<div class="empty-preview">등록된 악보 파일이 없습니다.</div>';const video=embed?`<iframe src="${embed}" title="${esc(s.name)} 영상" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`:'<div class="empty-preview">등록된 유튜브 링크가 없습니다.</div>';if(viewMode==='score')viewer.innerHTML=`<div class="pair-pane pair-score only"><span class="song-combo-tab">악보</span>${score}</div>`;else if(viewMode==='video')viewer.innerHTML=`<div class="pair-pane only"><span class="song-combo-tab">유튜브</span>${video}</div>`;else viewer.innerHTML=`<div class="pair-pane pair-score"><span class="song-combo-tab">악보</span>${score}</div><div class="pair-pane"><span class="song-combo-tab">유튜브</span>${video}</div>`;renderInfo(files)}
+async function openSongById(id){const hit=songs.find(s=>String(s.id)===String(id));if(!hit)return;document.getElementById('q').value=hit.name||'';renderList();const idx=shownSongs.findIndex(s=>String(s.id)===String(hit.id));await openSong(idx>=0?idx:0)}
+Object.assign(window,{renderList,setFilter,clearFilters,openSong,stepSong,setViewMode,changePage,addSelectedToActiveConti});
+async function init(){try{songs=await api('songs?select=*&order=name.asc&limit=2000');renderList();if(presetSongId)await openSongById(presetSongId);else if(shownSongs[0])await openSong(0)}catch(e){songs=[{name:'기대',key:'A',bpm:105,has_score:true},{name:'가서 제자 삼으라',key:'A',bpm:120,has_score:true}];renderList();await openSong(0)}}init();
+</script>
+</body>
+</html>

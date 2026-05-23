@@ -230,10 +230,10 @@ body{min-height:100vh;min-height:100dvh}
 </head>
 <body>
 <header class="share-header">
-  <a class="share-brand" href="test-main.html">드림찬양단</a>
+  <a class="share-brand" href="index.html">드림찬양단</a>
   <nav class="share-nav">
     <button type="button" onclick="goBackFromShare()">뒤로</button>
-    <a href="test-main.html">홈</a>
+    <a href="index.html">홈</a>
   </nav>
 </header>
 <div class="wrap">
@@ -513,8 +513,8 @@ async function renderDetail(mode='score'){
 async function prevSong(){if(selectedIdx>0)await selectSong(selectedIdx-1);else viewerToast('첫 곡입니다')}
 async function nextSong(){if(selectedIdx<shareSongs.length-1)await selectSong(selectedIdx+1);else viewerToast('마지막 곡입니다')}
 function openSelectedYoutube(){const s=shareSongs[selectedIdx]||{};if(s.conti_url||s.music_url){renderDetail('video');return}viewerToast('등록된 유튜브 링크가 없습니다')}
-function visitHome(){location.href='test-main.html'}
-function goBackFromShare(){if(history.length>1)history.back();else location.href='test-main.html'}
+function visitHome(){location.href='index.html'}
+function goBackFromShare(){if(history.length>1)history.back();else location.href='index.html'}
 function viewerToast(msg){const t=document.getElementById('viewer-toast');if(!t)return;t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1400)}
 async function openSingleScore(i){singleViewer=true;viewerMode=1;await openSharePerformance(i)}
 async function openSharePerformance(i=0){
@@ -582,7 +582,7 @@ async function closeShareViewer(){
   await requestShareWakeLock(false);
   try{if(document.fullscreenElement)await document.exitFullscreen()}catch(e){}
   if(isPerformanceEntry()){
-    const ref=document.referrer&&new URL(document.referrer,location.href).origin===location.origin?document.referrer:'test-main.html';
+    const ref=document.referrer&&new URL(document.referrer,location.href).origin===location.origin?document.referrer:'index.html';
     location.replace(ref);
     return;
   }
